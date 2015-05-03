@@ -4,6 +4,7 @@ An client for consuming SRI (Standard ROA Interface) interfaces.
 SRI is a set of standards to make RESTful interfaces.
 It specifies how resources are accesses, queried, updated, deleted.
 The specification can [be found here][sri-specs].
+The libraries in this function always return a [Q promise][kriskowal-q].
 
 # Installing
 
@@ -16,7 +17,13 @@ Installation is simple using npm :
 
 Start by requiring the module in your code.
 
-    var sri4node = require('sri4node-client');
+    var rest = require('sri4node-client');
+
+Then you can execute GET, PUT and DELETE commands easily :
+
+    rest.get('https://api.vsko.be/schools').then(function(resource) {
+        console.log(resource);
+    });
 
 # Contributions
 
