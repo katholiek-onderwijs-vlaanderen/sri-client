@@ -2,7 +2,7 @@
   "name": "sri4node-client",
   "version": "1.0.0",
   "description": "Client for consuming SRI interfaces from Node.js.",
-  "main": "sri4node.js",
+  "main": "sri4node-client.js",
   "scripts": {
   },
   "dependencies": {
