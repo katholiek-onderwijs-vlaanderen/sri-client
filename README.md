@@ -25,6 +25,15 @@ Then you can execute GET, PUT and DELETE commands easily :
         console.log(resource);
     });
 
+    var api = 'https://api.lsg.org';
+    var permalink = '/communities/8bf649b4-c50a-4ee9-9b02-877aa0a71849';
+    rest.get(api + permalink).then(function(c) {
+	c.email = 'new@email.be';
+        rest.put(api + permalink, c);
+    }).catch(function(error) {
+        // do error handling.
+    });
+
 # Contributions
 
 Contributions are welcome. Contact me on dimitry_dhondt@yahoo.com.
