@@ -19,7 +19,7 @@ Start by requiring the module in your code.
 
     var rest = require('sri4node-client');
 
-Then you can execute GET, PUT and DELETE commands easily :
+Then you can execute GET, PUT, POST, and DELETE commands easily :
 
     rest.get('https://api.vsko.be/schools').then(function(resource) {
         console.log(resource);
