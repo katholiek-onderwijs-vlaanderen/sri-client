@@ -3,7 +3,7 @@
 # sri-client #
 
 * this is the project with all kind of utilities mainly as angular services.
-* version 0.0.3
+* version 1.0.0
 
 ## sri-clients ##
 The project contains two client modules with all kind of functions to do API requests according to [SRI (Standard ROA Interface)][sri-documentation]:
