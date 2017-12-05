@@ -103,6 +103,37 @@ this configuration can have te following properties:
 * headers: each request will have the headers specified added in the request header.
 * accessToken: an object with properties name and value. Each request will have a request header added with the given name and value. This is added to the headers if they are specified.
 
+## date-utils ##
+
+This library helps to work with dates as specified in the sri api in the format yyyy-MM-dd.
+So if we talk about a date as a string it is in that format.
+If a date as a string is null or undefined it is interpreted as infinitely in the future.
+
+* **getNow():** returns the current date as a string
+* **setNow(dateString):** sets now to another date for the whole library. From now on getNow() will return this date.
+* **toString(date):** return the javascript date as a string
+* **parse(dateString):** returns the dateString as a javascript date
+* **isBeforeOrEqual(a,b):** returns true if a is before or on the same day as b, where a and b are dates as strings
+* **isAfterOrEqual(a,b):** returns true if a is after or on the same day as b, where a and b are dates as strings
+* **isBefore(a,b):** returns true if a is strictly before b, where a and b are dates as strings
+* **isAfter(a,b):** returns true if a is strictly after b, where a and b are dates as strings
+* **getFirst(arrayOfDateStrings):** returns the date that is first in time from arrayOfDateStrings
+* **getLast(arrayOfDateStrings):** returns the date that is last in time from arrayOfDateStrings
+* **overlaps(a, b):** returns true if there is an overlapping period between a en b where a and b are objects with a property startDate and endDate (which can be null/undefined)
+* **getStartofSchoolYear():** returns the first of september before getNow(),
+* **getEndofSchoolYear():** returns the first of september after getNow(),
+* **getPreviousDay(dateString):** returns the day before dateString as a string
+* **getNextDay(dateString):** returns the day after dateString as a string
+
+## address-utils ##
+
+This library helps to work with addresses as specified in the sri api.
+
+* **isSameHouseNumberAndMailBox(a, b):** returns true if sri address a and sri address b have the same mailboxNumber and houseNumber. The match is case insensitive and ingores white spaces and underscores.
+* **isSameStreet(a, b):** returns true if sri address a and sri address b are the same streets. This means a match on  the street name in the same city. If both addresses have a streetHref a match is done based on this reference because it is a reference to the same street, independent of how it is spelled. Otherwise A match on street name is case insensitive and takes into account that parts of the name are abbreviated with a dot. For example 'F. Lintsstraat' matches with 'Frederik lintsstraat'.
+* **addSubCityHref(sriAddress, api):** adds a subCityHref reference to the sriAddress. api is an instance of an sri-client library (can be both the angular-sri-client or the node-sri-client)
+* **addStreetHref(sriAddress, api):** adds a streetHref reference to the sriAddress. api is an instance of an sri-client library (can be both the angular-sri-client or the node-sri-client)
+
 ### Questions ###
 
 Mail to gunther.claes@katholiekonderwijs.vlaanderen, matthias.snellings@katholiekonderwijs.vlaanderen.
