@@ -1,0 +1,32 @@
+{
+  "name": "sri4node-client",
+  "version": "1.1.0",
+  "description": "Client for consuming SRI interfaces from Node.js.",
+  "main": "sri4node-client.js",
+  "scripts": {
+  },
+  "dependencies": {
+    "body-parser": "^1.9.0",
+    "q": "^1.0.1",
+    "needle": "^0.9.0"
+  },
+  "devDependencies": {
+    "mocha": "~2.2.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dimitrydhondt/sri4node-client.git"
+  },
+  "keywords": [
+    "SRI",
+    "REST",
+    "node.js",
+    "client"
+  ],
+  "author": "Dimitry D'hondt <dimitry.dhondt@yahoo.com> (https://github.com/dimitrydhondt/sri4node)",
+  "license": "LGPL",
+  "bugs": {
+    "url": "https://github.com/dimitrydhondt/sri4node-client/issues"
+  },
+  "homepage": "https://github.com/dimitrydhondt/sri4node-client"
+}

@@ -1,32 +1,20 @@
 {
-  "name": "sri4node-client",
-  "version": "1.1.0",
-  "description": "Client for consuming SRI interfaces from Node.js.",
-  "main": "sri4node-client.js",
+  "name": "@kathondvla/utils",
+  "version": "0.0.5",
+  "description": "KathOndVla Utils",
   "scripts": {
+    "lint": "eslint /kathondvla-utils"
   },
+  "author": "matthiassnellings",
+  "license": "private",
   "dependencies": {
-    "body-parser": "^1.9.0",
-    "q": "^1.0.1",
-    "needle": "^0.9.0"
+    "request": "^2.83.0"
   },
   "devDependencies": {
-    "mocha": "~2.2.4"
+    "eslint": "1.4.3"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/dimitrydhondt/sri4node-client.git"
-  },
-  "keywords": [
-    "SRI",
-    "REST",
-    "node.js",
-    "client"
-  ],
-  "author": "Dimitry D'hondt <dimitry.dhondt@yahoo.com> (https://github.com/dimitrydhondt/sri4node)",
-  "license": "LGPL",
-  "bugs": {
-    "url": "https://github.com/dimitrydhondt/sri4node-client/issues"
-  },
-  "homepage": "https://github.com/dimitrydhondt/sri4node-client"
+    "url": "https://bitbucket.org/vskovzw/kathondvla-utils"
+  }
 }
