@@ -2,7 +2,7 @@
 
 # sri-client #
 
-* this is the project with all kind of utilities mainly as angular services.
+* this is the project with all kind of utilities for clients which are using  A [sri4node][sri4node-project] API.
 * version 1.0.0
 
 ## sri-clients ##
@@ -34,6 +34,7 @@ If the batch url is null it will get them in individual request in groups of 100
 * **getAllReferencesTo(baseHref, params, referencingParameterName, hrefsArray, config):** Same as getAll but you can add a referencingParameterName and an array of hrefs.
 It will add referencingParameterName as a parameter and add the hrefsArray as a comma separated string,
 but it will only request them in groups of 100 (can be overwritten with config.groupBy) to make sure the request url does not get too long.
+If the name of the resource is too long you might have to use config.groupBy to decrease the number of hrefs it groups in one request
 
 All these methods return a promise. If the response status >= 400, the result will return an error object with:
 
@@ -176,3 +177,4 @@ This is a library with utility functions for address objects as specified in the
 Mail to gunther.claes@katholiekonderwijs.vlaanderen, matthias.snellings@katholiekonderwijs.vlaanderen.
 
 [sri-documentation]: https://github.com/dimitrydhondt/sri
+[sri4node-project]: https://github.com/katholiek-onderwijs-vlaanderen/sri4node
