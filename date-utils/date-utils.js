@@ -136,9 +136,9 @@ module.exports = {
   isAfter: isAfter,
   getFirst: getFirst,
   getLast: getLast,
-  overlaps: overlaps,
+  isOverlapping: overlaps,
   getStartofSchoolYear: getStartofSchoolYear,
   getEndofSchoolYear: getEndofSchoolYear,
   getPreviousDay: getPreviousDay,
   getNextDay: getNextDay
-}
+};

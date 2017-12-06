@@ -151,7 +151,7 @@ const isSameStreet = function (a, b) {
 };
 
 module.exports = {
-  isSameHouseNumberAndMailBox: isSameHouseNumberAndMailBox,
+  isSameHouseNumberAndMailbox: isSameHouseNumberAndMailBox,
   isSameStreet: isSameStreet,
   addSubCityHref: addSubCityHref,
   addStreetHref: addStreetHref

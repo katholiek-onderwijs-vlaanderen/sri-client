@@ -1,6 +1,7 @@
-module.exports = ['$http', '$q', 'sriClientConfiguration', '$timeout', function ($http, $q, configuration, $timeout) {
-  var getBaseUrl = function (config) {
+const common = require('../common-sri-client.js');
 
+module.exports = ['$http', '$q', 'sriClientConfiguration', '$timeout', function ($http, $q, configuration, $timeout) {
+  const getBaseUrl = function (config) {
     var baseUrl = config.baseUrl || configuration.config.baseUrl;
     if (!baseUrl) {
       console.error('There is no baseUrl configured. Do sriClientConfiguration.set(parameters) to configure the vsko-sri-client module.');
@@ -9,7 +10,7 @@ module.exports = ['$http', '$q', 'sriClientConfiguration', '$timeout', function 
     return baseUrl;
   };
 
-  var handleError = function (body, status, headers, href, config) {
+  const handleError = function (body, status, headers, href, config) {
     config.pending = false;
     return {
       status: status || null,
@@ -18,8 +19,7 @@ module.exports = ['$http', '$q', 'sriClientConfiguration', '$timeout', function 
     };
   };
 
-  var doGet = function (href, params, config) {
-    config = (typeof config === 'undefined' ? {} : config);
+  const doGet = function (href, params, config = {}) {
     config.pending = true;
     var defer = $q.defer();
     var baseUrl = getBaseUrl(config);
@@ -46,8 +46,7 @@ module.exports = ['$http', '$q', 'sriClientConfiguration', '$timeout', function 
     return defer.promise;
   };
 
-  var getAllFromResult = function (data, config) {
-    config = (typeof config === 'undefined' ? {} : config);
+  const getAllFromResult = function (data, config = {}) {
     var defer = $q.defer();
     var results = data.results;
     if (data.$$meta.next) {
@@ -63,8 +62,7 @@ module.exports = ['$http', '$q', 'sriClientConfiguration', '$timeout', function 
     return defer.promise;
   };
 
-  var getList = function (href, params, config) {
-    config = (typeof config === 'undefined' ? {} : config);
+/*  var getList = function (href, params, config = {}) {
     var defer = $q.defer();
     doGet(href, params, config).then(function (result) {
       var results = result.results;
@@ -81,9 +79,8 @@ module.exports = ['$http', '$q', 'sriClientConfiguration', '$timeout', function 
     return defer.promise;
   };
 
-  var getAll = function (href, params, config) {
+  var getAll = function (href, params, config = {}) {
     var defer = $q.defer();
-    config = (typeof config === 'undefined' ? {} : config);
     doGet(href, params, config).then(function (result) {
       getAllFromResult(result, config).then(function (allResults) {
         if (!config.raw && !(params && params.expand && params.expand === 'NONE')) {
@@ -98,10 +95,9 @@ module.exports = ['$http', '$q', 'sriClientConfiguration', '$timeout', function 
       }, function (error) { defer.reject(error); });
     }, function (error) { defer.reject(error); });
     return defer.promise;
-  };
+  };*/
 
-  var sendPayload = function (href, payload, config, method) {
-    config = (typeof config === 'undefined' ? {} : config);
+  var sendPayload = function (href, payload, config = {}, method) {
     config.pending = true;
     var defer = $q.defer();
     var baseUrl = getBaseUrl(config);
@@ -123,22 +119,22 @@ module.exports = ['$http', '$q', 'sriClientConfiguration', '$timeout', function 
         defer.resolve(body);
       }).error(function (body, status, headers) {
         var error = handleError(body, status, headers, href, config);
-        defer.reject(resp);
+        defer.reject(error);
       });
     }
     return defer.promise;
   };
 
-  var put = function (href, payload, config) {
+  const put = function (href, payload, config) {
     return sendPayload(href, payload, config, 'PUT');
   };
 
-  var post = function (href, payload, config) {
+  const post = function (href, payload, config) {
     return sendPayload(href, payload, config, 'POST');
   };
 
-  var doDelete = function (href, config) {
-    config = (typeof config === 'undefined' ? {} : config);
+  const doDelete = function (href, config = {}) {
+    var defer = $q.defer();
     config.pending = true;
     var baseUrl = getBaseUrl(config);
     if (!baseUrl) {
@@ -155,16 +151,14 @@ module.exports = ['$http', '$q', 'sriClientConfiguration', '$timeout', function 
         defer.resolve(body);
       }).error(function (body, status, headers) {
         var error = handleError(body, status, headers, href, config);
-        defer.reject(resp);
+        defer.reject(error);
       });
     }
     return defer.promise;
   };
 
-  return {
+  const that = {
     get: doGet,
-    getList: getList,
-    getAll: getAll,
     put: put,
     updateResource: function (resource, config) {
       return put(resource.$$meta.permalink);
@@ -172,4 +166,22 @@ module.exports = ['$http', '$q', 'sriClientConfiguration', '$timeout', function 
     post: post,
     delete: doDelete
   };
+
+  that.getList = function (href, params, config) {
+    return common.getList(href, params, config, that);
+  };
+
+  that.getAll = function (href, params, config) {
+    return common.getAll(href, params, config, that);
+  };
+
+  that.getAllHrefs = function (hrefs, batchHref, params, config) {
+    return common.getAllHrefs(hrefs, batchHref, params, config, that);
+  };
+
+  that.getAllReferencesTo = function (baseHref, params, referencingParameterName, values, config) {
+    return common.getAllReferencesTo(baseHref, params, referencingParameterName, values, config, that);
+  };
+
+  return that;
 }];

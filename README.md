@@ -30,8 +30,10 @@ The result also has a method count() which returns the count from the $$meta sec
 * **getAllHrefs(hrefs, batchHref, parameters, configuration):** returns an array of all objects for hrefs, a given array with permalinks.
 All these parameters need to be of the same resource type! You can provide expansion (or other) parameters with parameters.
 It will get all these permalinks in the most efficient way if an href to the corresponding batch url is provided.
-If not provided it will get them in individual request in groups of 100 permalinks in order to not make the request url too long.
-For the moment this only works for the node-sri-client.
+If the batch url is null it will get them in individual request in groups of 100  (can be overwritten with config.groupBy) permalinks in order to not make the request url too long.
+* **getAllReferencesTo(baseHref, params, referencingParameterName, hrefsArray, config):** Same as getAll but you can add a referencingParameterName and an array of hrefs.
+It will add referencingParameterName as a parameter and add the hrefsArray as a comma separated string,
+but it will only request them in groups of 100 (can be overwritten with config.groupBy) to make sure the request url does not get too long.
 
 All these methods return a promise. If the response status >= 400, the result will return an error object with:
 
@@ -54,7 +56,8 @@ All methods have a **configuration** object that you can pass on as a parameter.
 * **node-sri-client**
   * **baseUrl:** sends the http request to this baseUrl instead of the default baseUrl that is set in the initialisation of the configuration.
   * **headers:** An object with headers that are added on the http request. f.e.: {'foo': 'bar'} adds a header foo with value bar.
-  * **timeout:** The number of miliseconds to wait before the request times out.
+  * **timeout:** The number of miliseconds to wait before the request times out. (default timeout is 10 seconds for a GET, 30 seconds for a sendPayload and 120 seconds for a batch)
+  * **strip$$Properties:** strips the $$-properties from the payload.
   * **logging:** logs the response body if the status code >= 400 to the console for any value. If the value is 'debug' the request url will also be logged to the console.
   * **raw:** boolean that can be used for getList and getAll. If set to true the array of results will contain the raw result of the body.results, so the items will be an object with an href and a $$expanded object.
   * **asMap:** boolean that can be used for getAllHrefs. If set to true an object with be returned which contains all the hrefs as keys and the object to which it refers as value.
@@ -103,9 +106,43 @@ this configuration can have te following properties:
 * headers: each request will have the headers specified added in the request header.
 * accessToken: an object with properties name and value. Each request will have a request header added with the given name and value. This is added to the headers if they are specified.
 
+#### error handling ####
+
+If the response is different from status code 200 or 201 or there is no response the response is rejected and an error object is returned of type SriClientError.
+So you can catch errors coming from the sri client and catch http error by filtering on  this error, for example:
+
+```javascript
+// create a batch array
+try {
+  await api.put('/batch', batch);
+} catch (error) {
+  if(error instanceof api.SriClientError) {
+    console.error(util.inspect(responseError.body, {depth:7}));
+    console.error(responseError.stack);
+  } else {
+    console.error(error.stack);
+  }
+}
+```
+
+An SriClientError has the following properties:
+
+* status: the status code of the response (null if there was no response)
+* body: payload of the response.
+* getResponseHeader(): function that returns the whole responseHeader [is not working yet]
+* stack: stack trace that leads back to where the api was called from in the code
+
+## common-utils ##
+
+This is a library with common utility functions
+
+* **generateUUID():** returns a generated uuid of version 4.
+* **strip$$Properties(object):** returns a copy of the object with all the properties that start with '$$' removed
+* **strip$$PropertiesFromBatch(batchArray):** returns a copy of the batchArray with all the properties of the body in the batch objects that start with '$$' removed
+
 ## date-utils ##
 
-This library helps to work with dates as specified in the sri api in the format yyyy-MM-dd.
+This is a library with utility functions for string dates as specified in the sri api in the format yyyy-MM-dd.
 So if we talk about a date as a string it is in that format.
 If a date as a string is null or undefined it is interpreted as infinitely in the future.
 
@@ -119,7 +156,7 @@ If a date as a string is null or undefined it is interpreted as infinitely in th
 * **isAfter(a,b):** returns true if a is strictly after b, where a and b are dates as strings
 * **getFirst(arrayOfDateStrings):** returns the date that is first in time from arrayOfDateStrings
 * **getLast(arrayOfDateStrings):** returns the date that is last in time from arrayOfDateStrings
-* **overlaps(a, b):** returns true if there is an overlapping period between a en b where a and b are objects with a property startDate and endDate (which can be null/undefined)
+* **isOverlapping(a, b):** returns true if there is an overlapping period between a en b where a and b are objects with a property startDate and endDate (which can be null/undefined)
 * **getStartofSchoolYear():** returns the first of september before getNow(),
 * **getEndofSchoolYear():** returns the first of september after getNow(),
 * **getPreviousDay(dateString):** returns the day before dateString as a string
@@ -127,12 +164,12 @@ If a date as a string is null or undefined it is interpreted as infinitely in th
 
 ## address-utils ##
 
-This library helps to work with addresses as specified in the sri api.
+This is a library with utility functions for address objects as specified in the sri api.
 
-* **isSameHouseNumberAndMailBox(a, b):** returns true if sri address a and sri address b have the same mailboxNumber and houseNumber. The match is case insensitive and ingores white spaces and underscores.
+* **isSameHouseNumberAndMailbox(a, b):** returns true if sri address a and sri address b have the same mailboxNumber and houseNumber. The match is case insensitive and ingores white spaces and underscores.
 * **isSameStreet(a, b):** returns true if sri address a and sri address b are the same streets. This means a match on  the street name in the same city. If both addresses have a streetHref a match is done based on this reference because it is a reference to the same street, independent of how it is spelled. Otherwise A match on street name is case insensitive and takes into account that parts of the name are abbreviated with a dot. For example 'F. Lintsstraat' matches with 'Frederik lintsstraat'.
-* **addSubCityHref(sriAddress, api):** adds a subCityHref reference to the sriAddress. api is an instance of an sri-client library (can be both the angular-sri-client or the node-sri-client)
-* **addStreetHref(sriAddress, api):** adds a streetHref reference to the sriAddress. api is an instance of an sri-client library (can be both the angular-sri-client or the node-sri-client)
+* **addSubCityHref(sriAddress, api) [async]:** adds a subCityHref reference to the sriAddress. api is an instance of an sri-client library (can be both the angular-sri-client or the node-sri-client)
+* **addStreetHref(sriAddress, api) [async]:** adds a streetHref reference to the sriAddress. api is an instance of an sri-client library (can be both the angular-sri-client or the node-sri-client)
 
 ### Questions ###
 
