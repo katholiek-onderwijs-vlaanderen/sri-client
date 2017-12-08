@@ -81,21 +81,21 @@ function overlaps(a, b) {
 }
 
 
-function getEndofSchoolYear(date) {
+function getEndofSchoolYear(stringDate) {
   'use strict';
-  date = date || now;
+  const date = parse(stringDate) || now;
   var ret = null;
-  if (now.getMonth() < 8) {
-    ret = toString(new Date(now.getFullYear(), 8, 1));
+  if (date.getMonth() < 8) {
+    ret = toString(new Date(date.getFullYear(), 8, 1));
   } else {
-    ret = toString(new Date(now.getFullYear() + 1, 8, 1));
+    ret = toString(new Date(date.getFullYear() + 1, 8, 1));
   }
   return ret;
 }
 
-function getStartofSchoolYear(date) {
+function getStartofSchoolYear(stringDate) {
   'use strict';
-  date = date || now;
+  const date = parse(stringDate) || now;
   var ret = null;
   if (date.getMonth() < 8) {
     ret = toString(new Date(date.getFullYear() - 1, 8, 1));

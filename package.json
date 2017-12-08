@@ -1,10 +1,16 @@
 {
-  "name": "@kathondvla/utils",
-  "version": "0.0.5",
-  "description": "KathOndVla Utils",
+  "name": "sri-client",
+  "version": "1.0.0",
+  "description": "Client for consuming SRI interfaces from Node.js.",
   "scripts": {
-    "lint": "eslint /kathondvla-utils"
+    "lint": "eslint /sri-client"
   },
+  "keywords": [
+    "SRI",
+    "REST",
+    "node.js",
+    "client"
+  ],
   "author": "matthiassnellings",
   "license": "private",
   "dependencies": {
@@ -15,6 +21,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://bitbucket.org/vskovzw/kathondvla-utils"
+    "url": "https://github.com/katholiek-onderwijs-vlaanderen/sri-client"
   }
 }
