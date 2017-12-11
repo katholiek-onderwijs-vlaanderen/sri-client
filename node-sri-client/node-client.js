@@ -1,7 +1,7 @@
 const request = require('request');
 const util = require('util');
 const common = require('../common-sri-client.js');
-const commonUtils = require('../common-utils.js');
+const commonUtils = require('../common-utils');
 
 const SriClientError = function(obj) {
   this.status = obj.status;

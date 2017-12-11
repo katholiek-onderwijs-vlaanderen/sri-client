@@ -2,16 +2,18 @@
 const getAllFromResult = async function (data, config, core) {
   var results = data.results;
   if (data.$$meta.next) {
-    const nextResult = await core.doGet(data.$$meta.next, undefined, config);
-    const nextResults = await getAllFromResult(nextResult, config);
+    const nextResult = await core.get(data.$$meta.next, undefined, config);
+    const nextResults = await getAllFromResult(nextResult, config, core);
     results = results.concat(nextResults);
   }
   return results;
 };
 
 const getAll = async function (href, params = {}, config = {}, core) {
+  params = params || {};
+  config = config || {};
   params.limit = 500;
-  const result = await core.doGet(href, params, config);
+  const result = await core.get(href, params, config);
   var allResults = await getAllFromResult(result, config, core);
   if (!config.raw && !(params && params.expand && params.expand === 'NONE')) {
     allResults = allResults.map(function (item) {
@@ -25,7 +27,8 @@ const getAll = async function (href, params = {}, config = {}, core) {
 };
 
 const getList = async function (href, params, config = {}, core) {
-  const result = await core.doGet(href, params, config);
+  config = config || {};
+  const result = await core.get(href, params, config);
   var results = result.results;
   if (!config.raw && !(params && params.expand && params.expand === 'NONE')) {
     results = results.map(function (item) {
@@ -89,11 +92,15 @@ const getAllHrefsWithoutBatch = async function (baseHref, parameterName, hrefs, 
 };
 
 const getAllReferencesTo = async function (baseHref, params = {}, parameterName, values, config = {}, core) {
+  params = params || {};
+  config = config || {};
   params.limit = 500;
   return getAllHrefsWithoutBatch(baseHref, 'hrefs', values, params, config, core);
 };
 
 const getAllHrefs = async function (hrefs, batchHref, params = {}, config = {}, core) {
+  params = params || {};
+  config = config || {};
   params.limit = 500;
   const hrefParts = hrefs[0].split('/');
   hrefParts.splice(hrefParts.length-1);

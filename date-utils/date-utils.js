@@ -27,7 +27,7 @@ function getNow() {
 
 function setNow(newNow) {
   'use strict';
-  now = newNow;
+  now = parse(newNow);
 }
 
 function isBeforeOrEqual(a, b) {
@@ -137,8 +137,8 @@ module.exports = {
   getFirst: getFirst,
   getLast: getLast,
   isOverlapping: overlaps,
-  getStartofSchoolYear: getStartofSchoolYear,
-  getEndofSchoolYear: getEndofSchoolYear,
+  getStartOfSchoolYear: getStartofSchoolYear,
+  getEndOfSchoolYear: getEndofSchoolYear,
   getPreviousDay: getPreviousDay,
   getNextDay: getNextDay
 };

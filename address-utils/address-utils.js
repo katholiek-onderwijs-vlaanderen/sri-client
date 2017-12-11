@@ -1,4 +1,5 @@
-var _ = require('lodash');
+const _ = require('lodash');
+const util = require('util');
 
 const addSubCityHref = async function (address, api) {
   const thisSubCityClean = address.subCity.split('(')[0].trim();
@@ -39,6 +40,7 @@ const addSubCityHref = async function (address, api) {
     }
   } else if(matches.length === 0) {
     console.warn('no subCity match could be found for ' + address.subCity);
+    console.log(util.inspect(subCities, {depth: 7}));
     if(address.nisCode) {
       console.warn('niscode was ' + address.nisCode);
     }

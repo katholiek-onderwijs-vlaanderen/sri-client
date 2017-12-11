@@ -158,8 +158,8 @@ If a date as a string is null or undefined it is interpreted as infinitely in th
 * **getFirst(arrayOfDateStrings):** returns the date that is first in time from arrayOfDateStrings
 * **getLast(arrayOfDateStrings):** returns the date that is last in time from arrayOfDateStrings
 * **isOverlapping(a, b):** returns true if there is an overlapping period between a en b where a and b are objects with a property startDate and endDate (which can be null/undefined)
-* **getStartofSchoolYear():** returns the first of september before getNow(),
-* **getEndofSchoolYear():** returns the first of september after getNow(),
+* **getStartOfSchoolYear(dateString):** returns the first of september before datestring (the first of september before getNow() if dateString is null),
+* **getEndOfSchoolYear(dateString):** returns the first of september after dateString (the first of september after getNow() if dateString is null),
 * **getPreviousDay(dateString):** returns the day before dateString as a string
 * **getNextDay(dateString):** returns the day after dateString as a string
 
