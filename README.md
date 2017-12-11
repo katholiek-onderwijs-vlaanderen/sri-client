@@ -15,26 +15,26 @@ They both have the same generic interface
 
 ### generic interface ###
 
-* **get(href, parameters, configuration):** http get of the href with the given parameters. Returns a promise with the exact result from the api.
-* **getList(href, parameters, configuration):** http get of the href with the given parameters where href is suposed to be a list resource.
+* **get(href, parameters, options):** http get of the href with the given parameters. Returns a promise with the exact result from the api.
+* **getList(href, parameters, options):** http get of the href with the given parameters where href is suposed to be a list resource.
 Returns a promise with the array of the expanded results that match the query (so not an object with an href and $$expanded, but the object that is $$expanded.
 The list of results is limited to only one API call so the lenght will be maximum the limit. The result also has a method count() which returns the count from the $$meta section.
-* **getAll(href, parameters, configuration):** http get of the href with the given parameters where href is suposed to be a list resource.
+* **getAll(href, parameters, options):** http get of the href with the given parameters where href is suposed to be a list resource.
 Returns a promise with the array of the expanded results that match the query (so not an object with an href and $$expanded, but the object that is $$expanded.
 The list of results is all the results that match the query, because the next links are requested as well and concatenated to the result.
 The result also has a method count() which returns the count from the $$meta section.
-* **put(href, payload, configuration):** http put to href with the given payload.
-* **updateResouce(resource, configuration):** http to resource.$$meta.permalink with resouce as payload. Compact function to do an update of an existing resource.
-* **post(href, payload, configuration):** http post to href with the given payload.
-* **delete(href, configuration):** http delete to href.
-* **getAllHrefs(hrefs, batchHref, parameters, configuration):** returns an array of all objects for hrefs, a given array with permalinks.
+* **put(href, payload, options):** http put to href with the given payload.
+* **updateResouce(resource, options):** http to resource.$$meta.permalink with resouce as payload. Compact function to do an update of an existing resource.
+* **post(href, payload, options):** http post to href with the given payload.
+* **delete(href, options):** http delete to href.
+* **getAllHrefs(hrefs, batchHref, parameters, options):** returns an array of all objects for hrefs, a given array with permalinks.
 All these parameters need to be of the same resource type! You can provide expansion (or other) parameters with parameters.
 It will get all these permalinks in the most efficient way if an href to the corresponding batch url is provided.
-If the batch url is null it will get them in individual request in groups of 100  (can be overwritten with config.groupBy) permalinks in order to not make the request url too long.
-* **getAllReferencesTo(baseHref, params, referencingParameterName, hrefsArray, config):** Same as getAll but you can add a referencingParameterName and an array of hrefs.
+If the batch url is null it will get them in individual request in groups of 100  (can be overwritten with options.groupBy) permalinks in order to not make the request url too long.
+* **getAllReferencesTo(baseHref, params, referencingParameterName, hrefsArray, options):** Same as getAll but you can add a referencingParameterName and an array of hrefs.
 It will add referencingParameterName as a parameter and add the hrefsArray as a comma separated string,
-but it will only request them in groups of 100 (can be overwritten with config.groupBy) to make sure the request url does not get too long.
-If the name of the resource is too long you might have to use config.groupBy to decrease the number of hrefs it groups in one request
+but it will only request them in groups of 100 (can be overwritten with options.groupBy) to make sure the request url does not get too long.
+If the name of the resource is too long you might have to use options.groupBy to decrease the number of hrefs it groups in one request
 
 All these methods return a promise. If the response status >= 400, the result will return an error object with:
 
@@ -46,7 +46,7 @@ If the result of put, updateResouce or post was < 300 the promise returns an obj
 
 * **getResponseHeader(headerName):** method that returns the value of the given headerName of the response.
 
-All methods have a **configuration** object that you can pass on as a parameter. You can specify the following properties:
+All methods have a **options** object that you can pass on as a parameter. You can specify the following properties:
 
 * **angular-sri-client**
   * **baseUrl:** sends the http request to this baseUrl instead of the default baseUrl that is set in the initialisation of the configuration.
@@ -162,6 +162,10 @@ If a date as a string is null or undefined it is interpreted as infinitely in th
 * **getEndOfSchoolYear(dateString):** returns the first of september after dateString (the first of september after getNow() if dateString is null),
 * **getPreviousDay(dateString):** returns the day before dateString as a string
 * **getNextDay(dateString):** returns the day after dateString as a string
+* **getActiveResources(array, referenceDateString):** returns a new array with only the resources that are active on the referenceDateString (getNow() if dateString is null) from array,
+which is an array of resources with a period. array can also be an array of hrefs that is expanded.
+* **getNonAbolishedResources(array, referenceDateString):**  returns a new array with only the resources that are not abolished on the referenceDateString (getNow() if dateString is null) from array,
+which is an array of resources with a period. array can also be an array of hrefs that is expanded.
 
 ## address-utils ##
 

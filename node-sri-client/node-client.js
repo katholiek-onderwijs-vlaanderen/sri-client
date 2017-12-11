@@ -11,36 +11,17 @@ const SriClientError = function(obj) {
 };
 //SriClientError.prototype = Error.prototype;
 
-var configuration = {};
-var baseRequest = null;
-const setConfiguration = function (config) {
-  configuration = config;
-  const defaultOptions = {
-    headers: config.headers || {}
-  };
-  if(config.username && config.password) {
-    defaultOptions.auth = {
-      user: config.username,
-      pass: config.password
-    };
-  }
-  if(config.accessToken) {
-    defaultOptions.headers[config.accessToken.name] = config.accessToken.value;
-  }
-  baseRequest = request.defaults(defaultOptions);
-};
-
-const getBaseUrl = function (config) {
-  const baseUrl = config.baseUrl || configuration.baseUrl;
+const getBaseUrl = function (configuration, options) {
+  const baseUrl = options.baseUrl || configuration.baseUrl;
   if (!baseUrl) {
     throw Error("There is no baseUrl configured. The specification for the node-sri-client module can be found at https://bitbucket.org/vskovzw/kathondvla-utils");
   }
   return baseUrl;
 };
 
-const handleError = function (httpRequest, error, response = {}, config, stack) {
-  config.pending = false;
-  if((configuration && configuration.logging) || config.logging) {
+const handleError = function (httpRequest, error, response = {}, configuration, options, stack) {
+  options.pending = false;
+  if((configuration && configuration.logging) || options.logging) {
     console.error(response.statusCode + ': An error occured for ' + httpRequest);
     if(response.body) {
       console.error(util.inspect(response.body, {depth: 7}));
@@ -56,38 +37,38 @@ const handleError = function (httpRequest, error, response = {}, config, stack) 
   };
 };
 
-const doGet = async function (href, params, config = {}) {
-  config.pending = true;
-  var baseUrl = getBaseUrl(config);
-  if((configuration && configuration.logging === 'debug') || config.logging === 'debug') {
+const doGet = async function (href, params, options = {}, my) {
+  options.pending = true;
+  var baseUrl = getBaseUrl(my.configuration, options);
+  if((my.configuration.logging === 'debug') || options.logging === 'debug') {
     console.log('GET ' + baseUrl + common.paramsToString(href, params));
   }
   var stack = new Error().stack;
   return new Promise(function(resolve, reject) {
-    baseRequest({
+    my.baseRequest({
       method: 'GET',
       url: baseUrl + href,
       qs: params,
       json: true,
-      headers: config.headers,
-      timeout: config.timeout || 10000
+      headers: options.headers,
+      timeout: options.timeout || 10000
     }, function(error, response, body) {
       if(!error && response.statusCode >= 200 && response.statusCode < 400) {
         resolve(response.body);
       } else {
-        reject(new SriClientError(handleError('GET ' + baseUrl + common.paramsToString(href, params), error, response, config, stack)));
+        reject(new SriClientError(handleError('GET ' + baseUrl + common.paramsToString(href, params), error, response, my.configuration, options, stack)));
       }
     });
   });
 };
 
-const sendPayload = async function (href, payload, config = {}, method) {
-  config.pending = true;
-  const baseUrl = getBaseUrl(config);
-  if((configuration && configuration.logging === 'debug') || config.logging === 'debug') {
+const sendPayload = async function (href, payload, options = {}, method, my) {
+  options.pending = true;
+  const baseUrl = getBaseUrl(my.configuration, options);
+  if((my.configuration.logging === 'debug') || options.logging === 'debug') {
     console.log(method + ' ' + baseUrl + href + ':\n' + JSON.stringify(payload));
   }
-  if(config.strip$$Properties) {
+  if(options.strip$$Properties) {
     if(payload instanceof Array) {
       payload = commonUtils.strip$$PropertiesFromBatch(payload);
     } else {
@@ -95,88 +76,112 @@ const sendPayload = async function (href, payload, config = {}, method) {
     }
   }
   return new Promise(function(resolve, reject) {
-    baseRequest({
+    my.baseRequest({
       method: method,
       url: baseUrl + href,
       body: payload,
       json:true,
-      headers: config.headers,
-      timeout: config.timeout || (payload instanceof Array ? 120000 : 30000)
+      headers: options.headers,
+      timeout: options.timeout || (payload instanceof Array ? 120000 : 30000)
     }, function(error, response) {
       if(!error && response.statusCode >= 200 && response.statusCode < 400) {
         const body = response.body || {};
         body.getResponseHeaders = function() {
           return response.headers;
         };
-        config.pending = false;
+        options.pending = false;
         resolve(body);
       } else {
-        reject(new SriClientError(handleError(method + ' ' + baseUrl + href, error, response, config)));
+        reject(new SriClientError(handleError(method + ' ' + baseUrl + href, error, response, my.configuration, options)));
       }
     });
   });
 };
 
-const put = async function (href, payload, config) {
-  return sendPayload(href, payload, config, 'PUT');
-};
-
-const post = async function (href, payload, config) {
-  return sendPayload(href, payload, config, 'POST');
-};
-
-const doDelete = async function (href, config = {}) {
-  config.pending = true;
-  var baseUrl = getBaseUrl(config);
+const doDelete = async function (href, options = {}, my) {
+  options.pending = true;
+  var baseUrl = getBaseUrl(my.configuration, options);
   return new Promise(function(resolve, reject) {
-    baseRequest({
+    my.baseRequest({
       method: 'DELETE',
       url: baseUrl + href,
       json:true,
-      headers: config.headers,
-      timeout: config.timeout || 30000
+      headers: options.headers,
+      timeout: options.timeout || 30000
     }, function(error, response) {
       if(!error && response.statusCode >= 200 && response.statusCode < 400) {
-        config.pending = false;
+        options.pending = false;
         resolve(response.body);
       } else {
-        reject(new SriClientError(reject(handleError(error, response, config))));
+        reject(new SriClientError(reject(handleError(error, response, my.configuration, options))));
       }
     });
   });
 };
 
-const that = {
-  setConfiguration: setConfiguration,
-  SriClientError: SriClientError,
-  get: doGet,
-  put: put,
-  updateResource: function (resource, config) {
-    return put(resource.$$meta.permalink);
-  },
-  post: post,
-  delete: doDelete
-};
-
-that.getList = function (href, params, config) {
-  return common.getList(href, params, config, that);
-};
-
-that.getAll = function (href, params, config) {
-  return common.getAll(href, params, config, that);
-};
-
-that.getAllHrefs = function (hrefs, batchHref, params, config) {
-  return common.getAllHrefs(hrefs, batchHref, params, config, that);
-};
-
-that.getAllReferencesTo = function (baseHref, params, referencingParameterName, values, config) {
-  return common.getAllReferencesTo(baseHref, params, referencingParameterName, values, config, that);
-};
-
 module.exports = function(configuration) {
+  const that = {
+    my: {
+      configuration: {},
+      baseRequest: null
+    },
+    SriClientError: SriClientError
+  };
+
+  that.setConfiguration = function (config) {
+    that.my.configuration = config;
+    const defaultOptions = {
+      headers: config.headers || {}
+    };
+    if(config.username && config.password) {
+      defaultOptions.auth = {
+        user: config.username,
+        pass: config.password
+      };
+    }
+    if(config.accessToken) {
+      defaultOptions.headers[config.accessToken.name] = config.accessToken.value;
+    }
+    that.my.baseRequest = request.defaults(defaultOptions);
+  };
+
   if(configuration) {
-    setConfiguration(configuration);
+    that.setConfiguration(configuration);
   }
+
+  that.get = function(href, params, options) {
+    return doGet(href, params, options, that.my);
+  };
+
+  that.put = function (href, payload, options) {
+    return sendPayload(href, payload, options, 'PUT', that.my);
+  };
+  that.updateResource = function (resource, options) {
+    return that.put(resource.$$meta.permalink, resource, options);
+  };
+  that.post = function (href, payload, options) {
+    return sendPayload(href, payload, options, 'POST', that.my);
+  };
+
+  that.delete = function (href, options) {
+    doDelete(href, options, that.my);
+  };
+
+  that.getList = function (href, params, config) {
+    return common.getList(href, params, config, that);
+  };
+
+  that.getAll = function (href, params, config) {
+    return common.getAll(href, params, config, that);
+  };
+
+  that.getAllHrefs = function (hrefs, batchHref, params, config) {
+    return common.getAllHrefs(hrefs, batchHref, params, config, that);
+  };
+
+  that.getAllReferencesTo = function (baseHref, params, referencingParameterName, values, config) {
+    return common.getAllReferencesTo(baseHref, params, referencingParameterName, values, config, that);
+  };
+
   return that;
 };

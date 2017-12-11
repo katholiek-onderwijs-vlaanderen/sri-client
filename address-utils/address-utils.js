@@ -18,12 +18,15 @@ const addSubCityHref = async function (address, api) {
     subCities = await api.getAll('/commons/subcities', {nameContains: address.subCity.replace(/\'/g, "''")});
   }
   var matches = [];
+  var checkedSubCities = null;
   subCities.forEach(function(subCity) {
+    checkedSubCities = checkedSubCities ? checkedSubCities + ', ' : '';
+    checkedSubCities += subCity.name + ' [ ' + subCity.city.$$expanded.name + '] ' + util.inspect(subCity.zipCodes);
     if(subCity.name.split('(')[0].trim().toLowerCase() === thisSubCityClean.toLowerCase()) {
       if(address.zipCode) {
         // check if the zipCode corresponds with one of the zipCodes of the subCity
         let index = _.findIndex(subCity.zipCodes, function(zipCode) {
-          zipCode === address.zipCode;
+          return zipCode.toString() === address.zipCode;
         });
         if(index > -1) {
           matches.push(subCity);
@@ -36,14 +39,15 @@ const addSubCityHref = async function (address, api) {
   if(matches.length > 1) {
     console.warn('multiple subCity matches for ' + address.subCity);
     if(address.nisCode) {
-      console.warn('niscode was ' + address.nisCode);
+      checkedSubCities += ' in niscode '+ address.nisCode;
     }
+    console.warn('checked for the following sub cities: ' + checkedSubCities);
   } else if(matches.length === 0) {
-    console.warn('no subCity match could be found for ' + address.subCity);
-    console.log(util.inspect(subCities, {depth: 7}));
+    console.warn('no subCity match could be found for ' + address.zipCode + ' ' + address.subCity);
     if(address.nisCode) {
-      console.warn('niscode was ' + address.nisCode);
+      checkedSubCities += ' in niscode '+ address.nisCode;
     }
+    console.warn('checked for the following sub cities: ' + checkedSubCities);
   } else {
     address.subCityHref = matches[0].$$meta.permalink;
     if(!address.city) {

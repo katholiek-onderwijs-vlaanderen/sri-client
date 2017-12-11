@@ -125,6 +125,24 @@ function getPreviousDay(date) {
   return toString(nextDay);
 }
 
+function getActiveResources(array, referenceDate = getNow()) {
+  return _.filter(array, function(resource) {
+    if(resource.$$expanded) {
+      resource = resource.$$expanded;
+    }
+    return resource.startDate <= referenceDate && (!resource.endDate || resource.endDate > referenceDate);
+  });
+};
+
+function getNonAbolishedResources(array, referenceDate = getNow()) {
+  return _.filter(array, function(resource) {
+    if(resource.$$expanded) {
+      resource = resource.$$expanded;
+    }
+    return resource.startDate <= referenceDate;
+  });
+};
+
 module.exports = {
   getNow: getNow,
   setNow: setNow,
@@ -140,5 +158,7 @@ module.exports = {
   getStartOfSchoolYear: getStartofSchoolYear,
   getEndOfSchoolYear: getEndofSchoolYear,
   getPreviousDay: getPreviousDay,
-  getNextDay: getNextDay
+  getNextDay: getNextDay,
+  getActiveResources: getActiveResources,
+  getNonAbolishedResources: getNonAbolishedResources
 };
