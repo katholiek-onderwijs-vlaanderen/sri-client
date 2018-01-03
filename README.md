@@ -46,7 +46,7 @@ If the result of put, updateResouce or post was < 300 the promise returns an obj
 
 * **getResponseHeader(headerName):** method that returns the value of the given headerName of the response.
 
-All methods have a **options** object that you can pass on as a parameter. You can specify the following properties:
+All methods have an **options** object that you can pass on as a parameter. You can specify the following properties:
 
 * **angular-sri-client**
   * **baseUrl:** sends the http request to this baseUrl instead of the default baseUrl that is set in the initialisation of the configuration.
@@ -162,9 +162,9 @@ If a date as a string is null or undefined it is interpreted as infinitely in th
 * **getEndOfSchoolYear(dateString):** returns the first of september after dateString (the first of september after getNow() if dateString is null),
 * **getPreviousDay(dateString):** returns the day before dateString as a string
 * **getNextDay(dateString):** returns the day after dateString as a string
-* **getActiveResources(array, referenceDateString):** returns a new array with only the resources that are active on the referenceDateString (getNow() if dateString is null) from array,
+* **getActiveResources(arrayOfResources, referenceDateString):** returns a new array with only the resources that are active on the referenceDateString (getNow() if dateString is null) from array,
 which is an array of resources with a period. array can also be an array of hrefs that is expanded.
-* **getNonAbolishedResources(array, referenceDateString):**  returns a new array with only the resources that are not abolished on the referenceDateString (getNow() if dateString is null) from array,
+* **getNonAbolishedResources(arrayOfResources, referenceDateString):**  returns a new array with only the resources that are not abolished on the referenceDateString (getNow() if dateString is null) from array,
 which is an array of resources with a period. array can also be an array of hrefs that is expanded.
 
 ## address-utils ##

@@ -32,7 +32,9 @@ const handleError = function (httpRequest, error, response = {}, configuration, 
   return {
     status: response.statusCode || null,
     body: response.body || null,
-    getResponseHeader: response.getHeader,
+    getResponseHeader: function(header) {
+      return response.headers[header];
+    },
     stack: stack
   };
 };
