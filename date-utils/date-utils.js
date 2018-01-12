@@ -75,11 +75,18 @@ function getLast(array) {
   return sorted[sorted.length - 1];
 }
 
-function overlaps(a, b) {
+function isOverlapping(a, b) {
   'use strict';
   return isBefore(a.startDate, b.endDate) && isAfter(a.endDate, b.startDate);
 }
 
+function isConsecutive(a, b) {
+  return (a.endDate !== null && a.endDate === b.startDate) || (b.endDate !== null && b.endDate === a.startDate);
+}
+
+function isConsecutiveWithOneDayInBetween(a, b) {
+  return (a.endDate !== null && getNextDay(a.endDate) === b.startDate) || (b.endDate !== null && getNextDay(b.endDate) === a.startDate);
+}
 
 function getEndofSchoolYear(stringDate) {
   'use strict';
@@ -154,7 +161,9 @@ module.exports = {
   isAfter: isAfter,
   getFirst: getFirst,
   getLast: getLast,
-  isOverlapping: overlaps,
+  isOverlapping: isOverlapping,
+  isConsecutive: isConsecutive,
+  isConsecutiveWithOneDayInBetween: isConsecutiveWithOneDayInBetween,
   getStartOfSchoolYear: getStartofSchoolYear,
   getEndOfSchoolYear: getEndofSchoolYear,
   getPreviousDay: getPreviousDay,

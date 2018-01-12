@@ -110,7 +110,7 @@ const isStreetNameMatch = function (a, b) {
     return true;
   } else if(aWords.length === bWords.length) {
     for(var i = 0; i < aWords.length; i++) {
-      if(!aWords[i].endsWith('.') && !bWords[i].endsWith) {
+      if(!aWords[i].endsWith('.') && !bWords[i].endsWith('.')) {
         if(aWords[i] !== bWords[i]) {
           return false;
         }
