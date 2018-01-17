@@ -158,6 +158,8 @@ If a date as a string is null or undefined it is interpreted as infinitely in th
 * **getFirst(arrayOfDateStrings):** returns the date that is first in time from arrayOfDateStrings
 * **getLast(arrayOfDateStrings):** returns the date that is last in time from arrayOfDateStrings
 * **isOverlapping(a, b):** returns true if there is an overlapping period between a en b where a and b are objects with a property startDate and endDate (which can be null/undefined)
+* **isConsecutive(a, b):**: returns true if the periods of a and b are strictly following each other in any order. So b starts on the same date as a ends or a starts on the same date as b ends.
+* **isConsecutiveWithOneDayInBetween(a, b):**: returns true if the periods of a and b are strictly following each other in any order with one day in between. So b starts the day after a ends or a starts the day after b ends.
 * **getStartOfSchoolYear(dateString):** returns the first of september before datestring (the first of september before getNow() if dateString is null),
 * **getEndOfSchoolYear(dateString):** returns the first of september after dateString (the first of september after getNow() if dateString is null),
 * **getPreviousDay(dateString):** returns the day before dateString as a string
@@ -166,6 +168,12 @@ If a date as a string is null or undefined it is interpreted as infinitely in th
 which is an array of resources with a period. array can also be an array of hrefs that is expanded.
 * **getNonAbolishedResources(arrayOfResources, referenceDateString):**  returns a new array with only the resources that are not abolished on the referenceDateString (getNow() if dateString is null) from array,
 which is an array of resources with a period. array can also be an array of hrefs that is expanded.
+* **onStartDateSet(newStartDate, oldStartDate, dependencies, batch):** updates the startDate of all dependencies (which is an array of objects with a period that have a dependency to the resource with a new startDate)
+* with the same startDate as the oldStartDate to the newStartDate and adds this resource to the batch.
+* If the resource is already present in the batch array it will not add it but update the body of the existing batch object.
+* **onEndDateSet(newEndDate, oldEndDate, dependencies, batch):** updates the endDate of all dependencies (which is an array of objects with a period that have a dependency to the resource with a new endDate)
+* with the same endDate as the oldEndDate to the newEndDate and adds this resource to the batch.
+* If the resource is already present in the batch array it will not add it but update the body of the existing batch object.
 
 ## address-utils ##
 

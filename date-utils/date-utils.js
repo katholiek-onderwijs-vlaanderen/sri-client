@@ -150,6 +150,42 @@ function getNonAbolishedResources(array, referenceDate = getNow()) {
   });
 };
 
+function onEndDateSet(newEndDate, oldEndDate, dependencies, batch) {
+  for(let dependency of dependencies) {
+    if(dependency.endDate === oldEndDate) {
+      const index = _.findIndex(batch, elem => elem.href === dependency.$$meta.permalink);
+      if(index > -1) {
+        batch[index].body.endDate = newEndDate;
+      } else {
+        dependency.endDate = newEndDate;
+        batch.push({
+          href: dependency.$$meta.permalink,
+          verb: 'PUT',
+          body: dependency
+        });
+      }
+    }
+  }
+}
+
+function onStartDateSet(newStartDate, oldStartDate, dependencies, batch) {
+  for(let dependency of dependencies) {
+    if(dependency.startDate === oldStartDate) {
+      const index = _.findIndex(batch, elem => elem.href === dependency.$$meta.permalink);
+      if(index > -1) {
+        batch[index].body.startDate = newStartDate;
+      } else {
+        dependency.startDate = newStartDate;
+        batch.push({
+          href: dependency.$$meta.permalink,
+          verb: 'PUT',
+          body: dependency
+        });
+      }
+    }
+  }
+}
+
 module.exports = {
   getNow: getNow,
   setNow: setNow,
@@ -169,5 +205,7 @@ module.exports = {
   getPreviousDay: getPreviousDay,
   getNextDay: getNextDay,
   getActiveResources: getActiveResources,
-  getNonAbolishedResources: getNonAbolishedResources
+  getNonAbolishedResources: getNonAbolishedResources,
+  onStartDateSet: onStartDateSet,
+  onEndDateSet: onEndDateSet
 };
