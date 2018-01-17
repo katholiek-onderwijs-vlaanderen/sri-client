@@ -169,11 +169,11 @@ which is an array of resources with a period. array can also be an array of href
 * **getNonAbolishedResources(arrayOfResources, referenceDateString):**  returns a new array with only the resources that are not abolished on the referenceDateString (getNow() if dateString is null) from array,
 which is an array of resources with a period. array can also be an array of hrefs that is expanded.
 * **onStartDateSet(newStartDate, oldStartDate, dependencies, batch):** updates the startDate of all dependencies (which is an array of objects with a period that have a dependency to the resource with a new startDate)
-* with the same startDate as the oldStartDate to the newStartDate and adds this resource to the batch.
-* If the resource is already present in the batch array it will not add it but update the body of the existing batch object.
+with the same startDate as the oldStartDate to the newStartDate and adds this resource to the batch.
+If the resource is already present in the batch array it will not add it but update the body of the existing batch object.
 * **onEndDateSet(newEndDate, oldEndDate, dependencies, batch):** updates the endDate of all dependencies (which is an array of objects with a period that have a dependency to the resource with a new endDate)
-* with the same endDate as the oldEndDate to the newEndDate and adds this resource to the batch.
-* If the resource is already present in the batch array it will not add it but update the body of the existing batch object.
+with the same endDate as the oldEndDate to the newEndDate and adds this resource to the batch.
+If the resource is already present in the batch array it will not add it but update the body of the existing batch object.
 
 ## address-utils ##
 
