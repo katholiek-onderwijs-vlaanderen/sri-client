@@ -135,6 +135,11 @@ An SriClientError has the following properties:
 
 ## common-utils ##
 
+### usage ###
+```javascript
+const commonUtils = require('sri-client/common-utils');
+```
+
 This is a library with common utility functions
 
 * **generateUUID():** returns a generated uuid of version 4.
@@ -142,6 +147,11 @@ This is a library with common utility functions
 * **strip$$PropertiesFromBatch(batchArray):** returns a copy of the batchArray with all the properties of the body in the batch objects that start with '$$' removed
 
 ## date-utils ##
+
+### usage ###
+```javascript
+const commonUtils = require('sri-client/date-utils');
+```
 
 This is a library with utility functions for string dates as specified in the sri api in the format yyyy-MM-dd.
 So if we talk about a date as a string it is in that format.
@@ -177,6 +187,11 @@ If the resource is already present in the batch array it will not add it but upd
 
 ## address-utils ##
 
+### usage ###
+```javascript
+const commonUtils = require('sri-client/address-utils');
+```
+
 This is a library with utility functions for address objects as specified in the sri api.
 
 * **isSameHouseNumberAndMailbox(a, b):** returns true if sri address a and sri address b have the same mailboxNumber and houseNumber. The match is case insensitive and ingores white spaces and underscores.
@@ -186,7 +201,7 @@ This is a library with utility functions for address objects as specified in the
 
 ### Questions ###
 
-Mail to gunther.claes@katholiekonderwijs.vlaanderen, matthias.snellings@katholiekonderwijs.vlaanderen.
+Mail to matthias.snellings@katholiekonderwijs.vlaanderen, gunther.claes@katholiekonderwijs.vlaanderen.
 
 [sri-documentation]: https://github.com/dimitrydhondt/sri
 [sri4node-project]: https://github.com/katholiek-onderwijs-vlaanderen/sri4node
