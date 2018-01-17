@@ -135,7 +135,7 @@ An SriClientError has the following properties:
 
 ## common-utils ##
 
-### usage ###
+#### usage ####
 ```javascript
 const commonUtils = require('sri-client/common-utils');
 ```
@@ -148,9 +148,9 @@ This is a library with common utility functions
 
 ## date-utils ##
 
-### usage ###
+#### usage ####
 ```javascript
-const commonUtils = require('sri-client/date-utils');
+const dateUtils = require('sri-client/date-utils');
 ```
 
 This is a library with utility functions for string dates as specified in the sri api in the format yyyy-MM-dd.
@@ -187,9 +187,9 @@ If the resource is already present in the batch array it will not add it but upd
 
 ## address-utils ##
 
-### usage ###
+#### usage ####
 ```javascript
-const commonUtils = require('sri-client/address-utils');
+const addressUtils = require('sri-client/address-utils');
 ```
 
 This is a library with utility functions for address objects as specified in the sri api.
