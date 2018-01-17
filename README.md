@@ -135,12 +135,14 @@ An SriClientError has the following properties:
 
 ## common-utils ##
 
+This is a library with common utility functions
+
 #### usage ####
 ```javascript
 const commonUtils = require('sri-client/common-utils');
 ```
 
-This is a library with common utility functions
+#### interface ####
 
 * **generateUUID():** returns a generated uuid of version 4.
 * **strip$$Properties(object):** returns a copy of the object with all the properties that start with '$$' removed
@@ -148,14 +150,16 @@ This is a library with common utility functions
 
 ## date-utils ##
 
+This is a library with utility functions for string dates as specified in the sri api in the format yyyy-MM-dd.
+So if we talk about a date as a string it is in that format.
+If a date as a string is null or undefined it is interpreted as infinitely in the future.
+
 #### usage ####
 ```javascript
 const dateUtils = require('sri-client/date-utils');
 ```
 
-This is a library with utility functions for string dates as specified in the sri api in the format yyyy-MM-dd.
-So if we talk about a date as a string it is in that format.
-If a date as a string is null or undefined it is interpreted as infinitely in the future.
+#### interface ####
 
 * **getNow():** returns the current date as a string
 * **setNow(dateString):** sets now to another date for the whole library. From now on getNow() will return this date.
@@ -187,12 +191,14 @@ If the resource is already present in the batch array it will not add it but upd
 
 ## address-utils ##
 
+This is a library with utility functions for address objects as specified in the sri api.
+
 #### usage ####
 ```javascript
 const addressUtils = require('sri-client/address-utils');
 ```
 
-This is a library with utility functions for address objects as specified in the sri api.
+#### interface ####
 
 * **isSameHouseNumberAndMailbox(a, b):** returns true if sri address a and sri address b have the same mailboxNumber and houseNumber. The match is case insensitive and ingores white spaces and underscores.
 * **isSameStreet(a, b):** returns true if sri address a and sri address b are the same streets. This means a match on  the street name in the same city. If both addresses have a streetHref a match is done based on this reference because it is a reference to the same street, independent of how it is spelled. Otherwise A match on street name is case insensitive and takes into account that parts of the name are abbreviated with a dot. For example 'F. Lintsstraat' matches with 'Frederik lintsstraat'.
