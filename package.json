@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "description": "Client for consuming SRI interfaces from Node.js.",
   "scripts": {
-    "lint": "eslint /sri-client"
+    "lint": "eslint /sri-client",
+    "prepublishOnly": "npm run build",
+    "build": "webpack -p",
+    "buildFull": "webpack"
   },
   "keywords": [
     "SRI",
@@ -17,7 +20,14 @@
     "request": "^2.83.0"
   },
   "devDependencies": {
-    "eslint": "1.4.3"
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-polyfill": "^6.0.16",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-minify": "^0.2.0",
+    "eslint": "^4.13.1",
+    "webpack": "^3.6.0",
+    "webpack-merge": "^4.1.1"
   },
   "repository": {
     "type": "git",
