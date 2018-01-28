@@ -5,8 +5,7 @@
   "scripts": {
     "lint": "eslint /sri-client",
     "prepublishOnly": "npm run build",
-    "build": "webpack -p",
-    "buildFull": "webpack"
+    "build": "webpack"
   },
   "keywords": [
     "SRI",
@@ -17,7 +16,8 @@
   "author": "matthiassnellings",
   "license": "private",
   "dependencies": {
-    "request": "^2.83.0"
+    "request": "^2.83.0",
+    "lodash": "4.17.4"
   },
   "devDependencies": {
     "babel-core": "^6.26.0",
