@@ -28,7 +28,7 @@ const getAll = async function (href, params = {}, options = {}, core) {
     return result.$$meta.count;
   };
   if(expand) {
-    await expandJson(allResults, options.expand, core);
+    await expandJson(allResults, expand, core);
   }
   return allResults;
 };
@@ -163,32 +163,33 @@ const getAllHrefs = async function (hrefs, batchHref, params = {}, options = {},
   });
 };
 
-const travelHrefsOfObject = function(object, propertyArray, hrefsMap, first) {
+const travelHrefsOfObject = function(object, propertyArray, handlerFunction, resource) {
   //console.log(object)
   console.log('json is:')
   console.log(object)
   if(object.href) {
     if(object.$$expanded) {
-      return travelHrefsOfJson(object.$$expanded, propertyArray, hrefsMap);
-    } else if (first && object.body) {
-      return travelHrefsOfJson(object.body, propertyArray, hrefsMap);
+      return travelHrefsOfJson(object.$$expanded, propertyArray, handlerFunction, resource ? resource : object.$$expanded);
+    } else if (!resource && object.body) {
+      return travelHrefsOfJson(object.body, propertyArray, handlerFunction);
     }
-    if(hrefsMap) {
-      console.log('set the $$expanded from the hrefMap:')
-      console.log(hrefsMap)
-      object.$$expanded = hrefsMap[object.href];
-      return travelHrefsOfJson(object.$$expanded, propertyArray);
+    if(handlerFunction) {
+      /*console.log('set the $$expanded from the hrefMap:')
+      console.log(handlerFunction)
+      object.$$expanded = handlerFunction[object.href];
+      return travelHrefsOfJson(object.$$expanded, propertyArray);*/
+      return handlerFunction(object, propertyArray, resource);
     } else {
       return [object.href];
     }
   } else {
-    return travelHrefsOfJson(object, propertyArray, hrefsMap);
+    return travelHrefsOfJson(object, propertyArray, handlerFunction, resource);
   }
 };
 
-const travelHrefsOfJson = function(json, propertyArray, hrefsMap, first) {
+const travelHrefsOfJson = function(json, propertyArray, handlerFunction, resource) {
   console.log(propertyArray)
-  console.log(first)
+  console.log(resource)
 
   if(propertyArray.length === 0) {
     return [];
@@ -197,11 +198,14 @@ const travelHrefsOfJson = function(json, propertyArray, hrefsMap, first) {
   if(json.$$meta && json.results) {
     json = json.results;
   }
-  if(first && Array.isArray(json)) {
+  if(!resource && Array.isArray(json)) {
     for(let item of json) {
-      hrefs = [...hrefs, ...travelHrefsOfObject(item, propertyArray, hrefsMap, true)];
+      hrefs = [...hrefs, ...travelHrefsOfObject(item, propertyArray, handlerFunction)];
     }
   } else {
+    if(!resource) {
+      resource = json;
+    }
     const nextPropertyName = propertyArray.shift();
     const subResource = json[nextPropertyName];
     if(!subResource) {
@@ -209,10 +213,10 @@ const travelHrefsOfJson = function(json, propertyArray, hrefsMap, first) {
     }
     if(Array.isArray(subResource)) {
       for(let item of subResource) {
-        hrefs = [...hrefs, ...travelHrefsOfObject(item, propertyArray, hrefsMap)];
+        hrefs = [...hrefs, ...travelHrefsOfObject(item, propertyArray, handlerFunction, resource)];
       }
     } else {
-      hrefs = travelHrefsOfObject(subResource, propertyArray, hrefsMap);
+      hrefs = travelHrefsOfObject(subResource, propertyArray, handlerFunction, resource);
     }
   }
   return hrefs;
@@ -220,8 +224,11 @@ const travelHrefsOfJson = function(json, propertyArray, hrefsMap, first) {
 
 const add$$expanded = async function(hrefs, json, property, core) {
   // make configurable to know on which batch the hrefs can be retrieved
-  const results = await getAllHrefs(hrefs, null, {}, {asMap: true}, core);
-  const newHrefs = travelHrefsOfJson(json, property.split('.'), results, true);
+  const hrefsMap = await getAllHrefs(hrefs, null, {}, {asMap: true}, core);
+  const newHrefs = travelHrefsOfJson(json, property.split('.'), function(object, propertyArray) {
+    object.$$expanded = hrefsMap[object.href];
+    return travelHrefsOfJson(object.$$expanded, propertyArray);
+  }, true);
   console.log('the hrefs zijn:')
     console.log(hrefs);
   if(newHrefs.length > 0) {
@@ -288,6 +295,9 @@ const includeOptionsSchema = {
     reference: {
       type: "string"
     },
+    referenceParameterName: {
+      type: "string"
+    },
     params: {
       type:"object"
     },
@@ -303,15 +313,27 @@ const includeOptionsSchema = {
   },
   required: ['alias', 'url', 'reference']
 };
-const include = async function(json, inclusions) {
+const includeJson = async function(json, inclusions, core) {
   if(!Array.isArray(inclusions)) {
     inclusions = [inclusions];
   }
   for(let options of inclusions) {
     validate(options, includeOptionsSchema);
-    const hrefs = travelHrefsOfJson(json, options.reference.split('.'), null, true);
+    const promises = [];
+    travelHrefsOfJson(json, options.reference.split('.'), async function(object, propertyArray, resource) {
+      options.params = options.params || {};
+      if(options.collapsed) {
+        options.params.expand = 'NONE';
+      }
+      options.params[options.referenceParameterName ? options.referenceParameterName : options.reference] = object.href;
+      promises.push(await getAll(options.url, options.params, {include: options.include}, core).then(function(results) {
+        resource['$$'+options.alias] = results;
+      }));
+      return [];
+    }, true);
+    await Promise.all(promises);
   }
-}
+};
 
 module.exports = {
   paramsToString: paramsToString,
@@ -319,5 +341,6 @@ module.exports = {
   getAll: getAll,
   getAllHrefs: getAllHrefs,
   getAllReferencesTo: getAllReferencesTo,
-  expand: expandJson
+  expand: expandJson,
+  include: includeJson
 };

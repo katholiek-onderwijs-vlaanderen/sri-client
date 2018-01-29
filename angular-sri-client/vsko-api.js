@@ -167,6 +167,17 @@ module.exports = ['$http', '$q', 'sriClientConfiguration', '$timeout', function 
     delete: doDelete
   };
 
+  that.get = async function(href, params, options = {}) {
+    const result = await doGet(href, params, options);
+    if(options.expand) {
+      await common.expand(result, options.expand, that);
+    }
+    if(options.include) {
+      await common.includeJson(result, options.include, that);
+    }
+    return result;
+  };
+
   that.getList = function (href, params, config) {
     return common.getList(href, params, config, that);
   };
