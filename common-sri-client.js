@@ -92,8 +92,8 @@ const getAllHrefsWithoutBatch = async function (baseHref, parameterName, hrefs, 
   if(options.raw) {
     throw new Error('You can not get a raw result for getAllHrefs or getAllReferencesTo');
   } else if(options.asMap) {
-    console.log('allresults:')
-    console.log(allResults)
+    console.log('allresults:');
+    console.log(allResults);
     allResults.forEach(function (item) {
       map[item.$$meta.permalink] = item;
     });
