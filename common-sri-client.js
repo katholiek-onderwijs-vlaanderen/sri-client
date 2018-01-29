@@ -70,41 +70,45 @@ const getAllHrefsWithoutBatch = async function (baseHref, parameterName, hrefs, 
   var allResults = [];
   const map = {};
   while(total < hrefs.length) {
-    var query = paramsToString(baseHref, params) + '&'+parameterName+'=';
+    //var query = paramsToString(baseHref, params) + '&'+parameterName+'=';
+    let parameterValue = '';
     for(var i = 0; i <= (options.groupBy ? options.groupBy : splitSize) && total < hrefs.length; i++) {
       map[hrefs[i]] = null;
-      query += (i === 0 ? '' : ',')+hrefs[total];
+      parameterValue += (i === 0 ? '' : ',')+hrefs[total];
       total++;
     }
-    const partPromise = getAll(query, null, options, core);
+    params[parameterName] = parameterValue;
+    //const partPromise = getAll(query, null, options, core);
+    const partPromise = getAll(baseHref, params, options, core);
     promises.push(partPromise);
     partPromise.then(function(results) {
       allResults = allResults.concat(results);
     }).catch(function(error) {
       throw error;
     });
-
-    await Promise.all(promises);
-    if(options.raw) {
-      throw new Error('You can not get a raw result for getAllHrefs or getAllReferencesTo');
-    } else if(options.asMap) {
-      console.log('allresults:')
-      console.log(allResults)
-      allResults.forEach(function (item) {
-        map[item.$$meta.permalink] = item;
-      });
-      return map;
-    } else {
-      return allResults;
-    }
   }
+
+  await Promise.all(promises);
+  if(options.raw) {
+    throw new Error('You can not get a raw result for getAllHrefs or getAllReferencesTo');
+  } else if(options.asMap) {
+    console.log('allresults:')
+    console.log(allResults)
+    allResults.forEach(function (item) {
+      map[item.$$meta.permalink] = item;
+    });
+    return map;
+  } else {
+    return allResults;
+  }
+
 };
 
 const getAllReferencesTo = async function (baseHref, params = {}, parameterName, values, options = {}, core) {
   params = params || {};
   options = options || {};
   params.limit = 500;
-  return getAllHrefsWithoutBatch(baseHref, 'hrefs', values, params, options, core);
+  return getAllHrefsWithoutBatch(baseHref, parameterName, values, params, options, core);
 };
 
 const getAllHrefs = async function (hrefs, batchHref, params = {}, options = {}, core) {
@@ -299,10 +303,14 @@ const includeOptionsSchema = {
   },
   required: ['alias', 'url', 'reference']
 };
-const include = async function(options) {
-  if(options)
-  validate(options, includeOptionsSchema);
-
+const include = async function(json, inclusions) {
+  if(!Array.isArray(inclusions)) {
+    inclusions = [inclusions];
+  }
+  for(let options of inclusions) {
+    validate(options, includeOptionsSchema);
+    const hrefs = travelHrefsOfJson(json, options.reference.split('.'), null, true);
+  }
 }
 
 module.exports = {
