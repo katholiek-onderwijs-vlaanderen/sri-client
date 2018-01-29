@@ -332,6 +332,9 @@ const includeJson = async function(json, inclusions, core) {
       return [];
     }, true);
     await Promise.all(promises);
+    if(options.expand) {
+      await expandJson(json, options.expand, core);
+    }
   }
 };
 

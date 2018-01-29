@@ -48,20 +48,37 @@ If the result of put, updateResouce or post was < 300 the promise returns an obj
 
 All methods have an **options** object that you can pass on as a parameter. You can specify the following properties:
 
-* **angular-sri-client**
+* **common**
   * **baseUrl:** sends the http request to this baseUrl instead of the default baseUrl that is set in the initialisation of the configuration.
   * **headers:** An object with headers that are added on the http request. f.e.: {'foo': 'bar'} adds a header foo with value bar.
+  * **expand:** array with property paths that you want to expand client side. You can expand as deep as you want and don't need to add $$expanded to the path.
+  Example: api.getAll('/responsibilities/relations', {to: #{an href to a responsibility}}, {expand: [from.organisationalunit]}) expands in two steps first all froms in the resultset, and in a second step all organisationalunits of those froms.
+  * **include:** array of objects with configuration to include a property of the/all resrouce(s) (in the resultset). For example:
+  ```javascript
+  // give all the responsibilies of an organisationalunit (this is the team) and expand the person (client side). Include for this person all his responsibilities.
+  api.getAll('/responsibilies', {organisationalunit: #{href to an organisationalunit}, {expand: ['person'], include: [{
+    alias: responsibilities,
+    url: '/responsibilities'
+    reference: 'person',
+    referenceParameterName: undefined,
+    params: undefined,
+    collapsed: false,
+    expand: ['organisationalunit'],
+    include: undefined
+  }])
+  // for each responsibility in the resultset, the expanded person will have an added property $$responsibilities: which is an array of all the responsibilities that reference this person.
+  ```
+  * **limit:** return a limited number of results for getList, the limit can also be higher than the maximum limit that the server allows. =TODO
+  * **raw:** boolean that can be used for getList and getAll. If set to true the array of results will contain the raw result of the body.results, so the items will be an object with an href and a $$expanded object.
+  * **asMap:** boolean that can be used for getAllHrefs. If set to true an object with be returned which contains all the hrefs as keys and the object to which it refers as value.
+* **angular-sri-client specific**
   * **cancelPromise:** A promise that will cancel the request, if it gets resolved.
   * **pending:** boolean that will be set to true by every method when the request starts and set to false once the result is fetched.
-  * **raw:** boolean that can be used for getList and getAll. If set to true the array of results will contain the raw result of the body.results, so the items will be an object with an href and a $$expanded object.
-* **node-sri-client**
-  * **baseUrl:** sends the http request to this baseUrl instead of the default baseUrl that is set in the initialisation of the configuration.
-  * **headers:** An object with headers that are added on the http request. f.e.: {'foo': 'bar'} adds a header foo with value bar.
+* **node-sri-client specific**
   * **timeout:** The number of miliseconds to wait before the request times out. (default timeout is 10 seconds for a GET, 30 seconds for a sendPayload and 120 seconds for a batch)
   * **strip$$Properties:** strips the $$-properties from the payload.
   * **logging:** logs the response body if the status code >= 400 to the console for any value. If the value is 'debug' the request url will also be logged to the console.
-  * **raw:** boolean that can be used for getList and getAll. If set to true the array of results will contain the raw result of the body.results, so the items will be an object with an href and a $$expanded object.
-  * **asMap:** boolean that can be used for getAllHrefs. If set to true an object with be returned which contains all the hrefs as keys and the object to which it refers as value.
+
 
 
 ### angular-sri-client ###
