@@ -1,5 +1,5 @@
 const _ = require('lodash');
-let now = new Date();
+let now = null;
 
 function appendZero(number) {
   'use strict';
@@ -17,12 +17,14 @@ function parse(stringDate) {
   }
   var parts = stringDate.split('-');
   return new Date(parseInt(parts[0], 10), appendZero(parseInt(parts[1], 10) - 1), appendZero(parseInt(parts[2], 10)));
-  // return new Date(parts[0], parseInt(parts[1], 10) - 1, parts[2]);
 }
 
 function getNow() {
   'use strict';
-  return toString(now);
+  if(now) {
+    return toString(now);
+  }
+  return toString(new Date());
 }
 
 function setNow(newNow) {
@@ -151,6 +153,9 @@ function getNonAbolishedResources(array, referenceDate = getNow()) {
 };
 
 function onEndDateSet(newEndDate, oldEndDate, dependencies, batch) {
+  if(newEndDate === oldEndDate) {
+    return;
+  }
   for(let dependency of dependencies) {
     if(dependency.endDate === oldEndDate) {
       const index = _.findIndex(batch, elem => elem.href === dependency.$$meta.permalink);
@@ -169,6 +174,9 @@ function onEndDateSet(newEndDate, oldEndDate, dependencies, batch) {
 }
 
 function onStartDateSet(newStartDate, oldStartDate, dependencies, batch) {
+  if(newStartDate === oldStartDate) {
+    return;
+  }
   for(let dependency of dependencies) {
     if(dependency.startDate === oldStartDate) {
       const index = _.findIndex(batch, elem => elem.href === dependency.$$meta.permalink);

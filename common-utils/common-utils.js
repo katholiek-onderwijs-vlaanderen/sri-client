@@ -5,6 +5,22 @@ const generateUUID = function() {
   });
 };
 
+const replaceSpecialCharacters = function (string) {
+		return string
+			.replace(/[\u00C0-\u00C5\u00E0-\u00E5]/g, 'a')
+			.replace(/[\u00C6\u00E6]/g, 'ae')
+			.replace(/[\u00C7\u00E7]/g, 'c')
+			.replace(/[\u00C8-\u00CB\u00E8-\u00EB]/g, 'e')
+			.replace(/[\u00CC-\u00CF\u00EC-\u00EF]/g, 'i')
+			.replace(/[\u00D1\u00F1]/g, 'n')
+			.replace(/[\u00D2-\u00D6\u00D8\u00F2-\u00F6\u00F8]/g, 'o')
+			.replace(/[\u00D9-\u00DC\u00F9-\u00FC]/g, 'u')
+			.replace(/[\u00DD\u00FD\u00FF]/g, 'y')
+			.replace(/[\u00DF]/g, 'ss')
+			.replace(/[ł]/g, 'l')
+			.replace(/[^a-zA-Z0-9\-]/g, '');
+	};
+
 const strip$$Properties = function (obj) {
   const newObj = {};
   Object.keys(obj).forEach(function(key) {
@@ -29,6 +45,7 @@ const strip$$PropertiesFromBatch = function (batch) {
 
 module.exports = {
   generateUUID: generateUUID,
+  replaceSpecialCharacters: replaceSpecialCharacters,
   strip$$Properties: strip$$Properties,
   strip$$PropertiesFromBatch: strip$$PropertiesFromBatch
 };

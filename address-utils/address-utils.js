@@ -104,8 +104,8 @@ const isSameHouseNumberAndMailBox = function (a, b) {
 };
 
 const isStreetNameMatch = function (a, b) {
-  const aWords = a.toLowerCase().split(' ');
-  const bWords = b.toLowerCase().split(' ');
+  const aWords = a.toLowerCase().replace(/[\-]/g, ' ').split(' ');
+  const bWords = b.toLowerCase().replace(/[\-]/g, ' ').split(' ');
   if(aWords.join('') === bWords.join('')) {
     return true;
   } else if(aWords.length === bWords.length) {
@@ -161,4 +161,4 @@ module.exports = {
   isSameStreet: isSameStreet,
   addSubCityHref: addSubCityHref,
   addStreetHref: addStreetHref
-}
+};

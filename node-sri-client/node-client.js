@@ -151,8 +151,12 @@ module.exports = function(configuration) {
     that.setConfiguration(configuration);
   }
 
-  that.get = function(href, params, options) {
-    return doGet(href, params, options, that.my);
+  that.get = async function(href, params, options = {}) {
+    const result = await doGet(href, params, options, that.my);
+    if(options.expand) {
+      await common.expand(result, options.expand, that);
+    }
+    return result;
   };
 
   that.put = function (href, payload, options) {
