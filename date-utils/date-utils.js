@@ -32,6 +32,11 @@ function setNow(newNow) {
   now = parse(newNow);
 }
 
+function clearTime(isoDateStr) {
+  'use strict';
+  return isoDateStr ? isoDateStr.split('T')[0] : '';
+}
+
 function isBeforeOrEqual(a, b) {
   'use strict';
   return a === b || !b || (a !== null && a < b);
@@ -197,6 +202,7 @@ function onStartDateSet(newStartDate, oldStartDate, dependencies, batch) {
 module.exports = {
   getNow: getNow,
   setNow: setNow,
+  clearTime: clearTime,
   toString: toString,
   parse: parse,
   isBeforeOrEqual: isBeforeOrEqual,
