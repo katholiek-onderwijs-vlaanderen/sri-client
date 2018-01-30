@@ -162,6 +162,10 @@ module.exports = function(configuration) {
     return result;
   };
 
+  that.sendPayload = function (href, payload, options, method) {
+    return sendPayload(href, payload, options, method, that.my);
+  };
+
   that.put = function (href, payload, options) {
     return sendPayload(href, payload, options, 'PUT', that.my);
   };
