@@ -63,6 +63,7 @@ All methods have an **options** object that you can pass on as a parameter. You 
     referenceParameterName: undefined,
     params: undefined,
     collapsed: false,
+    singleton: false,
     expand: ['organisationalunit'],
     include: undefined
   }])

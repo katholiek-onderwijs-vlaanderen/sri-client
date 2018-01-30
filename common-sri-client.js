@@ -1,5 +1,5 @@
 const util = require('util');
-var validate = require('jsonschema').validate;
+const validate = require('jsonschema').validate;
 
 const getAllFromResult = async function (data, options, core) {
   var results = data.results;
@@ -164,9 +164,19 @@ const getAllHrefs = async function (hrefs, batchHref, params = {}, options = {},
 };
 
 const travelHrefsOfObject = function(object, propertyArray, handlerFunction, resource) {
+  console.log(propertyArray)
   //console.log(object)
-  console.log('json is:')
-  console.log(object)
+  /*console.log('json is:')
+  console.log(object)*/
+
+  if(propertyArray.length === 1 && typeof object[propertyArray[0]] === 'string' && object[propertyArray[0]].match(/^(\/[-a-zA-Z0-9@:%_\+.~#?&=]+)+$/g)) {
+    if(handlerFunction) {
+      return handlerFunction(object, propertyArray, resource, true);
+    } else {
+      console.log('we zitten in dit geval')
+      return [object[propertyArray[0]]];
+    }
+  }
   if(object.href) {
     if(object.$$expanded) {
       return travelHrefsOfJson(object.$$expanded, propertyArray, handlerFunction, resource ? resource : object.$$expanded);
@@ -174,22 +184,20 @@ const travelHrefsOfObject = function(object, propertyArray, handlerFunction, res
       return travelHrefsOfJson(object.body, propertyArray, handlerFunction);
     }
     if(handlerFunction) {
-      /*console.log('set the $$expanded from the hrefMap:')
-      console.log(handlerFunction)
-      object.$$expanded = handlerFunction[object.href];
-      return travelHrefsOfJson(object.$$expanded, propertyArray);*/
       return handlerFunction(object, propertyArray, resource);
     } else {
+      console.log('we komen hier toch')
       return [object.href];
     }
   } else {
+    console.log('we zittin in dit jammere geval')
     return travelHrefsOfJson(object, propertyArray, handlerFunction, resource);
   }
 };
 
 const travelHrefsOfJson = function(json, propertyArray, handlerFunction, resource) {
-  console.log(propertyArray)
-  console.log(resource)
+  /*console.log(propertyArray)
+  console.log(resource)*/
 
   if(propertyArray.length === 0) {
     return [];
@@ -206,14 +214,22 @@ const travelHrefsOfJson = function(json, propertyArray, handlerFunction, resourc
     if(!resource) {
       resource = json;
     }
+    console.log('we gaan shiften!!!!!!')
     const nextPropertyName = propertyArray.shift();
     const subResource = json[nextPropertyName];
     if(!subResource) {
-      throw new Error('There is no property ' + nextPropertyName + ' in the resouce: \n' + util.inspect(json, {depth: 5}));
+      throw new Error('There is no property ' + nextPropertyName + ' in the object: \n' + util.inspect(json, {depth: 5}));
     }
     if(Array.isArray(subResource)) {
+      console.log(subResource)
       for(let item of subResource) {
-        hrefs = [...hrefs, ...travelHrefsOfObject(item, propertyArray, handlerFunction, resource)];
+        console.log('hopla')
+        console.log(propertyArray)
+        const propertyArrayClone = [...propertyArray];
+        hrefs = [...hrefs, ...travelHrefsOfObject(item, propertyArrayClone, handlerFunction, resource)];
+        console.log('en nu:')
+        console.log(propertyArray)
+        console.log(hrefs)
       }
     } else {
       hrefs = travelHrefsOfObject(subResource, propertyArray, handlerFunction, resource);
@@ -225,12 +241,16 @@ const travelHrefsOfJson = function(json, propertyArray, handlerFunction, resourc
 const add$$expanded = async function(hrefs, json, property, core) {
   // make configurable to know on which batch the hrefs can be retrieved
   const hrefsMap = await getAllHrefs(hrefs, null, {}, {asMap: true}, core);
-  const newHrefs = travelHrefsOfJson(json, property.split('.'), function(object, propertyArray) {
+  const newHrefs = travelHrefsOfJson(json, property.split('.'), function(object, propertyArray, resource, isDirectReference) {
+    if(isDirectReference) {
+      object['$$'+propertyArray[0]] = hrefsMap[object[propertyArray[0]]];
+      return travelHrefsOfJson(object['$$'+propertyArray[0]], propertyArray);
+    }
     object.$$expanded = hrefsMap[object.href];
     return travelHrefsOfJson(object.$$expanded, propertyArray);
-  }, true);
-  console.log('the hrefs zijn:')
-    console.log(hrefs);
+  });
+  console.log('the new hrefs zijn:')
+  console.log(newHrefs);
   if(newHrefs.length > 0) {
     console.log('en nu expanden maar:')
     await add$$expanded(newHrefs, json, property, core);
@@ -244,11 +264,13 @@ const expandJson = async function(json, properties, core) {
   const promises = [];
   //let everythingWasAlreadyExpanded = true;
   for(let property of properties) {
-    const hrefs = travelHrefsOfJson(json, property.split('.'), null, true);
-    console.log('the hrefs zijn')
+    const hrefs = travelHrefsOfJson(json, property.split('.'));
+    console.log('the hrefs zijn');
     console.log(hrefs);
+    console.log('sdfjklqsdfjklqjsdfklj')
+    console.log(hrefs.length);
     if(hrefs.length > 0) {
-      console.log('en nu expanden maar')
+      console.log('en nu expanden maar');
       //promises.push(add$$expanded(hrefs, json, property, core));
       await add$$expanded(hrefs, json, property, core);
 
@@ -260,7 +282,7 @@ const expandJson = async function(json, properties, core) {
       }));*/
     }
   };
-  await Promise.all(promises);
+  //await Promise.all(promises);
   /*console.log('conditie')
   if(!everythingWasAlreadyExpanded) {
     await expandJson(json, properties, core);
@@ -304,6 +326,9 @@ const includeOptionsSchema = {
     collapsed: {
       type: "boolean"
     },
+    singleton: {
+      type: "boolean"
+    },
     expand: {
       type: "array",
       items: {
@@ -320,18 +345,23 @@ const includeJson = async function(json, inclusions, core) {
   for(let options of inclusions) {
     validate(options, includeOptionsSchema);
     const promises = [];
-    travelHrefsOfJson(json, options.reference.split('.'), async function(object, propertyArray, resource) {
+    console.log(options);
+    travelHrefsOfJson(json, options.reference.split('.'), function(object, propertyArray, resource) {
       options.params = options.params || {};
       if(options.collapsed) {
         options.params.expand = 'NONE';
       }
-      options.params[options.referenceParameterName ? options.referenceParameterName : options.reference] = object.href;
-      promises.push(await getAll(options.url, options.params, {include: options.include}, core).then(function(results) {
-        resource['$$'+options.alias] = results;
+      options.params[options.referenceParameterName ? options.referenceParameterName : options.reference] = object[propertyArray[0]];
+      console.log(options.params);
+      promises.push(getAll(options.url, options.params, {include: options.include, logging: 'debug'}, core).then(function(results) {
+        console.log('the results are:');
+        console.log(results);
+        resource['$$'+options.alias] = options.singleton ? (results.length === 0 ? null : results[0]) : results;
       }));
       return [];
-    }, true);
+    });
     await Promise.all(promises);
+    console.log(JSON.stringify(json))
     if(options.expand) {
       await expandJson(json, options.expand, core);
     }

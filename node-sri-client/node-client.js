@@ -157,7 +157,7 @@ module.exports = function(configuration) {
       await common.expand(result, options.expand, that);
     }
     if(options.include) {
-      await common.includeJson(result, options.include, that);
+      await common.include(result, options.include, that);
     }
     return result;
   };
