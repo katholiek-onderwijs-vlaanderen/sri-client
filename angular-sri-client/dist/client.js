@@ -10573,7 +10573,7 @@ var paramsToString = function paramsToString(path, params) {
 var splitSize = 100;
 var getAllHrefsWithoutBatch = function () {
   var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(baseHref, parameterName, hrefs, params, options, core) {
-    var total, promises, allResults, map, parameterValue, i, partPromise;
+    var total, promises, allResults, map, parameterValue, i, thisParams, partPromise;
     return regeneratorRuntime.wrap(function _callee4$(_context4) {
       while (1) {
         switch (_context4.prev = _context4.next) {
@@ -10592,9 +10592,11 @@ var getAllHrefsWithoutBatch = function () {
                 parameterValue += (i === 0 ? '' : ',') + hrefs[total];
                 total++;
               }
-              params[parameterName] = parameterValue;
+              thisParams = Object.assign({}, params);
+
+              thisParams[parameterName] = parameterValue;
               //const partPromise = getAll(query, null, options, core);
-              partPromise = getAll(baseHref, params, options, core);
+              partPromise = getAll(baseHref, thisParams, options, core);
 
               promises.push(partPromise);
               partPromise.then(function (results) {
