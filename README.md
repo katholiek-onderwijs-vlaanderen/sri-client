@@ -183,6 +183,7 @@ const dateUtils = require('sri-client/date-utils');
 * **setNow(dateString):** sets now to another date for the whole library. From now on getNow() will return this date.
 * **toString(date):** return the javascript date as a string
 * **parse(dateString):** returns the dateString as a javascript date
+* **clearTime(isoDateString):** returns the received isoDateString without the time section. YYYY-MM-DDTHH:mm:ss.sssZ -> YYYY-MM-DD
 * **isBeforeOrEqual(a,b):** returns true if a is before or on the same day as b, where a and b are dates as strings
 * **isAfterOrEqual(a,b):** returns true if a is after or on the same day as b, where a and b are dates as strings
 * **isBefore(a,b):** returns true if a is strictly before b, where a and b are dates as strings

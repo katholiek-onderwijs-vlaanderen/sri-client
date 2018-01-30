@@ -18,8 +18,7 @@
   "dependencies": {
     "request": "^2.83.0",
     "lodash": "4.17.4",
-    "jsonschema": "^1.2.2",
-    "request": "^2.83.0"
+    "jsonschema": "^1.2.2"
   },
   "devDependencies": {
     "babel-core": "^6.26.0",

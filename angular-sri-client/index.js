@@ -8,4 +8,6 @@ module.factory({
 
 module.provider('sriClientConfiguration', require('./sri-client-configuration.js'));
 
+module.constant('dateUtils', require('../date-utils'));
+
 module.exports = module;
