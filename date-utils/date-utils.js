@@ -87,6 +87,11 @@ function isOverlapping(a, b) {
   return isBefore(a.startDate, b.endDate) && isAfter(a.endDate, b.startDate);
 }
 
+function isCovering(a, b) {
+  'use strict';
+  return isBeforeOrEqual(a.startDate, b.startDate) && isAfterOrEqual(a.endDate, b.endDate);
+}
+
 function isConsecutive(a, b) {
   return (a.endDate !== null && a.endDate === b.startDate) || (b.endDate !== null && b.endDate === a.startDate);
 }
@@ -202,7 +207,7 @@ function onStartDateSet(newStartDate, oldStartDate, dependencies, batch) {
 module.exports = {
   getNow: getNow,
   setNow: setNow,
-  clearTime: clearTime,
+  stripTime: clearTime,
   toString: toString,
   parse: parse,
   isBeforeOrEqual: isBeforeOrEqual,
@@ -212,6 +217,7 @@ module.exports = {
   getFirst: getFirst,
   getLast: getLast,
   isOverlapping: isOverlapping,
+  isCovering: isCovering,
   isConsecutive: isConsecutive,
   isConsecutiveWithOneDayInBetween: isConsecutiveWithOneDayInBetween,
   getStartOfSchoolYear: getStartofSchoolYear,

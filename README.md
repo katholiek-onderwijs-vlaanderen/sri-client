@@ -183,7 +183,7 @@ const dateUtils = require('sri-client/date-utils');
 * **setNow(dateString):** sets now to another date for the whole library. From now on getNow() will return this date.
 * **toString(date):** return the javascript date as a string
 * **parse(dateString):** returns the dateString as a javascript date
-* **clearTime(isoDateString):** returns the received isoDateString without the time section. YYYY-MM-DDTHH:mm:ss.sssZ -> YYYY-MM-DD
+* **stripTime(isoDateString):** returns the received isoDateString without the time section. YYYY-MM-DDTHH:mm:ss.sssZ -> YYYY-MM-DD
 * **isBeforeOrEqual(a,b):** returns true if a is before or on the same day as b, where a and b are dates as strings
 * **isAfterOrEqual(a,b):** returns true if a is after or on the same day as b, where a and b are dates as strings
 * **isBefore(a,b):** returns true if a is strictly before b, where a and b are dates as strings
@@ -191,6 +191,7 @@ const dateUtils = require('sri-client/date-utils');
 * **getFirst(arrayOfDateStrings):** returns the date that is first in time from arrayOfDateStrings
 * **getLast(arrayOfDateStrings):** returns the date that is last in time from arrayOfDateStrings
 * **isOverlapping(a, b):** returns true if there is an overlapping period between a en b where a and b are objects with a property startDate and endDate (which can be null/undefined)
+* **isCovering(a, b):**
 * **isConsecutive(a, b):**: returns true if the periods of a and b are strictly following each other in any order. So b starts on the same date as a ends or a starts on the same date as b ends.
 * **isConsecutiveWithOneDayInBetween(a, b):**: returns true if the periods of a and b are strictly following each other in any order with one day in between. So b starts the day after a ends or a starts the day after b ends.
 * **getStartOfSchoolYear(dateString):** returns the first of september before datestring (the first of september before getNow() if dateString is null),
