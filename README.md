@@ -191,7 +191,7 @@ const dateUtils = require('sri-client/date-utils');
 * **getFirst(arrayOfDateStrings):** returns the date that is first in time from arrayOfDateStrings
 * **getLast(arrayOfDateStrings):** returns the date that is last in time from arrayOfDateStrings
 * **isOverlapping(a, b):** returns true if there is an overlapping period between a en b where a and b are objects with a property startDate and endDate (which can be null/undefined)
-* **isCovering(a, b):**
+* **isCovering(a, b):** returns true if the period of b is completely within the period of a.
 * **isConsecutive(a, b):**: returns true if the periods of a and b are strictly following each other in any order. So b starts on the same date as a ends or a starts on the same date as b ends.
 * **isConsecutiveWithOneDayInBetween(a, b):**: returns true if the periods of a and b are strictly following each other in any order with one day in between. So b starts the day after a ends or a starts the day after b ends.
 * **getStartOfSchoolYear(dateString):** returns the first of september before datestring (the first of september before getNow() if dateString is null),

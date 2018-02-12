@@ -65,6 +65,7 @@ const paramsToString = function (path, params) {
 
 const splitSize = 100;
 const getAllHrefsWithoutBatch = async function (baseHref, parameterName, hrefs, params, options, core) {
+  params.expand = 'FULL';
   var total = 0;
   const promises = [];
   var allResults = [];
@@ -213,6 +214,9 @@ const travelHrefsOfJson = function(json, propertyArray, handlerFunction, resourc
     const nextPropertyName = propertyArray.shift();
     const subResource = json[nextPropertyName];
     if(!subResource) {
+      if(propertyArray.length === 0) {
+        return [];
+      }
       throw new Error('There is no property ' + nextPropertyName + ' in the object: \n' + util.inspect(json, {depth: 5}));
     }
     if(Array.isArray(subResource)) {

@@ -7,6 +7,9 @@ function appendZero(number) {
 }
 function toString(date) {
   'use strict';
+  if(!date) {
+    return date;
+  }
   return date.getFullYear() + '-' + appendZero(date.getMonth() + 1) + '-' + appendZero(date.getDate());
 }
 
