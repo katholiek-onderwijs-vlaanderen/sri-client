@@ -88,7 +88,7 @@ All methods have an **options** object that you can pass on as a parameter. You 
 @gunther add here how to use the module.
 ```
 
-The module contains an Oauth Interceptor to support authentication to the KathOndVla Oauth Server.
+In a future module we might add an Oauth Interceptor module to support authentication to an Oauth Server.
 On every call to the baseUrl configured in the configuration it will make sure that a bearer token is added for authentication.
 If the token is expired it will take care of getting a new one. If you are not or no longer logged in it will redirect you to the login page.
 

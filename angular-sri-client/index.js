@@ -1,8 +1,8 @@
 /* global angular*/
-var module = angular.module('vskoSriClient', ['ngSanitize']);
+var module = angular.module('ng-sri-client', ['ngSanitize']);
 
 module.factory({
-                 vskoApi2: require('./vsko-api'),
+                 vskoApi2: require('./angular-sri-client'),
                  apiUtils: require('./apiUtils')
                });
 

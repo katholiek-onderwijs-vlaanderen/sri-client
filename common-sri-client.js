@@ -231,6 +231,37 @@ const travelHrefsOfJson = function(json, propertyArray, handlerFunction, resourc
   return hrefs;
 };
 
+const travelResoure = function(resource, handlerFunction) {
+  if(handlerFunction) {
+    return handlerFunction(resource);
+  } else {
+    return resource;
+  }
+};
+
+const travelResourcesOfJson = function(json, handlerFunction) {
+  let resources = [];
+  if(json.$$meta && json.results) {
+    json = json.results;
+  }
+  if(Array.isArray(json)) {
+    for(let item of json) {
+      if(item.href) {
+        if(item.$$expanded) {
+           resources = [...resources, travelResoure(item.$$expanded, handlerFunction)];
+        } else if (item.body) {
+          resources = [...resources, ...travelResourcesOfJson(item.body, handlerFunction)];
+        }
+      } else {
+        resources = [...resources, travelResoure(item, handlerFunction)];
+      }
+    }
+  } else {
+    resources = [travelResoure(json, handlerFunction)];
+  }
+  return resources;
+};
+
 const add$$expanded = async function(hrefs, json, property, core) {
   // make configurable to know on which batch the hrefs can be retrieved
   const hrefsMap = await getAllHrefs(hrefs, null, {}, {asMap: true}, core);
@@ -248,7 +279,7 @@ const add$$expanded = async function(hrefs, json, property, core) {
     //console.log('en nu expanden maar:')
     await add$$expanded(newHrefs, json, property, core);
   }
-}
+};
 
 const expandJson = async function(json, properties, core) {
   if(!Array.isArray(properties)) {
@@ -335,22 +366,50 @@ const includeJson = async function(json, inclusions, core) {
   }
   for(let options of inclusions) {
     validate(options, includeOptionsSchema);
-    const promises = [];
-    travelHrefsOfJson(json, options.reference.split('.'), function(object, propertyArray, resource) {
+    if(options.collapsed) {
+      const promises = [];
+      travelHrefsOfJson(json, ('$$meta.permalink').split('.'), function(object, propertyArray, resource) {
+        options.params = options.params || {};
+        if(options.collapsed) {
+          options.params.expand = 'NONE';
+        }
+        options.params[options.referenceParameterName ? options.referenceParameterName : options.reference] = object[propertyArray[0]];
+        promises.push(getAll(options.url, options.params, {include: options.include, logging: 'debug'}, core).then(function(results) {
+          resource['$$'+options.alias] = options.singleton ? (results.length === 0 ? null : results[0]) : results;
+        }));
+        return [];
+      });
+      await Promise.all(promises);
+    } else {
+      const hrefs = travelHrefsOfJson(json, ('$$meta.permalink').split('.'));
       options.params = options.params || {};
       if(options.collapsed) {
         options.params.expand = 'NONE';
       }
-      options.params[options.referenceParameterName ? options.referenceParameterName : options.reference] = object[propertyArray[0]];
-      promises.push(getAll(options.url, options.params, {include: options.include, logging: 'debug'}, core).then(function(results) {
-        resource['$$'+options.alias] = options.singleton ? (results.length === 0 ? null : results[0]) : results;
-      }));
-      return [];
-    });
-    await Promise.all(promises);
-    if(options.expand) {
-      await expandJson(json, options.expand, core);
+      const results = await getAllReferencesTo(options.url, options.params, options.referenceParameterName ? options.referenceParameterName : options.reference, hrefs, {include: options.include}, core);
+      const map = {};
+      for(let result of results) {
+        const permalinks = travelHrefsOfJson(results, options.reference.split('.'));
+        if(permalinks.length > 1) {
+          console.warn('SRI_CLIENT_INCLUDE: we do not support yet the possibility that options.reference references an array property. Contact us to request that we add this feature.');
+        }
+        const permalink = permalinks[0];
+        if(!map[permalink]) {
+          map[permalink] = [];
+        }
+        map[permalink].push(result);
+      }
+      // travel resources and add $$ included property
+      const resources = travelResourcesOfJson(json);
+      for(let resource of resources) {
+        const inclusions = map[resource.$$meta.permalink];
+        resource['$$'+options.alias] = options.singleton ? (inclusions.length === 0 ? null : inclusions[0]) : inclusions;
+      }
+      if(options.expand) {
+        await expandJson(json, options.expand, core);
+      }
     }
+
   }
 };
 

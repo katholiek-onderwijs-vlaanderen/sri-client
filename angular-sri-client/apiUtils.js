@@ -1,5 +1,6 @@
 /**
  * Created by matthias.snellings on 10/07/2014.
+ * Old file with bunch of utilty functions that should be moved to common-utils, date-utils, address-utils,....
  */
 module.exports = [function () {
   'use strict';
