@@ -5,6 +5,22 @@ const generateUUID = function() {
   });
 };
 
+const splitPermalink = function(permalink) {
+  const parts = permalink.split('/');
+  return {
+    path: parts.splice(parts.length-1, 1).join('/'),
+    key: parts[parts.length-1]
+  };
+};
+
+const getKeyFromPermalink = function(permalink) {
+  return splitPermalink(permalink).key;
+};
+
+const getPathFromPermalink = function(permalink) {
+  return splitPermalink(permalink).path;
+};
+
 const replaceSpecialCharacters = function (string) {
 		return string
 			.replace(/[\u00C0-\u00C5\u00E0-\u00E5]/g, 'a')
@@ -45,6 +61,9 @@ const strip$$PropertiesFromBatch = function (batch) {
 
 module.exports = {
   generateUUID: generateUUID,
+  splitPermalink: splitPermalink,
+  getKeyFromPermalink: getKeyFromPermalink,
+  getPathFromPermalink: getPathFromPermalink,
   replaceSpecialCharacters: replaceSpecialCharacters,
   strip$$Properties: strip$$Properties,
   strip$$PropertiesFromBatch: strip$$PropertiesFromBatch

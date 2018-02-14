@@ -1,5 +1,6 @@
 const util = require('util');
 const validate = require('jsonschema').validate;
+const commonUtils = require('./common-utils');
 
 const getAllFromResult = async function (data, options, core) {
   var results = data.results;
@@ -174,10 +175,20 @@ const includeOptionsSchema = {
       pattern: "^\/.*$"
     },
     reference: {
-      type: "string"
-    },
-    referenceParameterName: {
-      type: "string"
+      oneOf: [{
+        type: "string"
+      }, {
+        type: "object",
+        properties: {
+          property: {
+            type: "string"
+          },
+          parameterName: {
+            type: "string"
+          }
+        },
+        required: ["property"]
+      }]
     },
     params: {
       type:"object"
@@ -198,31 +209,33 @@ const includeOptionsSchema = {
   required: ['alias', 'url', 'reference']
 };
 
-const travelHrefsOfObject = function(object, propertyArray, handlerFunction, resource) {
+const travelHrefsOfObject = function(object, propertyArray, options) {// required, handlerFunction, resource) {
   if(propertyArray.length === 1 && typeof object[propertyArray[0]] === 'string' && object[propertyArray[0]].match(/^(\/[-a-zA-Z0-9@:%_\+.~#?&=]+)+$/g)) {
-    if(handlerFunction) {
-      return handlerFunction(object, propertyArray, resource, true);
+    if(options.handlerFunction) {
+      return options.handlerFunction(object, propertyArray, options.resource, true);
     } else {
       return [object[propertyArray[0]]];
     }
   }
   if(object.href) {
     if(object.$$expanded) {
-      return travelHrefsOfJson(object.$$expanded, propertyArray, handlerFunction, resource ? resource : object.$$expanded);
-    } else if (!resource && object.body) {
-      return travelHrefsOfJson(object.body, propertyArray, handlerFunction);
+      options.resource = options.resource ? options.resource : object.$$expanded;
+      return travelHrefsOfJson(object.$$expanded, propertyArray, options);
+    } else if (!options.resource && object.body) {
+      return travelHrefsOfJson(object.body, propertyArray, options);
     }
-    if(handlerFunction) {
-      return handlerFunction(object, propertyArray, resource);
+    if(options.handlerFunction) {
+      return options.handlerFunction(object, propertyArray, options.resource);
     } else {
       return [object.href];
     }
   } else {
-    return travelHrefsOfJson(object, propertyArray, handlerFunction, resource);
+    return travelHrefsOfJson(object, propertyArray, options);
   }
 };
 
-const travelHrefsOfJson = function(json, propertyArray, handlerFunction, resource) {
+const travelHrefsOfJson = function(json, propertyArray, options = {}) {//, required = true, handlerFunction, resource) {
+  options.required = options.required ? options.required : true;
   if(propertyArray.length === 0) {
     return [];
   }
@@ -230,31 +243,29 @@ const travelHrefsOfJson = function(json, propertyArray, handlerFunction, resourc
   if(json.$$meta && json.results) {
     json = json.results;
   }
-  if(!resource && Array.isArray(json)) {
+  if(!options.resource && Array.isArray(json)) {
     for(let item of json) {
-      const propertyArrayClone = [...propertyArray];
-      hrefs = [...hrefs, ...travelHrefsOfObject(item, propertyArrayClone, handlerFunction)];
+      hrefs = [...hrefs, ...travelHrefsOfObject(item, [...propertyArray], Object.assign({}, options))];
     }
   } else {
-    if(!resource) {
-      resource = json;
+    if(!options.resource) {
+      options.resource = json;
     }
     const nextPropertyName = propertyArray.shift();
     const subResource = json[nextPropertyName];
     if(!subResource) {
-      // add this because to handle the case where an endProperty can not be required; To be revisioned
-      if(propertyArray.length === 0) {
+      // When the config says the property is not required
+      if(!options.required) {
         return [];
       }
-      throw new Error('There is no property ' + nextPropertyName + ' in the object: \n' + util.inspect(json, {depth: 5}));
+      throw new Error('There is no property ' + nextPropertyName + ' in the object: \n' + util.inspect(json, {depth: 5}) + '\n Set required = false if the property path contains non required resources.');
     }
     if(Array.isArray(subResource)) {
       for(let item of subResource) {
-        const propertyArrayClone = [...propertyArray];
-        hrefs = [...hrefs, ...travelHrefsOfObject(item, propertyArrayClone, handlerFunction, resource)];
+        hrefs = [...hrefs, ...travelHrefsOfObject(item, [...propertyArray], Object.assign({}, options))];
       }
     } else {
-      hrefs = travelHrefsOfObject(subResource, propertyArray, handlerFunction, resource);
+      hrefs = travelHrefsOfObject(subResource, propertyArray, options);
     }
   }
   return hrefs;
@@ -291,9 +302,53 @@ const travelResourcesOfJson = function(json, handlerFunction) {
   return resources;
 };
 
-const add$$expanded = async function(hrefs, json, property, includeOptions, core) {
-  // make configurable to know on which batch the hrefs can be retrieved
-  const hrefsMap = await getAllHrefs(hrefs, null, {}, {asMap: true, include: includeOptions, logging: 'debug'}, core);
+const add$$expanded = async function(hrefs, json, properties, includeOptions, core) {
+  console.log(hrefs);
+  const pathsMap = {};
+  const hrefsMap = {};
+  //group all hrefs with the same path together so we can also retreive them togheter in one API call
+  for(let href of hrefs) {
+    const path = commonUtils.getPathFromPermalink(href);
+    if(!pathsMap[path]) {
+      pathsMap[path] = [];
+    }
+    pathsMap[path].push(href);
+  }
+  const promises = [];
+  for(let path of Object.keys(pathsMap)) {
+    // TODO: make configurable to know on which batch the hrefs can be retrieved
+    promises.push(getAllHrefs(pathsMap[path], null, {}, {asMap: true, include: includeOptions, logging: 'debug'}, core).then(function(newMap) {
+      Object.assign(hrefsMap, newMap);
+    }));
+  }
+  await Promise.all(promises);
+  let newHrefs = new Set();
+  for(let property of properties) {
+    let propertyName = property;
+    let required = true;
+    if (!(typeof property === 'string' || property instanceof String)) {
+      propertyName = property.property;
+      required = property.required;
+    }
+    console.log(propertyName)
+    newHrefs = new Set([...newHrefs, ...travelHrefsOfJson(json, propertyName.split('.'), {
+      required: required,
+      handlerFunction: function(object, propertyArray, resource, isDirectReference) {
+        console.log('hallo')
+        if(isDirectReference) {
+          object['$$'+propertyArray[0]] = hrefsMap[object[propertyArray[0]]];
+          return travelHrefsOfJson(object['$$'+propertyArray[0]], propertyArray);
+        }
+        object.$$expanded = hrefsMap[object.href];
+        return travelHrefsOfJson(object.$$expanded, propertyArray);
+      }
+    })]);
+  };
+  if(newHrefs.size > 0) {
+    await add$$expanded(newHrefs, json, properties, null, core);
+  }
+  /*// make configurable to know on which batch the hrefs can be retrieved
+  const hrefsMap = await getAllHrefs(hrefs, null, {}, {asMap: true, include: includeOptions}, core);
   const newHrefs = travelHrefsOfJson(json, property.split('.'), function(object, propertyArray, resource, isDirectReference) {
     if(isDirectReference) {
       object['$$'+propertyArray[0]] = hrefsMap[object[propertyArray[0]]];
@@ -304,48 +359,62 @@ const add$$expanded = async function(hrefs, json, property, includeOptions, core
   });
   if(newHrefs.length > 0) {
     await add$$expanded(newHrefs, json, property, null, core);
-  }
+  }*/
 };
 
 const expandJson = async function(json, properties, core) {
-  console.log('expand')
   if(!Array.isArray(properties)) {
     properties = [properties];
   }
+  let allHrefs = new Set();
   for(let property of properties) {
     let propertyName = property;
     let includeOptions = null;
+    let required = true;
     if (!(typeof property === 'string' || property instanceof String)) {
       propertyName = property.property;
       includeOptions = property.include;
+      required = property.required;
     }
-    const hrefs = travelHrefsOfJson(json, propertyName.split('.'));
-    if(hrefs.length > 0) {
-      await add$$expanded(hrefs, json, propertyName, includeOptions, core);
+    if(includeOptions) {
+      let localHrefs = travelHrefsOfJson(json, propertyName.split('.'), {required: required});
+      if(localHrefs.length > 0) {
+        await add$$expanded(allHrefs, json, [property], includeOptions, core);
+      }
+    } else {
+      allHrefs = new Set([...allHrefs, ...travelHrefsOfJson(json, propertyName.split('.'), {required: required})]);
     }
-    /*if(includeOptions) {
-      await includeJson(json, includeOptions, core);
-    }*/
   };
+  if(allHrefs.size > 0) {
+    await add$$expanded(allHrefs, json, properties, null, core);
+  }
 };
 
 const includeJson = async function(json, inclusions, core) {
-  console.log('includeJson')
   if(!Array.isArray(inclusions)) {
     inclusions = [inclusions];
   }
   for(let options of inclusions) {
     validate(options, includeOptionsSchema);
-    if(options.collapsed) {
+    options.expanded = options.expanded ? options.expanded : true; // default is true
+    options.required = options.required ? options.required : true; // default is true
+    //options.reference can just be a string when the parameter name is the same as the reference property itself or it can be an object which specifies both.
+    let referenceProperty = options.reference;
+    let referenceParameterName = options.reference;
+    if (!(typeof options.reference === 'string' || options.reference instanceof String)) {
+      referenceProperty = options.reference.property;
+      referenceParameterName = options.reference.parameterName ? options.reference.parameterName : referenceProperty;
+    }
+    if(!options.expanded) {
       // with collapsed you can not get all references and map them again because the resource information will not be there
       const promises = [];
-      travelHrefsOfJson(json, ('$$meta.permalink').split('.'), function(object, propertyArray, resource) {
-        options.params = options.params || {};
+      travelHrefsOfJson(json, ('$$meta.permalink').split('.'), options.required, function(object, propertyArray, resource) {
+        options.filters = options.filters || {};
         if(options.collapsed) {
-          options.params.expand = 'NONE';
+          options.filters.expand = 'NONE';
         }
-        options.params[options.referenceParameterName ? options.referenceParameterName : options.reference] = object[propertyArray[0]];
-        promises.push(getAll(options.href, options.params, {include: options.include, logging: 'debug'}, core).then(function(results) {
+        options.filters[referenceParameterName] = object[propertyArray[0]];
+        promises.push(getAll(options.href, options.filters, {include: options.include, logging: 'debug'}, core).then(function(results) {
           resource['$$'+options.alias] = options.singleton ? (results.length === 0 ? null : results[0]) : results;
         }));
         return [];
@@ -353,14 +422,10 @@ const includeJson = async function(json, inclusions, core) {
       await Promise.all(promises);
     } else {
       const hrefs = travelHrefsOfJson(json, ('$$meta.permalink').split('.'));
-      options.params = options.params || {};
-      if(options.collapsed) {
-        options.params.expand = 'NONE';
-      }
-      const results = await getAllReferencesTo(options.href, options.params, options.referenceParameterName ? options.referenceParameterName : options.reference, hrefs, {expand: options.expand, include: options.include}, core);
+      const results = await getAllReferencesTo(options.href, options.filters, referenceParameterName, hrefs, {expand: options.expand, include: options.include}, core);
       const map = {};
       for(let result of results) {
-        const permalinks = travelHrefsOfJson(results, options.reference.split('.'));
+        const permalinks = travelHrefsOfJson(result, referenceProperty.split('.'), {required: options.required});
         if(permalinks.length > 1) {
           console.warn('SRI_CLIENT_INCLUDE: we do not support yet the possibility that options.reference references an array property. Contact us to request that we add this feature.');
         }

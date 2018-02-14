@@ -86,7 +86,7 @@ All methods have an **options** object that you can pass on as a parameter. You 
   * **limit:** return a limited number of results for getList, the limit can also be higher than the maximum limit that the server allows. =TODO
   * **raw:** boolean that can be used for getList and getAll. If set to true the array of results will contain the raw result of the body.results, so the items will be an object with an href and a $$expanded object.
   * **asMap:** boolean that can be used for getAllHrefs. If set to true an object with be returned which contains all the hrefs as keys and the object to which it refers as value.
-* **angular-sri-client specific**
+* **ng-sri-client specific**
   * **cancelPromise:** A promise that will cancel the request, if it gets resolved.
   * **pending:** boolean that will be set to true by every method when the request starts and set to false once the result is fetched.
 * **node-sri-client specific**
@@ -96,7 +96,7 @@ All methods have an **options** object that you can pass on as a parameter. You 
 
 
 
-### angular-sri-client ###
+### ng-sri-client ###
 
 ```javascript
 @gunther add here how to use the module.
@@ -108,7 +108,7 @@ If the token is expired it will take care of getting a new one. If you are not o
 
 #### initialisation ####
 
-angular-sri-client requires to specify a baseUrl and the oauth parameters.
+ng-sri-client requires to specify a baseUrl and the oauth parameters.
 Call the sriClientConfiguration service and call sriClientConfiguration.set(newConfiguration) to initialise the configuration for the module.
 
 The possible properties are:
@@ -236,8 +236,8 @@ const addressUtils = require('sri-client/address-utils');
 
 * **isSameHouseNumberAndMailbox(a, b):** returns true if sri address a and sri address b have the same mailboxNumber and houseNumber. The match is case insensitive and ingores white spaces and underscores.
 * **isSameStreet(a, b):** returns true if sri address a and sri address b are the same streets. This means a match on  the street name in the same city. If both addresses have a streetHref a match is done based on this reference because it is a reference to the same street, independent of how it is spelled. Otherwise A match on street name is case insensitive and takes into account that parts of the name are abbreviated with a dot. For example 'F. Lintsstraat' matches with 'Frederik lintsstraat'.
-* **addSubCityHref(sriAddress, api) [async]:** adds a subCityHref reference to the sriAddress. api is an instance of an sri-client library (can be both the angular-sri-client or the node-sri-client)
-* **addStreetHref(sriAddress, api) [async]:** adds a streetHref reference to the sriAddress. api is an instance of an sri-client library (can be both the angular-sri-client or the node-sri-client)
+* **addSubCityHref(sriAddress, api) [async]:** adds a subCityHref reference to the sriAddress. api is an instance of an sri-client library (can be both the ng-sri-client or the node-sri-client)
+* **addStreetHref(sriAddress, api) [async]:** adds a streetHref reference to the sriAddress. api is an instance of an sri-client library (can be both the ng-sri-client or the node-sri-client)
 
 ### Questions ###
 
