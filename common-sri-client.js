@@ -220,6 +220,9 @@ const travelHrefsOfObject = function(object, propertyArray, options) {// require
   if(object.href) {
     if(object.$$expanded) {
       options.resource = options.resource ? options.resource : object.$$expanded;
+      /*console.log(propertyArray)
+      if(propertyArray[0] === '$$contactDetails')
+      console.log(object)*/
       return travelHrefsOfJson(object.$$expanded, propertyArray, options);
     } else if (!options.resource && object.body) {
       return travelHrefsOfJson(object.body, propertyArray, options);
@@ -303,7 +306,6 @@ const travelResourcesOfJson = function(json, handlerFunction) {
 };
 
 const add$$expanded = async function(hrefs, json, properties, includeOptions, core) {
-  console.log(hrefs);
   const pathsMap = {};
   const hrefsMap = {};
   //group all hrefs with the same path together so we can also retreive them togheter in one API call
@@ -317,7 +319,7 @@ const add$$expanded = async function(hrefs, json, properties, includeOptions, co
   const promises = [];
   for(let path of Object.keys(pathsMap)) {
     // TODO: make configurable to know on which batch the hrefs can be retrieved
-    promises.push(getAllHrefs(pathsMap[path], null, {}, {asMap: true, include: includeOptions, logging: 'debug'}, core).then(function(newMap) {
+    promises.push(getAllHrefs(pathsMap[path], null, {}, {asMap: true, include: includeOptions}, core).then(function(newMap) {
       Object.assign(hrefsMap, newMap);
     }));
   }
@@ -330,19 +332,22 @@ const add$$expanded = async function(hrefs, json, properties, includeOptions, co
       propertyName = property.property;
       required = property.required;
     }
-    console.log(propertyName)
-    newHrefs = new Set([...newHrefs, ...travelHrefsOfJson(json, propertyName.split('.'), {
+    const localHrefs = travelHrefsOfJson(json, propertyName.split('.'), {
       required: required,
       handlerFunction: function(object, propertyArray, resource, isDirectReference) {
-        console.log('hallo')
+        let expandedObject = hrefsMap[object.href];
+        if(!expandedObject) {
+          return [object.href];
+        }
         if(isDirectReference) {
           object['$$'+propertyArray[0]] = hrefsMap[object[propertyArray[0]]];
           return travelHrefsOfJson(object['$$'+propertyArray[0]], propertyArray);
         }
-        object.$$expanded = hrefsMap[object.href];
+        object.$$expanded = expandedObject;
         return travelHrefsOfJson(object.$$expanded, propertyArray);
       }
-    })]);
+    });
+    newHrefs = new Set([...newHrefs, ...localHrefs]);
   };
   if(newHrefs.size > 0) {
     await add$$expanded(newHrefs, json, properties, null, core);
@@ -377,9 +382,11 @@ const expandJson = async function(json, properties, core) {
       required = property.required;
     }
     if(includeOptions) {
+      console.log('howla we zitten met nen include!')
       let localHrefs = travelHrefsOfJson(json, propertyName.split('.'), {required: required});
+      console.log(localHrefs)
       if(localHrefs.length > 0) {
-        await add$$expanded(allHrefs, json, [property], includeOptions, core);
+        await add$$expanded(localHrefs, json, [property], includeOptions, core);
       }
     } else {
       allHrefs = new Set([...allHrefs, ...travelHrefsOfJson(json, propertyName.split('.'), {required: required})]);
@@ -399,6 +406,7 @@ const includeJson = async function(json, inclusions, core) {
     options.expanded = options.expanded ? options.expanded : true; // default is true
     options.required = options.required ? options.required : true; // default is true
     //options.reference can just be a string when the parameter name is the same as the reference property itself or it can be an object which specifies both.
+    console.log(options.reference)
     let referenceProperty = options.reference;
     let referenceParameterName = options.reference;
     if (!(typeof options.reference === 'string' || options.reference instanceof String)) {
@@ -414,7 +422,7 @@ const includeJson = async function(json, inclusions, core) {
           options.filters.expand = 'NONE';
         }
         options.filters[referenceParameterName] = object[propertyArray[0]];
-        promises.push(getAll(options.href, options.filters, {include: options.include, logging: 'debug'}, core).then(function(results) {
+        promises.push(getAll(options.href, options.filters, {include: options.include}, core).then(function(results) {
           resource['$$'+options.alias] = options.singleton ? (results.length === 0 ? null : results[0]) : results;
         }));
         return [];

@@ -8,7 +8,7 @@ const generateUUID = function() {
 const splitPermalink = function(permalink) {
   const parts = permalink.split('/');
   return {
-    path: parts.splice(parts.length-1, 1).join('/'),
+    path: parts.slice(0, parts.length-1).join('/'),
     key: parts[parts.length-1]
   };
 };
