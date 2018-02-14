@@ -56,17 +56,31 @@ All methods have an **options** object that you can pass on as a parameter. You 
   * **include:** array of objects with configuration to include a property of the/all resrouce(s) (in the resultset). For example:
   ```javascript
   // give all the responsibilies of an organisationalunit (this is the team) and expand the person (client side). Include for this person all his responsibilities.
-  api.getAll('/responsibilies', {organisationalunit: #{href to an organisationalunit}, {expand: ['person'], include: [{
-    alias: responsibilities,
-    url: '/responsibilities'
-    reference: 'person',
-    referenceParameterName: undefined,
-    params: undefined,
-    collapsed: false,
-    singleton: false,
-    expand: ['organisationalunit'],
-    include: undefined
-  }])
+  api.getAll('/responsibilies',
+    {
+      organisationalunit: #{href to an organisationalunit,
+      expand: 'position' //expand position server side
+    },
+    {
+      expand: [{
+        property: 'person', //expand all person properties client side,
+        required: false,
+        include: [{ // include client-side resources that reference the resources in the resultset
+          alias: 'responsibilities', // [required] A $$responsibilities property will be added to every resource in the resultset
+          href: '/responsibilities', // [required] The href on which the included resources can be found
+          reference: {
+            property: 'person', // [required] // The property name of the resources in the resultset that reference $$meta.permalink of the resource for which you are including resources
+            parameterName: 'persons', // default is the same as reference in which case you don't have to add this property. This is the parameter name to reference the $$meta.permalink of the resource you are including resources.
+          }
+          filters: undefined, // filter on the resources you are included (for example include only external identifiers of type INSTITUTION_NUMBER for the inclusion of organisationalunits)
+          expanded: true, // true is default so you don't need to add this property if true. If false all results will be unexpanded and you will get only the hrefs
+          singleton: false, // false is default so you don't need to add this property if false. The value of '$${{alias}}' will be an object (the first object in the resultset) instead of an array.
+          expand: ['organisationalunit'], // client side expansion of properties within the included resources
+          include: undefined // include properties within the included resources
+        }]
+      }]
+    }
+  );
   // for each responsibility in the resultset, the expanded person will have an added property $$responsibilities: which is an array of all the responsibilities that reference this person.
   ```
   * **limit:** return a limited number of results for getList, the limit can also be higher than the maximum limit that the server allows. =TODO
