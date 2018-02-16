@@ -404,7 +404,7 @@ const includeJson = async function(json, inclusions, core) {
   for(let options of inclusions) {
     validate(options, includeOptionsSchema);
     options.expanded = options.expanded ? options.expanded : true; // default is true
-    options.required = options.required ? options.required : true; // default is true
+    //options.required = options.required ? options.required : true; // default is true
     //options.reference can just be a string when the parameter name is the same as the reference property itself or it can be an object which specifies both.
     console.log(options.reference)
     let referenceProperty = options.reference;
@@ -416,16 +416,19 @@ const includeJson = async function(json, inclusions, core) {
     if(!options.expanded) {
       // with collapsed you can not get all references and map them again because the resource information will not be there
       const promises = [];
-      travelHrefsOfJson(json, ('$$meta.permalink').split('.'), options.required, function(object, propertyArray, resource) {
-        options.filters = options.filters || {};
-        if(options.collapsed) {
-          options.filters.expand = 'NONE';
+      travelHrefsOfJson(json, ('$$meta.permalink').split('.'), {
+        required: true,
+        handlerFunction: function(object, propertyArray, resource) {
+          options.filters = options.filters || {};
+          if(options.collapsed) {
+            options.filters.expand = 'NONE';
+          }
+          options.filters[referenceParameterName] = object[propertyArray[0]];
+          promises.push(getAll(options.href, options.filters, {include: options.include}, core).then(function(results) {
+            resource['$$'+options.alias] = options.singleton ? (results.length === 0 ? null : results[0]) : results;
+          }));
+          return [];
         }
-        options.filters[referenceParameterName] = object[propertyArray[0]];
-        promises.push(getAll(options.href, options.filters, {include: options.include}, core).then(function(results) {
-          resource['$$'+options.alias] = options.singleton ? (results.length === 0 ? null : results[0]) : results;
-        }));
-        return [];
       });
       await Promise.all(promises);
     } else {
@@ -433,7 +436,7 @@ const includeJson = async function(json, inclusions, core) {
       const results = await getAllReferencesTo(options.href, options.filters, referenceParameterName, hrefs, {expand: options.expand, include: options.include}, core);
       const map = {};
       for(let result of results) {
-        const permalinks = travelHrefsOfJson(result, referenceProperty.split('.'), {required: options.required});
+        const permalinks = travelHrefsOfJson(result, referenceProperty.split('.'), {required: true});
         if(permalinks.length > 1) {
           console.warn('SRI_CLIENT_INCLUDE: we do not support yet the possibility that options.reference references an array property. Contact us to request that we add this feature.');
         }

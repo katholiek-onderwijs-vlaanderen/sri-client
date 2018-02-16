@@ -51,38 +51,25 @@ All methods have an **options** object that you can pass on as a parameter. You 
 * **common**
   * **baseUrl:** sends the http request to this baseUrl instead of the default baseUrl that is set in the initialisation of the configuration.
   * **headers:** An object with headers that are added on the http request. f.e.: {'foo': 'bar'} adds a header foo with value bar.
-  * **expand:** array with property paths that you want to expand client side. You can expand as deep as you want and don't need to add $$expanded to the path.
+  * **expand:** array with property paths that you want to expand client side. You can expand as deep as you want and don't need to add $$expanded to the path. See the examples.
+  You can also replace a property path string with an object to pass on more advanced options. The object contains the following proerties:
+    * property: [required] the property path.
+    * required: default is true. If true an error will be thrown if a property in the property path can not be found. This is to help the user detect typo's.
+    If required is false, no error will be thrown and expansion will be ignored for objects that do not have a property in the property path. If the property path contains properties that are not required you need to set this proeprty to false.
+    * include: you can include resources within the expanded resources. Works the same as the include property on the root of the options.
   Example: api.getAll('/responsibilities/relations', {to: #{an href to a responsibility}}, {expand: [from.organisationalunit]}) expands in two steps first all froms in the resultset, and in a second step all organisationalunits of those froms.
-  * **include:** array of objects with configuration to include a property of the/all resrouce(s) (in the resultset). For example:
-  ```javascript
-  // give all the responsibilies of an organisationalunit (this is the team) and expand the person (client side). Include for this person all his responsibilities.
-  api.getAll('/responsibilies',
-    {
-      organisationalunit: #{href to an organisationalunit,
-      expand: 'position' //expand position server side
-    },
-    {
-      expand: [{
-        property: 'person', //expand all person properties client side,
-        required: false,
-        include: [{ // include client-side resources that reference the resources in the resultset
-          alias: 'responsibilities', // [required] A $$responsibilities property will be added to every resource in the resultset
-          href: '/responsibilities', // [required] The href on which the included resources can be found
-          reference: {
-            property: 'person', // [required] // The property name of the resources in the resultset that reference $$meta.permalink of the resource for which you are including resources
-            parameterName: 'persons', // default is the same as reference in which case you don't have to add this property. This is the parameter name to reference the $$meta.permalink of the resource you are including resources.
-          }
-          filters: undefined, // filter on the resources you are included (for example include only external identifiers of type INSTITUTION_NUMBER for the inclusion of organisationalunits)
-          expanded: true, // true is default so you don't need to add this property if true. If false all results will be unexpanded and you will get only the hrefs
-          singleton: false, // false is default so you don't need to add this property if false. The value of '$${{alias}}' will be an object (the first object in the resultset) instead of an array.
-          expand: ['organisationalunit'], // client side expansion of properties within the included resources
-          include: undefined // include properties within the included resources
-        }]
-      }]
-    }
-  );
-  // for each responsibility in the resultset, the expanded person will have an added property $$responsibilities: which is an array of all the responsibilities that reference this person.
-  ```
+  * **include:** array of objects with configuration to include a property of the/all resrouce(s) (in the resultset). The configuration can contain the following properties:
+    * alias: [required] A $${{alias}} property will be added to the resource or every resource in the resultset if it is a list.
+    * href: [required] The href on which the included resources can be found
+    * reference: an object with the following properties:
+      * property:  [required] The property name that references $$meta.permalink of the resource for which you are including resources
+      * parameterName: This is the parameter name on the href to reference the $$meta.permalink of the resource you are including resources.
+      If not added the property name will be taken as parameter name because in many cases this is the same. There is also a short notation where the value of reference is just the property name as a string instead of an object.
+    * filters: filter on the resources you are including (for example include only external identifiers of type INSTITUTION_NUMBER when you are including external identifiers in an organisational unit)
+    * expanded: true is default so you don't need to add this property if true. If false all results will be unexpanded and you will get only the hrefs
+    * singleton: false is default so you don't need to add this property if false. The value of '$${{alias}}' will be an object (the first object in the resultset) instead of an array. It will be null if there are no results.
+    * expand: client side expansion of properties within the included resources. Works the same as the expand property on the root of the options.
+    * include: include resources within the included resources. This is just recursive and works the same as the include property on the root of the options.
   * **limit:** return a limited number of results for getList, the limit can also be higher than the maximum limit that the server allows. =TODO
   * **raw:** boolean that can be used for getList and getAll. If set to true the array of results will contain the raw result of the body.results, so the items will be an object with an href and a $$expanded object.
   * **asMap:** boolean that can be used for getAllHrefs. If set to true an object with be returned which contains all the hrefs as keys and the object to which it refers as value.
@@ -94,7 +81,71 @@ All methods have an **options** object that you can pass on as a parameter. You 
   * **strip$$Properties:** strips the $$-properties from the payload.
   * **logging:** logs the response body if the status code >= 400 to the console for any value. If the value is 'debug' the request url will also be logged to the console.
 
+#### examples ####
 
+```javascript
+  const respsOfTeam = await sriClient.getAll('/responsibilities', {organisationalUnit: '/organisationalunits/eb745d58-b818-4569-a06e-68733fe2e5b3'}, {logging: 'debug'});
+  const personHrefs = respsOfTeam.map(resp => resp.person.href);
+  const persons = await vskoApi.getAllHrefs(personHrefs, '/persons/batch', undefined, {asMap: true});
+  // persons is a map with as key the href of a person and as value the resource of that person.
+
+  const externalIdentifierWithOrganisationalUnitExpanded = await sriClient.get(
+    '/organisationalunits/externalidentifiers',
+    {value: '032557'},
+    {
+      expand: [
+        'organisationalUnit.$$contactDetails.phone.organisationalUnit', // this is circular so not very usefull, but this shows you can expand as deep as you want to
+        'organisationalUnit.$$contactDetails.email'
+      ]
+    });
+
+  const organisationalUnitWithInstitutionNumberIncluded = await sriClient.get('/organisationalunits/a2c36c96-a3a4-11e3-ace8-005056872b95', undefined, {include: {
+    alias: 'institutionNumber',
+    href: '/organisationalunits/externalidentifiers',
+    filters: {type: 'INSTITUTION_NUMBER'},
+    reference: 'organisationalUnit',
+    singleton: true
+  }});
+
+  const personWithResponsibilitiesIncluded = await sriClient.get('/persons/94417de5-840c-4df4-a10d-fe30683d99e1', undefined, {include: {
+    alias: 'responsibilities',
+    href: '/responsibilities',
+    reference: {
+      property: 'person',
+      parameterName: 'personIn'
+    },
+    expand: ['organisationalUnit']
+  }});
+
+  // give all the responsibilies of an organisationalunit (this is the team)
+  // and expand the person (client side).
+  // Include for this person all his responsibilities
+  // and expand the organisationalunits of these responsibilities
+  sriClient.getAll('/responsibilies',
+    {
+      organisationalunit: '/organisationalunits/eb745d58-b818-4569-a06e-68733fe2e5b3',
+      expand: 'position' // expand position server side
+    },
+    {
+      expand: [{
+        property: 'person', // expand all person properties client side,
+        required: false,
+        include: [{
+          alias: 'responsibilities', // A $$responsibilities property will be added to every resource in the resultset
+          href: '/responsibilities',
+          reference: {
+            property: 'person',
+            parameterName: 'personIn',
+          }
+          expand: ['organisationalUnit'], // client side expansion of properties within the included resources
+        }]
+      }]
+    }
+  );
+  // for each responsibility in the resultset, the expanded person will have an added property $$responsibilities,
+  // which is an array of all the responsibilities that reference this person.
+  // Within these last responsibilities the organisationalUnit will be expanded
+  ```
 
 ### ng-sri-client ###
 
@@ -177,6 +228,9 @@ const commonUtils = require('sri-client/common-utils');
 #### interface ####
 
 * **generateUUID():** returns a generated uuid of version 4.
+* **splitPermalink(permalink):** returns an object with properties key (the key of the permalink) and path (the path of the permalink without the key)
+* **getKeyFromPermalink(permalink):** returns the key within the permalink
+* **getPathFromPermalink(permalink):** returns the pathe of the permalink without the key
 * **strip$$Properties(object):** returns a copy of the object with all the properties that start with '$$' removed
 * **strip$$PropertiesFromBatch(batchArray):** returns a copy of the batchArray with all the properties of the body in the batch objects that start with '$$' removed
 
