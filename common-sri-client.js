@@ -238,7 +238,7 @@ const travelHrefsOfObject = function(object, propertyArray, options) {// require
 };
 
 const travelHrefsOfJson = function(json, propertyArray, options = {}) {//, required = true, handlerFunction, resource) {
-  options.required = options.required ? options.required : true;
+  options.required = options.required === false ? options.required : true;
   if(propertyArray.length === 0) {
     return [];
   }
@@ -382,9 +382,7 @@ const expandJson = async function(json, properties, core) {
       required = property.required;
     }
     if(includeOptions) {
-      console.log('howla we zitten met nen include!')
       let localHrefs = travelHrefsOfJson(json, propertyName.split('.'), {required: required});
-      console.log(localHrefs)
       if(localHrefs.length > 0) {
         await add$$expanded(localHrefs, json, [property], includeOptions, core);
       }
