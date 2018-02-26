@@ -140,6 +140,12 @@ const getAllHrefs = async function (hrefs, batchHref, params = {}, options = {},
     batch.push(part);
   }
   const batchResp = await core.sendPayload(batchHref, batch, options, batchHref === '/persons/batch' ? 'PUT' : 'POST', core.my);
+  if(options.expand) {
+    await expandJson(batchResp, options.expand, core);
+  }
+  if(options.include) {
+    await includeJson(batchResp, options.include, core);
+  }
   return new Promise(function(resolve, reject) {
     var ret = [];
     for(var i = 0; i < batchResp.length; i++) {
@@ -404,7 +410,6 @@ const includeJson = async function(json, inclusions, core) {
     options.expanded = options.expanded ? options.expanded : true; // default is true
     //options.required = options.required ? options.required : true; // default is true
     //options.reference can just be a string when the parameter name is the same as the reference property itself or it can be an object which specifies both.
-    console.log(options.reference)
     let referenceProperty = options.reference;
     let referenceParameterName = options.reference;
     if (!(typeof options.reference === 'string' || options.reference instanceof String)) {
@@ -447,7 +452,10 @@ const includeJson = async function(json, inclusions, core) {
       // travel resources and add $$ included property
       const resources = travelResourcesOfJson(json);
       for(let resource of resources) {
-        const inclusions = map[resource.$$meta.permalink];
+        let inclusions = map[resource.$$meta.permalink];
+        if(!inclusions) {
+          inclusions = [];
+        }
         resource['$$'+options.alias] = options.singleton ? (inclusions.length === 0 ? null : inclusions[0]) : inclusions;
       }
     }
