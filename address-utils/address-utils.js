@@ -104,8 +104,8 @@ const isSameHouseNumberAndMailBox = function (a, b) {
 };
 
 const isStreetNameMatch = function (a, b) {
-  const aWords = a.toLowerCase().replace(/St\.\s/g, 'Sint ').replace(/St\./g, 'Sint ').replace(/[\-]/g, ' ').split(' ');
-  const bWords = b.toLowerCase().replace(/St\.\s/g, 'Sint ').replace(/St\./g, 'Sint ').replace(/[\-]/g, ' ').split(' ');
+  const aWords = a.toLowerCase().replace(/st\.\s/g, 'sint ').replace(/st\./g, 'sint ').replace(/[\-]/g, ' ').split(' ');
+  const bWords = b.toLowerCase().replace(/st\.\s/g, 'sint ').replace(/st\./g, 'sint ').replace(/[\-]/g, ' ').split(' ');
   if(aWords.join('') === bWords.join('')) {
     return true;
   } else if(aWords.length === bWords.length) {
