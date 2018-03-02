@@ -17,7 +17,7 @@ const getAll = async function (href, params = {}, options = {}, core) {
   options = options || {};
   const expand = options.expand;
   options.expand = undefined;
-  params.limit = 500;
+  params.limit = params.limit || 500;
   const result = await core.get(href, params, options, core.my);
   var allResults = await getAllFromResult(result, options, core);
   if (!options.raw && !(params && params.expand && params.expand === 'NONE')) {
