@@ -177,7 +177,7 @@ module.exports = function(configuration) {
   };
 
   that.delete = function (href, options) {
-    doDelete(href, options, that.my);
+    return doDelete(href, options, that.my);
   };
 
   that.getList = function (href, params, config) {

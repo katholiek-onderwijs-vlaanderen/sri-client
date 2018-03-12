@@ -201,8 +201,8 @@ try {
   await api.put('/batch', batch);
 } catch (error) {
   if(error instanceof api.SriClientError) {
-    console.error(util.inspect(responseError.body, {depth:7}));
-    console.error(responseError.stack);
+    console.error(util.inspect(error.body, {depth:7}));
+    console.error(error.stack);
   } else {
     console.error(error.stack);
   }
