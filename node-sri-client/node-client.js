@@ -115,7 +115,7 @@ const doDelete = async function (href, options = {}, my) {
         options.pending = false;
         resolve(response.body);
       } else {
-        reject(new SriClientError(reject(handleError(error, response, my.configuration, options))));
+        reject(new SriClientError(handleError('DELETE ' + baseUrl + href, error, response, my.configuration, options)));
       }
     });
   });
