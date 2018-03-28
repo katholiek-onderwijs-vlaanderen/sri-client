@@ -428,7 +428,7 @@ const includeJson = async function(json, inclusions, core) {
           }
           options.filters[referenceParameterName] = object[propertyArray[0]];
           promises.push(getAll(options.href, options.filters, {include: options.include}, core).then(function(results) {
-            resource['$$'+options.alias] = options.singleton ? (results.length === 0 ? null : results[0]) : results;
+            resource[options.alias] = options.singleton ? (results.length === 0 ? null : results[0]) : results;
           }));
           return [];
         }
@@ -456,7 +456,7 @@ const includeJson = async function(json, inclusions, core) {
         if(!inclusions) {
           inclusions = [];
         }
-        resource['$$'+options.alias] = options.singleton ? (inclusions.length === 0 ? null : inclusions[0]) : inclusions;
+        resource[options.alias] = options.singleton ? (inclusions.length === 0 ? null : inclusions[0]) : inclusions;
       }
     }
   }
