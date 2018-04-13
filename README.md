@@ -59,7 +59,7 @@ All methods have an **options** object that you can pass on as a parameter. You 
     * include: you can include resources within the expanded resources. Works the same as the include property on the root of the options.
   Example: api.getAll('/responsibilities/relations', {to: #{an href to a responsibility}}, {expand: [from.organisationalunit]}) expands in two steps first all froms in the resultset, and in a second step all organisationalunits of those froms.
   * **include:** array of objects with configuration to include a property of the/all resrouce(s) (in the resultset). The configuration can contain the following properties:
-    * alias: [required] A $${{alias}} property will be added to the resource or every resource in the resultset if it is a list.
+    * alias: [required] An {{alias}} property will be added to the resource or every resource in the resultset if it is a list. It is recommended to add a $$ prefix in front of them so the client will not send this back to the server on PUT.
     * href: [required] The href on which the included resources can be found
     * reference: an object with the following properties:
       * property:  [required] The property name that references $$meta.permalink of the resource for which you are including resources
@@ -78,7 +78,11 @@ All methods have an **options** object that you can pass on as a parameter. You 
   * **pending:** boolean that will be set to true by every method when the request starts and set to false once the result is fetched.
 * **node-sri-client specific**
   * **timeout:** The number of miliseconds to wait before the request times out. (default timeout is 10 seconds for a GET, 30 seconds for a sendPayload and 120 seconds for a batch)
-  * **strip$$Properties:** strips the $$-properties from the payload.
+  * **maxAttempts:** The number of times the request will be attempted. The default is 3 times (so 2 retries).
+  * **retryStrategy:** You can pass on your own strategy on when to retry a request. The default is to retry on network errors (ECONNRESET, ENOTFOUND, ESOCKETTIMEDOUT, ETIMEDOUT, ECONNREFUSED, EHOSTUNREACH, EPIPE, EAI_AGAIN) or on http errors with status 5xx. See the documentation of [requestretry][npm-requestretry-strategy] to see how to define your own delay strategy.
+  * **retryDelay:** The number of miliseconds of delay untill another attempt is made for this same request. The default is 5000 miliseconds.
+  * **delayStrategy:** You can pass on your own strategy on how to delay a request. The default is to have a fixed time (options.retryDelay) in between the requests. See the documentation of [requestretry][npm-requestretry-delaystrategey] to see how to define your own delay strategy.
+  * **strip$$Properties:** strips the $$-properties from the payload. The default is true.
   * **logging:** logs the response body if the status code >= 400 to the console for any value. If the value is 'debug' the request url will also be logged to the console.
 
 #### examples ####
@@ -100,7 +104,7 @@ All methods have an **options** object that you can pass on as a parameter. You 
     });
 
   const organisationalUnitWithInstitutionNumberIncluded = await sriClient.get('/organisationalunits/a2c36c96-a3a4-11e3-ace8-005056872b95', undefined, {include: {
-    alias: 'institutionNumber',
+    alias: '$$institutionNumber',
     href: '/organisationalunits/externalidentifiers',
     filters: {type: 'INSTITUTION_NUMBER'},
     reference: 'organisationalUnit',
@@ -108,7 +112,7 @@ All methods have an **options** object that you can pass on as a parameter. You 
   }});
 
   const personWithResponsibilitiesIncluded = await sriClient.get('/persons/94417de5-840c-4df4-a10d-fe30683d99e1', undefined, {include: {
-    alias: 'responsibilities',
+    alias: '$$responsibilities',
     href: '/responsibilities',
     reference: {
       property: 'person',
@@ -131,7 +135,7 @@ All methods have an **options** object that you can pass on as a parameter. You 
         property: 'person', // expand all person properties client side,
         required: false,
         include: [{
-          alias: 'responsibilities', // A $$responsibilities property will be added to every resource in the resultset
+          alias: '$$responsibilities', // A $$responsibilities property will be added to every resource in the resultset
           href: '/responsibilities',
           reference: {
             property: 'person',
@@ -170,6 +174,7 @@ The possible properties are:
 
 ### node-sri-client ###
 
+This module is build upon [requestretry][npm-requestretry] which itself is build upon [request][npm-request].
 Here is an example how to use the module.
 
 ```javascript
@@ -299,3 +304,7 @@ Mail to matthias.snellings@katholiekonderwijs.vlaanderen, gunther.claes@katholie
 
 [sri-documentation]: https://github.com/dimitrydhondt/sri
 [sri4node-project]: https://github.com/katholiek-onderwijs-vlaanderen/sri4node
+[npm-requestretry]: https://www.npmjs.com/package/requestretry
+[npm-requestretry-strategy]: https://www.npmjs.com/package/requestretry#how-to-define-your-own-retry-strategy
+[npm-requestretry-delaystrategey]: https://www.npmjs.com/package/requestretry#how-to-define-your-own-delay-strategy
+[npm-request]: https://www.npmjs.com/package/request

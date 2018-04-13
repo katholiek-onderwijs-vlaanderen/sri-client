@@ -1,4 +1,4 @@
-const request = require('request');
+const request = require('requestretry');
 const util = require('util');
 const common = require('../common-sri-client.js');
 const commonUtils = require('../common-utils');
@@ -52,6 +52,10 @@ const doGet = async function (href, params, options = {}, my) {
       url: baseUrl + href,
       qs: params,
       json: true,
+      maxAttempts: options.maxAttempts || 3,
+      retryDelay: options.retryDelay || 5000,
+      retryStrategy: options.retryStrategy || request.RetryStrategies.HTTPOrNetworkError,
+      delayStrategy: options.delayStrategy,
       headers: options.headers,
       timeout: options.timeout || 10000
     }, function(error, response, body) {
@@ -70,7 +74,7 @@ const sendPayload = async function (href, payload, options = {}, method, my) {
   if((my.configuration.logging === 'debug') || options.logging === 'debug') {
     console.log(method + ' ' + baseUrl + href + ':\n' + JSON.stringify(payload));
   }
-  if(options.strip$$Properties) {
+  if(options.strip$$Properties !== false) {
     if(payload instanceof Array) {
       payload = commonUtils.strip$$PropertiesFromBatch(payload);
     } else {
@@ -83,6 +87,10 @@ const sendPayload = async function (href, payload, options = {}, method, my) {
       url: baseUrl + href,
       body: payload,
       json:true,
+      maxAttempts: options.maxAttempts || 3,
+      retryDelay: options.retryDelay || 5000,
+      retryStrategy: options.retryStrategy || request.RetryStrategies.HTTPOrNetworkError,
+      delayStrategy: options.delayStrategy,
       headers: options.headers,
       timeout: options.timeout || (payload instanceof Array ? 120000 : 30000)
     }, function(error, response) {
@@ -108,6 +116,9 @@ const doDelete = async function (href, options = {}, my) {
       method: 'DELETE',
       url: baseUrl + href,
       json:true,
+      maxAttempts: options.maxAttempts || 3,
+      retryDelay: options.retryDelay || 5000,
+      retryStrategy: options.retryStrategy || request.RetryStrategies.HTTPOrNetworkError,
       headers: options.headers,
       timeout: options.timeout || 30000
     }, function(error, response) {
