@@ -365,10 +365,9 @@ const add$$expanded = async function(hrefs, json, properties, includeOptions, co
     }
   }
   if(converged) {
-    console.error('The current json is: ' + JSON.stringify(json));
-    throw new Error('The data is inconsistent. There are hrefs that can not be retrieved because they do not exist or because they are deleted. hrefs: ' + JSON.stringify([...newHrefs]));
+    console.warn('[WARNING] The data is inconsistent. There are hrefs that can not be retrieved because they do not exist or because they are deleted. hrefs: ' + JSON.stringify([...newHrefs]));
   }
-  if(newHrefs.size > 0) {
+  if(newHrefs.size > 0 && !converged) {
     await add$$expanded(newHrefs, json, properties, null, core);
   }
   /*// make configurable to know on which batch the hrefs can be retrieved
