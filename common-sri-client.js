@@ -355,6 +355,19 @@ const add$$expanded = async function(hrefs, json, properties, includeOptions, co
     });
     newHrefs = new Set([...newHrefs, ...localHrefs]);
   };
+  let converged = hrefs.size === newHrefs.size;
+  if(converged) {
+    for(let i = 0; i < hrefs.length; i++) {
+      if(hrefs[i] !== newHrefs) {
+        converged = false;
+        break;
+      }
+    }
+  }
+  if(converged) {
+    console.error('The current json is: ' + JSON.stringify(json));
+    throw new Error('The data is inconsistent. There are hrefs that can not be retrieved because they do not exist or because they are deleted. hrefs: ' + JSON.stringify([...newHrefs]));
+  }
   if(newHrefs.size > 0) {
     await add$$expanded(newHrefs, json, properties, null, core);
   }

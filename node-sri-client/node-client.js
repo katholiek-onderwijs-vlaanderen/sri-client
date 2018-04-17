@@ -132,6 +132,18 @@ const doDelete = async function (href, options = {}, my) {
   });
 };
 
+function getExponentialBackoff(attempts, retryDelay=100) {
+  return (Math.pow(2, attempts) * retryDelay) + Math.floor(Math.random() * retryDelay/2);
+}
+
+function constructExponentialBackoffStrategy(options) {
+  let attempts = 0;
+  return () => {
+    attempts += 1;
+    return getExponentialBackoff(attempts, options.retryDelay);
+  };
+}
+
 module.exports = function(configuration) {
   const that = {
     my: {
