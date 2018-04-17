@@ -80,9 +80,10 @@ const getAllHrefsWithoutBatch = async function (baseHref, parameterName, hrefs, 
       total++;
     }
     const thisParams = Object.assign({}, params);
+    const thisOptions = Object.assign({}, options);
     thisParams[parameterName] = parameterValue;
     //const partPromise = getAll(query, null, options, core);
-    const partPromise = getAll(baseHref, thisParams, options, core);
+    const partPromise = getAll(baseHref, thisParams, thisOptions, core);
     promises.push(partPromise);
     partPromise.then(function(results) {
       allResults = allResults.concat(results);
@@ -448,7 +449,10 @@ const includeJson = async function(json, inclusions, core) {
       await Promise.all(promises);
     } else {
       const hrefs = travelHrefsOfJson(json, ('$$meta.permalink').split('.'));
-      const results = await getAllReferencesTo(options.href, options.filters, referenceParameterName, hrefs, {expand: options.expand, include: options.include}, core);
+      const results = await getAllReferencesTo(options.href, options.filters, referenceParameterName, hrefs, {testParam: 'test', expand: options.expand, include: options.include}, core);
+      /*if(options.expand) {
+        expandJson(results, options.expand, core);
+      }*/
       const map = {};
       for(let result of results) {
         const permalinks = travelHrefsOfJson(result, referenceProperty.split('.'), {required: true});
