@@ -449,7 +449,8 @@ const includeJson = async function(json, inclusions, core) {
       await Promise.all(promises);
     } else {
       const hrefs = travelHrefsOfJson(json, ('$$meta.permalink').split('.'));
-      const results = await getAllReferencesTo(options.href, options.filters, referenceParameterName, hrefs, {testParam: 'test', expand: options.expand, include: options.include}, core);
+      const results = await getAllReferencesTo(options.href, options.filters, referenceParameterName, hrefs, {expand: options.expand, include: options.include}, core);
+      // this is not super optimal. Everything splits out in groups of 100. Expansion and inclusion is done for each batch of 100 urls. But the bit bellow is not working.
       /*if(options.expand) {
         expandJson(results, options.expand, core);
       }*/

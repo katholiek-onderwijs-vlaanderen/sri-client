@@ -38,6 +38,9 @@ const replaceSpecialCharacters = function (string) {
 	};
 
 const strip$$Properties = function (obj) {
+  if(!obj) {
+    return obj;
+  }
   const newObj = {};
   Object.keys(obj).forEach(function(key) {
     if(!key.match(/^\$\$/)) {
@@ -48,6 +51,9 @@ const strip$$Properties = function (obj) {
 };
 
 const strip$$PropertiesFromBatch = function (batch) {
+  if(!batch) {
+    return batch;
+  }
   const newBatch = [];
   for(let obj of batch) {
     newBatch.push({
