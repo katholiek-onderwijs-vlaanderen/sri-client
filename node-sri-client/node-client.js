@@ -96,8 +96,11 @@ const sendPayload = async function (href, payload, options = {}, method, my) {
     }, function(error, response) {
       if(!error && response.statusCode >= 200 && response.statusCode < 400) {
         const body = response.body || {};
-        body.getResponseHeaders = function() {
-          return response.headers;
+        body.getResponseHeader = function(header) {
+          return response.headers[header];
+        };
+        body.getStatusCode = function() {
+          return response.statusCode;
         };
         options.pending = false;
         resolve(body);
