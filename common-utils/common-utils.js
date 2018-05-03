@@ -74,7 +74,6 @@ const strip$$PropertiesFromBatch = function (batch) {
       strip$$PropertiesFromObject(obj, newBatch);
     }
   }
-  console.log(JSON.stringify(newBatch))
   return newBatch;
 };
 
