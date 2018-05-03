@@ -50,18 +50,31 @@ const strip$$Properties = function (obj) {
   return newObj;
 };
 
+const strip$$PropertiesFromObject = function(obj, newBatch) {
+  newBatch.push({
+    href: obj.href,
+    verb: obj.verb,
+    body: strip$$Properties(obj.body)
+  });
+};
+
 const strip$$PropertiesFromBatch = function (batch) {
   if(!batch) {
     return batch;
   }
   const newBatch = [];
   for(let obj of batch) {
-    newBatch.push({
-      href: obj.href,
-      verb: obj.verb,
-      body: strip$$Properties(obj.body)
-    });
+    if(Array.isArray(obj)) {
+      const newSubBatch = [];
+      for(let subObj of obj) {
+        strip$$PropertiesFromObject(subObj, newSubBatch);
+      }
+      newBatch.push(newSubBatch);
+    } else {
+      strip$$PropertiesFromObject(obj, newBatch);
+    }
   }
+  console.log(JSON.stringify(newBatch))
   return newBatch;
 };
 

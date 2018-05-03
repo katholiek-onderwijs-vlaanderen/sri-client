@@ -5,6 +5,9 @@ const commonUtils = require('../common-utils');
 
 const SriClientError = function(obj) {
   this.status = obj.status;
+  this.getStatusCode = function() {
+    return this.status;
+  };
   this.body = obj.body;
   this.getResponseHeader = obj.getResponseHeader;
   this.stack = obj.stack;
