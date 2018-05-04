@@ -1,0 +1,1 @@
+module.exports = require('./contactdetail-utils.js');

@@ -356,10 +356,12 @@ const add$$expanded = async function(hrefs, json, properties, includeOptions, co
     });
     newHrefs = new Set([...newHrefs, ...localHrefs]);
   };
+  newHrefs = [...newHrefs];
+  hrefs = [...hrefs];
   let converged = hrefs.size === newHrefs.size;
   if(converged) {
     for(let i = 0; i < hrefs.length; i++) {
-      if(hrefs[i] !== newHrefs) {
+      if(hrefs[i] !== newHrefs[i]) {
         converged = false;
         break;
       }
@@ -368,7 +370,7 @@ const add$$expanded = async function(hrefs, json, properties, includeOptions, co
   if(converged) {
     console.warn('[WARNING] The data is inconsistent. There are hrefs that can not be retrieved because they do not exist or because they are deleted. hrefs: ' + JSON.stringify([...newHrefs]));
   }
-  if(newHrefs.size > 0 && !converged) {
+  if(newHrefs.length > 0 && !converged) {
     await add$$expanded(newHrefs, json, properties, null, core);
   }
   /*// make configurable to know on which batch the hrefs can be retrieved
