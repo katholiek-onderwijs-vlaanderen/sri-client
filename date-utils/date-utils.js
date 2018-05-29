@@ -152,7 +152,7 @@ function getActiveResources(array, referenceDate = getNow()) {
     if(resource.$$expanded) {
       resource = resource.$$expanded;
     }
-    return resource.startDate <= referenceDate && (!resource.endDate || resource.endDate > referenceDate);
+    return resource.startDate <= referenceDate && isAfter(resource.endDate, referenceDate);
   });
 };
 
@@ -161,11 +161,11 @@ function getNonAbolishedResources(array, referenceDate = getNow()) {
     if(resource.$$expanded) {
       resource = resource.$$expanded;
     }
-    return resource.startDate <= referenceDate;
+    return isAfter(resource.endDate, referenceDate);
   });
 };
 
-function onEndDateSet(newEndDate, oldEndDate, dependencies, batch) {
+/*function onEndDateSet(newEndDate, oldEndDate, dependencies, batch) {
   if(newEndDate === oldEndDate) {
     return;
   }
@@ -205,7 +205,107 @@ function onStartDateSet(newStartDate, oldStartDate, dependencies, batch) {
       }
     }
   }
-}
+}*/
+
+const adaptPeriod = function(resource, options, periodic) {
+  const startDateChanged = options.oldStartDate && options.oldStartDate !== resource.startDate;
+  const endDateChanged = options.oldEndDate !== resource.endDate;
+
+  let ret = false;
+
+  if(endDateChanged) {
+    if(periodic.endDate === options.oldEndDate) {
+      periodic.endDate = resource.endDate;
+      ret = true;
+    } else if(isAfterOrEqual(periodic.startDate, resource.endDate)) {
+      throw new Error(JSON.stringify(periodic) + ' starts after the new endDate, ' + resource.endDate);
+    }
+  }
+  if(startDateChanged) {
+    if(periodic.startDate === options.oldStartDate) {
+      periodic.startDate = resource.startDate;
+      ret = true;
+    } else if(isBeforeOrEqual(periodic.endDate, resource.startDate)) {
+      throw new Error(JSON.stringify(periodic) + ' ends before the new startDate, ' + resource.startDate);
+    }
+  }
+  return ret;
+};
+
+const manageDateChanges = async function(resource, options, api) {
+  const startDateChanged = options.oldStartDate && options.oldStartDate !== resource.startDate;
+  const endDateChanged = options.oldEndDate !== resource.endDate;
+
+  if(!startDateChanged && !endDateChanged) {
+    return null;
+    /*const ret = {};
+    return options.references.forEach(r => {
+      if(r.alias) {
+        ret[r.alias] = [];
+      }
+    });*/
+  }
+
+  if(options.properties) {
+    for(let property of options.properties) {
+      if(Array.isArray(resource[property])) {
+        for(let elem of resource[property]) {
+          adaptPeriod(resource, options, elem);
+        }
+      } else {
+        adaptPeriod(resource, options, resource[property]);
+      }
+    }
+  }
+
+  const ret = {};
+
+  if(options.references) {
+    if(!Array.isArray(options.references)) {
+      options.references = [options.references];
+    }
+
+    for(let reference of options.references) {
+      let changes = [];
+      reference.parameters = reference.parameters || {};
+      if(reference.property) {
+        reference.parameters[reference.property] = resource.$$meta.permalink;
+      } else if(reference.commonReference) {
+        reference.parameters[reference.commonReference] = resource[reference.commonReference.href];
+      } else {
+        throw new Error('You either have to add a reference or a commonProperty to the configuration for references.');
+      }
+      if(startDateChanged && !endDateChanged) {
+        reference.parameters.startDate = options.oldStartDate;
+      }
+      //reference.options = {logging: 'debug'}
+      const dependencies = await api.getAll(reference.href, reference.parameters, reference.options);
+      if(reference.filter) {
+        dependencies.filter(reference.filter);
+      }
+      dependencies.forEach( (dependency, $index) => {
+        const batchIndex = options.batch ? _.findIndex(options.batch, elem => elem.href === dependency.$$meta.permalink) : -1;
+        const body = batchIndex === -1 ? dependency : options.batch[batchIndex].body;
+        const changed = adaptPeriod(resource, options, body);
+        if(changed) {
+          changes.push(body);
+          if(options.batch && batchIndex === -1) {
+            options.batch.push({
+              href: body.$$meta.permalink,
+              verb: 'PUT',
+              body: body
+            });
+          }
+        }
+      });
+      if(reference.alias) {
+        ret[reference.alias] = changes;
+      }
+    }
+  }
+
+  return ret;
+};
 
 module.exports = {
   getNow: getNow,
@@ -229,6 +329,7 @@ module.exports = {
   getNextDay: getNextDay,
   getActiveResources: getActiveResources,
   getNonAbolishedResources: getNonAbolishedResources,
-  onStartDateSet: onStartDateSet,
-  onEndDateSet: onEndDateSet
+  //onStartDateSet: onStartDateSet,
+  //onEndDateSet: onEndDateSet,
+  manageDateChanges: manageDateChanges
 };

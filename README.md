@@ -275,12 +275,18 @@ const dateUtils = require('sri-client/date-utils');
 which is an array of resources with a period. array can also be an array of hrefs that is expanded.
 * **getNonAbolishedResources(arrayOfResources, referenceDateString):**  returns a new array with only the resources that are not abolished on the referenceDateString (getNow() if dateString is null) from array,
 which is an array of resources with a period. array can also be an array of hrefs that is expanded.
-* **onStartDateSet(newStartDate, oldStartDate, dependencies, batch):** updates the startDate of all dependencies (which is an array of objects with a period that have a dependency to the resource with a new startDate)
-with the same startDate as the oldStartDate to the newStartDate and adds this resource to the batch.
-If the resource is already present in the batch array it will not add it but update the body of the existing batch object.
-* **onEndDateSet(newEndDate, oldEndDate, dependencies, batch):** updates the endDate of all dependencies (which is an array of objects with a period that have a dependency to the resource with a new endDate)
-with the same endDate as the oldEndDate to the newEndDate and adds this resource to the batch.
-If the resource is already present in the batch array it will not add it but update the body of the existing batch object.
+* **manageDateChanges(resource, options, sriClient):** manages the date changes for the given resource using the given sriClient. The options are:
+  * oldStartDate: the old startDate of the resource before it was updated.
+  * oldEndDate: the old endDate of the resource before it was updated.
+  * batch: a batch array. All references to this resource that should be updated as well will be added to this batch array. If a depending resource is already present in the batch, it will update the body of that batch element.
+  * properties: an array of strings containing the property names of the resource that have a period which should be updated together with the main period of the resource.
+  * references: an array of objects (or one object) with configuration to find the other resources referencing this resource and by consequence should have their period updated as well. The configuration has the following properties:
+    * alias: not required but if you add an alias, the function will return an object with the given alias as a property which contains the referencing resources that are updates as well. If there was no period change the returned object is null.
+    * href: the path on which the referencing resources can be found.
+    * property: the property name/parameter name of the referencing resource pointing to the given resource.
+    * commonReference: If a referencing resource is not referencing directly to the given resource but they are related to each other because they are referencing to the same resource. For example for the educationalprogrammedetails/locations which have to keep up to date with the organisationalunits/locations referencing the same phisicalLocation (and the same organisational unit).
+    * parameters: optional parameters to filter on the references.
+    * options: an options object that will be passed on as a parameter to the sriClient.getAll function.
 
 ## address-utils ##
 
