@@ -59,14 +59,14 @@ const addSubCityHref = async function (address, api) {
 
 const addStreetHref = async function(address, api) {
   if(!address.nisCode && !address.cityHref && !address.subCityHref) {
-    addSubCityHref(address, api);
+    await addSubCityHref(address, api);
   }
-  var niscode = address.nisCode;
-  if(!niscode && address.cityHref) {
+  //var niscode = address.nisCode;
+  /*if(!address.nisCode && address.cityHref) {
     const words = address.cityHref.split('/');
-    niscode = words[words.length-1];
-  }
-  const streets = await api.getAll('/commons/streets', {city: niscode});
+    address.nisCode = words[words.length-1];
+  }*/
+  const streets = await api.getAll('/commons/streets', {city: address.cityHref});
   const matches = [];
   streets.forEach(function(street) {
     if(isStreetNameMatch(street.name, address.street)) {
