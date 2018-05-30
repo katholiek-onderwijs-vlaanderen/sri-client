@@ -207,6 +207,13 @@ function onStartDateSet(newStartDate, oldStartDate, dependencies, batch) {
   }
 }*/
 
+class DateError {
+  constructor(message, periodic) {
+    this.message = message;
+    this.periodic = periodic;
+  }
+}
+
 const adaptPeriod = function(resource, options, periodic) {
   const startDateChanged = options.oldStartDate && options.oldStartDate !== resource.startDate;
   const endDateChanged = options.oldEndDate !== resource.endDate;
@@ -218,7 +225,7 @@ const adaptPeriod = function(resource, options, periodic) {
       periodic.endDate = resource.endDate;
       ret = true;
     } else if(isAfterOrEqual(periodic.startDate, resource.endDate)) {
-      throw new Error(JSON.stringify(periodic) + ' starts after the new endDate, ' + resource.endDate);
+      throw new DateError(periodic.$$meta ? periodic.$$meta.permalink : JSON.stringify(periodic) + ' starts after the new endDate, ' + resource.endDate, periodic);
     }
   }
   if(startDateChanged) {
@@ -226,7 +233,7 @@ const adaptPeriod = function(resource, options, periodic) {
       periodic.startDate = resource.startDate;
       ret = true;
     } else if(isBeforeOrEqual(periodic.endDate, resource.startDate)) {
-      throw new Error(JSON.stringify(periodic) + ' ends before the new startDate, ' + resource.startDate);
+      throw new DateError(periodic.$$meta ? periodic.$$meta.permalink : JSON.stringify(periodic) + ' ends before the new startDate, ' + resource.startDate, periodic);
     }
   }
   return ret;
@@ -331,5 +338,6 @@ module.exports = {
   getNonAbolishedResources: getNonAbolishedResources,
   //onStartDateSet: onStartDateSet,
   //onEndDateSet: onEndDateSet,
-  manageDateChanges: manageDateChanges
+  manageDateChanges: manageDateChanges,
+  DateError: DateError
 };

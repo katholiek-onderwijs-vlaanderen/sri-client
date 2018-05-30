@@ -287,6 +287,7 @@ which is an array of resources with a period. array can also be an array of href
     * commonReference: If a referencing resource is not referencing directly to the given resource but they are related to each other because they are referencing to the same resource. For example for the educationalprogrammedetails/locations which have to keep up to date with the organisationalunits/locations referencing the same phisicalLocation (and the same organisational unit).
     * parameters: optional parameters to filter on the references.
     * options: an options object that will be passed on as a parameter to the sriClient.getAll function.
+If an error occurs when hanling a periodic reference to the given resource, a DateError is thrown with two properties, a message and the periodic.
 
 ## address-utils ##
 
