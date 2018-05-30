@@ -66,7 +66,7 @@ const paramsToString = function (path, params) {
 
 const splitSize = 100;
 const getAllHrefsWithoutBatch = async function (baseHref, parameterName, hrefs, params, options, core) {
-  params.expand = 'FULL';
+  params.expand = params.expand || 'FULL';
   var total = 0;
   const promises = [];
   var allResults = [];
