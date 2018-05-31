@@ -13,7 +13,7 @@ const addSubCityHref = async function (address, api) {
     }
   }
   if(address.nisCode) {
-    subCities = await api.getAll('/commons/subcities', {city: address.nisCode});
+    subCities = await api.getAll('/commons/subcities', {city: address.cityHref});
   } else {
     subCities = await api.getAll('/commons/subcities', {nameContains: thisSubCityClean.replace(/\'/g, "''")}, {expand: 'city'});
   }
