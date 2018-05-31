@@ -62,11 +62,11 @@ const addStreetHref = async function(address, api) {
     await addSubCityHref(address, api);
   }
   //var niscode = address.nisCode;
-  /*if(!address.nisCode && address.cityHref) {
+  if(!address.nisCode && address.cityHref) {
     const words = address.cityHref.split('/');
     address.nisCode = words[words.length-1];
-  }*/
-  const streets = await api.getAll('/commons/streets', {city: address.niscCode});
+  }
+  const streets = await api.getAll('/commons/streets', {city: address.nisCode});
   const matches = [];
   streets.forEach(function(street) {
     if(isStreetNameMatch(street.name, address.street)) {
