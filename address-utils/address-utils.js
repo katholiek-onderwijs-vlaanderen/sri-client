@@ -15,7 +15,7 @@ const addSubCityHref = async function (address, api) {
   if(address.nisCode) {
     subCities = await api.getAll('/commons/subcities', {city: address.nisCode});
   } else {
-    subCities = await api.getAll('/commons/subcities', {nameContains: thisSubCityClean.replace(/\'/g, "''")}, {expand: 'city'});
+    subCities = await api.getAll('/commons/subcities', {nameContains: thisSubCityClean.replace(/\'/g, "''")});
   }
   var matches = [];
   var checkedSubCities = null;
@@ -66,7 +66,7 @@ const addStreetHref = async function(address, api) {
     const words = address.cityHref.split('/');
     address.nisCode = words[words.length-1];
   }*/
-  const streets = await api.getAll('/commons/streets', {city: address.cityHref});
+  const streets = await api.getAll('/commons/streets', {city: address.niscCode});
   const matches = [];
   streets.forEach(function(street) {
     if(isStreetNameMatch(street.name, address.street)) {
