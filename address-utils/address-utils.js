@@ -116,6 +116,13 @@ const isSameHouseNumberAndMailBox = function (a, b) {
 };
 
 const isStreetNameMatch = function (a, b) {
+  const bracesPattern = /(.*)\s\((.*)\)/g;
+  if(a.match(bracesPattern)) {
+    return isStreetNameMatch(a.replace(bracesPattern, '$1'), b) || isStreetNameMatch(a.replace(bracesPattern, '$2 $1'), b);
+  }
+  if(b.match(bracesPattern)) {
+    return isStreetNameMatch(a, b.replace(bracesPattern, '$1')) || isStreetNameMatch(a , b.replace(bracesPattern, '$2 $1'));
+  }
   const aWords = a.toLowerCase().replace(/st\.\s/g, 'sint ').replace(/st\./g, 'sint ').replace(/[\-]/g, ' ').split(' ');
   const bWords = b.toLowerCase().replace(/st\.\s/g, 'sint ').replace(/st\./g, 'sint ').replace(/[\-]/g, ' ').split(' ');
   if(aWords.join('') === bWords.join('')) {
