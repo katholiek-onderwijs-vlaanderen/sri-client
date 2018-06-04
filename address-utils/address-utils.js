@@ -4,16 +4,19 @@ const util = require('util');
 const addSubCityHref = async function (address, api) {
   const thisSubCityClean = address.subCity.split('(')[0].trim();
   var subCities = null;
-  if(!address.nisCode && address.streetHref) {
+  if(address.nisCode && !address.cityHref) {
+    address.cityHref = '/commons/cities/'+address.nisCode;
+  }
+  if(!address.cityHref && address.streetHref) {
     try {
       const street = await api.get(address.streetHref);
-      address.nisCode = street.city.href.split('/')[3];
+      address.cityHref = street.city.href;
     } catch(error) {
       console.warn('street with permalink ' + address.streetHref + ' can not be found in the API');
     }
   }
-  if(address.nisCode) {
-    subCities = await api.getAll('/commons/subcities', {city: address.cityHref});
+  if(address.city) {
+    subCities = await api.getAll('/commons/subcities', {city: address.cityHref}, {expand: 'city'});
   } else {
     subCities = await api.getAll('/commons/subcities', {nameContains: thisSubCityClean.replace(/\'/g, "''")}, {expand: 'city'});
   }
@@ -61,11 +64,17 @@ const addStreetHref = async function(address, api) {
   if(!address.nisCode && !address.cityHref && !address.subCityHref) {
     await addSubCityHref(address, api);
   }
-  //var niscode = address.nisCode;
   /*if(!address.nisCode && address.cityHref) {
     const words = address.cityHref.split('/');
     address.nisCode = words[words.length-1];
   }*/
+  if(!address.cityHref && address.nisCode) {
+    address.cityHref = '/commons/cities/'+address.niscode;
+  }
+  if(!address.cityHref) {
+    console.warn('no street match could be found for ' + address.street + ' in ' + address.subCity + ' because there is no city in the address.');
+    return;
+  }
   const streets = await api.getAll('/commons/streets', {city: address.cityHref});
   const matches = [];
   streets.forEach(function(street) {
@@ -116,7 +125,14 @@ const isSameHouseNumberAndMailBox = function (a, b) {
 };
 
 const isStreetNameMatch = function (a, b) {
-  const aWords = a.toLowerCase().replace(/st\.\s/g, 'sint ').replace(/st\./g, 'sint ').replace(/[\-]/g, ' ').split(' ');
+  const bracesPattern = /(.*)\s\((.*)\)/g;
+  if(a.match(bracesPattern)) {
+    return isStreetNameMatch(a.replace(bracesPattern, '$1'), b) || isStreetNameMatch(a.replace(bracesPattern, '$2 $1'), b);
+  }
+  if(b.match(bracesPattern)) {
+    return isStreetNameMatch(a, b.replace(bracesPattern, '$1')) || isStreetNameMatch(a , b.replace(bracesPattern, '$2 $1'));
+  }
+  const aWords = a.toLowerCase().replace(/(.*)\s\(/).replace(/st\.\s/g, 'sint ').replace(/st\./g, 'sint ').replace(/[\-]/g, ' ').split(' ');
   const bWords = b.toLowerCase().replace(/st\.\s/g, 'sint ').replace(/st\./g, 'sint ').replace(/[\-]/g, ' ').split(' ');
   if(aWords.join('') === bWords.join('')) {
     return true;

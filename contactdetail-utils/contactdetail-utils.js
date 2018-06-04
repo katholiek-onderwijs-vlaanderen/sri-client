@@ -1,5 +1,12 @@
 const addressUtils = require('../address-utils');
 
+class InvalidFormatError {
+  constructor(message, contactDetail) {
+    this.message = message;
+    this.contactDetail = contactDetail;
+  }
+}
+
 const formatPhoneNumber = function(phone) {
   let propertyName, newValue;
   if(typeof phone === 'string' || phone instanceof String) {
@@ -11,7 +18,7 @@ const formatPhoneNumber = function(phone) {
   }
   newValue = newValue.replace(/\//g, '').replace(/\./g, '').replace(/\s/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\-/g, '').replace(/\'/g, '');
   if(!newValue.match(/^\+?0*[1-9]{1}[0-9]{6}[0-9]{0,8}$/)) {
-    throw new Error('InvalidPhoneNumber');
+    throw new InvalidFormatError('Can not format ' + newValue, phone);
   }
   if(newValue.substring(0,2) === '00') {
     newValue = newValue.replace(/^00/, '+');
@@ -27,11 +34,11 @@ const formatPhoneNumber = function(phone) {
       } else if(newValue.substring(0,1) === '0') {
         newValue = newValue.substring(0,3) + ' ' + newValue.substring(3,5) + ' ' + newValue.substring(5,7) + ' ' + newValue.substring(7);
       } else {
-        throw new Error('InvalidPhoneNumber');
+        throw new InvalidFormatError('Can not format ' + newValue, phone);
         newValue = phone.number.replace(/^0*/,'+');
       }
     } else {
-      throw new Error('InvalidPhoneNumber');
+      throw new InvalidFormatError('Can not format ' + newValue, phone);
       //phone.number = phone.number.replace(/^0*/,'+');
     }
   }
@@ -42,6 +49,7 @@ const formatPhoneNumber = function(phone) {
 };
 
 module.exports = {
+  InvalidFormatError: InvalidFormatError,
   formatPhoneNumber: formatPhoneNumber,
   isSameHouseNumberAndMailbox: addressUtils.isSameHouseNumberAndMailBox,
   isSameStreet: addressUtils.isSameStreet,
