@@ -214,14 +214,21 @@ class DateError {
   }
 }
 
-const adaptPeriod = function(resource, options, periodic) {
-  const startDateChanged = options.oldStartDate && options.oldStartDate !== resource.startDate;
-  const endDateChanged = options.oldEndDate !== resource.endDate;
+const adaptPeriod = function(resource, options, periodic, onlyEnlargePeriod) {
+  const startDateChanged = options.oldStartDate && ((!onlyEnlargePeriod && options.oldStartDate !== resource.startDate) || (onlyEnlargePeriod && isBefore(resource.startDate, options.oldStartDate)));
+  const endDateChanged = (!onlyEnlargePeriod && options.oldEndDate !== resource.endDate) || (onlyEnlargePeriod && isAfter(resource.endDate, options.oldEndDate));
 
   let ret = false;
 
   if(endDateChanged) {
-    if(periodic.endDate === options.oldEndDate) {
+    if(options.intermediateStrategy && isBefore(resource.endDate, options.oldEndDate) && isAfter(periodic.endDate, resource.endDate)) {
+      if(options.intermediateStrategy === 'FORCE') {
+        periodic.endDate = resource.endDate;
+        ret = true;
+      } else if(options.intermediateStrategy === 'ERROR') {
+        throw new DateError(periodic.$$meta ? periodic.$$meta.permalink : JSON.stringify(periodic) + ' has an endDate ('+periodic.endDate+') in between the new endDate and the old endDate.', periodic);
+      }
+    } else if(periodic.endDate === options.oldEndDate) {
       periodic.endDate = resource.endDate;
       ret = true;
     } else if(isAfterOrEqual(periodic.startDate, resource.endDate)) {
@@ -229,7 +236,14 @@ const adaptPeriod = function(resource, options, periodic) {
     }
   }
   if(startDateChanged) {
-    if(periodic.startDate === options.oldStartDate) {
+    if(options.intermediateStrategy && periodic.startDate !== options.startDate && isAfter(resource.startDate, options.oldStartDate) && isBefore(periodic.startDate, resource.startDate)) {
+      if(options.intermediateStrategy === 'FORCE') {
+        periodic.startDate = resource.startDate;
+        ret = true;
+      } else if(options.intermediateStrategy === 'ERROR') {
+        throw new DateError(periodic.$$meta ? periodic.$$meta.permalink : JSON.stringify(periodic) + ' has a startDate ('+periodic.startDate+') in between the old startDate and the new startDate.', periodic);
+      }
+    } else if(periodic.startDate === options.oldStartDate) {
       periodic.startDate = resource.startDate;
       ret = true;
     } else if(isBeforeOrEqual(periodic.endDate, resource.startDate)) {
@@ -278,11 +292,11 @@ const manageDateChanges = async function(resource, options, api) {
       if(reference.property) {
         reference.parameters[reference.property] = resource.$$meta.permalink;
       } else if(reference.commonReference) {
-        reference.parameters[reference.commonReference] = resource[reference.commonReference.href];
+        reference.parameters[reference.commonReference] = resource[reference.commonReference].href;
       } else {
         throw new Error('You either have to add a reference or a commonProperty to the configuration for references.');
       }
-      if(startDateChanged && !endDateChanged) {
+      if(startDateChanged && !endDateChanged && !options.intermediateStrategy) {
         reference.parameters.startDate = options.oldStartDate;
       }
       //reference.options = {logging: 'debug'}
@@ -293,7 +307,7 @@ const manageDateChanges = async function(resource, options, api) {
       dependencies.forEach( (dependency, $index) => {
         const batchIndex = options.batch ? _.findIndex(options.batch, elem => elem.href === dependency.$$meta.permalink) : -1;
         const body = batchIndex === -1 ? dependency : options.batch[batchIndex].body;
-        const changed = adaptPeriod(resource, options, body);
+        const changed = adaptPeriod(resource, options, body, reference.onlyEnlargePeriod);
         if(changed) {
           changes.push(body);
           if(options.batch && batchIndex === -1) {
