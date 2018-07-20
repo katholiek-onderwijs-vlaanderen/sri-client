@@ -127,24 +127,58 @@ function getStartofSchoolYear(stringDate) {
   return ret;
 }
 
-function getNextDay(date) {
-  'use strict';
+function getNextDay(date, nbOfDays = 1) {
   if (!date) {
     return date;
   }
-  var nextDay = parse(date);
-  nextDay.setDate(nextDay.getDate() + 1);
+  let nextDay = parse(date);
+  nextDay.setDate(nextDay.getDate() + nbOfDays);
   return toString(nextDay);
 }
 
-function getPreviousDay(date) {
-  'use strict';
+function getPreviousDay(date, nbOfDays = 1) {
   if (!date) {
     return date;
   }
-  var nextDay = parse(date);
-  nextDay.setDate(nextDay.getDate() - 1);
-  return toString(nextDay);
+  let previousDay = parse(date);
+  previousDay.setDate(previousDay.getDate() - nbOfDays);
+  return toString(previousDay);
+}
+
+function getPreviousMonth(date, nbOfMonths = 1) {
+  if(!date) {
+    return date;
+  }
+  let previousMonth = parse(date);
+  previousMonth.setMonth(previousMonth.getMonth() - nbOfMonths);
+  return toString(previousMonth);
+}
+
+function getNextMonth(date, nbOfMonths = 1) {
+  if(!date) {
+    return date;
+  }
+  let nextYear = parse(date);
+  nextYear.setMonth(nextYear.getMonth() + nbOfMonths);
+  return toString(nextYear);
+}
+
+function getPreviousYear(date, nbOfYears = 1) {
+  if(!date) {
+    return date;
+  }
+  let previousYear = parse(date);
+  previousYear.setFullYear(previousYear.getFullYear() - nbOfYears);
+  return toString(previousYear);
+}
+
+function getNextYear(date, nbOfYears = 1) {
+  if(!date) {
+    return date;
+  }
+  let nextYear = parse(date);
+  nextYear.setFullYear(nextYear.getFullYear() + nbOfYears);
+  return toString(nextYear);
 }
 
 function getActiveResources(array, referenceDate = getNow()) {
@@ -259,12 +293,6 @@ const manageDateChanges = async function(resource, options, api) {
 
   if(!startDateChanged && !endDateChanged) {
     return null;
-    /*const ret = {};
-    return options.references.forEach(r => {
-      if(r.alias) {
-        ret[r.alias] = [];
-      }
-    });*/
   }
 
   if(options.properties) {
@@ -348,6 +376,10 @@ module.exports = {
   getEndOfSchoolYear: getEndofSchoolYear,
   getPreviousDay: getPreviousDay,
   getNextDay: getNextDay,
+  getPreviousMonth: getPreviousMonth,
+  getNextMonth: getNextMonth,
+  getPreviousYear: getPreviousYear,
+  getNextYear: getNextYear,
   getActiveResources: getActiveResources,
   getNonAbolishedResources: getNonAbolishedResources,
   //onStartDateSet: onStartDateSet,

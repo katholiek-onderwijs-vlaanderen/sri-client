@@ -46,7 +46,7 @@ const addSubCityHref = async function (address, api) {
     }
     console.warn('checked for the following sub cities: ' + checkedSubCities);
   } else if(matches.length === 0) {
-    console.warn('no subCity match could be found for ' + address.zipCode + ' ' + address.subCity);
+    console.warn('no subCity match could be found for ' + address.street + ' ' + address.houseNumber + ', ' + address.zipCode + ' ' + address.subCity);
     if(address.nisCode) {
       checkedSubCities += ' in niscode '+ address.nisCode;
     }

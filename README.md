@@ -269,8 +269,12 @@ const dateUtils = require('sri-client/date-utils');
 * **isConsecutiveWithOneDayInBetween(a, b):**: returns true if the periods of a and b are strictly following each other in any order with one day in between. So b starts the day after a ends or a starts the day after b ends.
 * **getStartOfSchoolYear(dateString):** returns the first of september before datestring (the first of september before getNow() if dateString is null),
 * **getEndOfSchoolYear(dateString):** returns the first of september after dateString (the first of september after getNow() if dateString is null),
-* **getPreviousDay(dateString):** returns the day before dateString as a string
-* **getNextDay(dateString):** returns the day after dateString as a string
+* **getPreviousDay(dateString, nbOfDays):** returns the date which is the given number of days before dateString, as a string. nbOfDays is optional, the default is 1.
+* **getNextDay(dateString, nbOfDays):** returns the date which is the given number of days after dateString, as a string. nbOfDays is optional, the default is 1.
+* **getPreviousMonth(dateString, nbOfMonths):** returns the date which is the given number of months before dateString, as a string. nbOfMonths is optional, the default is 1.
+* **getNexMonth(dateString, nbOfMonths):** returns the date which is the given number of months after dateString, as a string. nbOfMonths is optional, the default is 1.
+* **getPreviousYear(dateString, nbOfYears):** returns the date which is a given number of years before dateString, as a string. nbOfYears is optional, the default is 1.
+* **getNextYear(dateString, nbOfYears):** returns the date which is the given number of years after dateString, as a string. nbOfYears is optional, the default is 1.
 * **getActiveResources(arrayOfResources, referenceDateString):** returns a new array with only the resources that are active on the referenceDateString (getNow() if dateString is null) from array,
 which is an array of resources with a period. array can also be an array of hrefs that is expanded.
 * **getNonAbolishedResources(arrayOfResources, referenceDateString):**  returns a new array with only the resources that are not abolished on the referenceDateString (getNow() if dateString is null) from array,
@@ -280,11 +284,14 @@ which is an array of resources with a period. array can also be an array of href
   * oldEndDate: the old endDate of the resource before it was updated.
   * batch: a batch array. All references to this resource that should be updated as well will be added to this batch array. If a depending resource is already present in the batch, it will update the body of that batch element.
   * properties: an array of strings containing the property names of the resource that have a period which should be updated together with the main period of the resource.
+  * intermediateStrategy: strategy to handle resources which start in between the new and the old startDate (or in between the new and the old endDate). Possible values are: 'NONE' (default, nothing is done with intermediate resources, validation errors will stop the period change from happening), 'ERROR' (if there are intermediate resources an error is thrown of type DateError), 'FORCE' (intermediate resources are fourced to adapt their period so there are no conflicts)
   * references: an array of objects (or one object) with configuration to find the other resources referencing this resource and by consequence should have their period updated as well. The configuration has the following properties:
     * alias: not required but if you add an alias, the function will return an object with the given alias as a property which contains the referencing resources that are updates as well. If there was no period change the returned object is null.
     * href: the path on which the referencing resources can be found.
     * property: the property name/parameter name of the referencing resource pointing to the given resource.
     * commonReference: If a referencing resource is not referencing directly to the given resource but they are related to each other because they are referencing to the same resource. For example for the educationalprogrammedetails/locations which have to keep up to date with the organisationalunits/locations referencing the same phisicalLocation (and the same organisational unit).
+    * onlyEnlargePeriod: boolean (default is false). If true the period of the referencing is enlarged if the period of the given resource is enlarged, the period will never be shortened.
+    * onlyShortenPeriod: NOT IMPLEMENTED YET. boolean (default is false). If true the period of the referencing is shortened if the period of the given resource is shortened, the period will never be enlarged.
     * parameters: optional parameters to filter on the references.
     * options: an options object that will be passed on as a parameter to the sriClient.getAll function.
 If an error occurs when hanling a periodic reference to the given resource, a DateError is thrown with two properties, a message and the periodic.
