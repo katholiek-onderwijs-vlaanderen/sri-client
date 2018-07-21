@@ -15,7 +15,7 @@ const addSubCityHref = async function (address, api) {
       console.warn('street with permalink ' + address.streetHref + ' can not be found in the API');
     }
   }
-  if(address.city) {
+  if(address.cityHref) {
     subCities = await api.getAll('/commons/subcities', {city: address.cityHref}, {expand: 'city'});
   } else {
     subCities = await api.getAll('/commons/subcities', {nameContains: thisSubCityClean.replace(/\'/g, "''")}, {expand: 'city'});
@@ -132,8 +132,8 @@ const isStreetNameMatch = function (a, b) {
   if(b.match(bracesPattern)) {
     return isStreetNameMatch(a, b.replace(bracesPattern, '$1')) || isStreetNameMatch(a , b.replace(bracesPattern, '$2 $1'));
   }
-  const aWords = a.toLowerCase().replace(/(.*)\s\(/).replace(/st\.\s/g, 'sint ').replace(/st\./g, 'sint ').replace(/[\-]/g, ' ').split(' ');
-  const bWords = b.toLowerCase().replace(/st\.\s/g, 'sint ').replace(/st\./g, 'sint ').replace(/[\-]/g, ' ').split(' ');
+  const aWords = a.replace(/\.([A-Z])/, '. $1').toLowerCase().replace(/st\.\s/g, 'sint ').replace(/st\./g, 'sint ').replace(/[\-]/g, ' ').split(' ');
+  const bWords = b.replace(/\.([A-Z])/, '. $1').toLowerCase().replace(/st\.\s/g, 'sint ').replace(/st\./g, 'sint ').replace(/[\-]/g, ' ').split(' ');
   if(aWords.join('') === bWords.join('')) {
     return true;
   } else if(aWords.length === bWords.length) {
