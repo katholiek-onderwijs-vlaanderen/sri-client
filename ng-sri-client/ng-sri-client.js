@@ -1,5 +1,5 @@
 const common = require('../common-sri-client.js');
-
+let cache = new Map();
 module.exports = ['$http', '$q', 'sriClientConfiguration', '$timeout', function ($http, $q, configuration, $timeout) {
   const getBaseUrl = function (config) {
     var baseUrl = config.baseUrl || configuration.config.baseUrl;
@@ -26,22 +26,27 @@ module.exports = ['$http', '$q', 'sriClientConfiguration', '$timeout', function 
     if(!baseUrl) {
       defer.reject(null);
     } else {
-      $http({
-        method: 'GET',
-        url: baseUrl + href,
-        params: params,
-        headers: config.headers,
-        timeout: config.cancelPromise,
-        transformResponse: function (value) {
-          return JSON.parse(value);
-        }
-      }).success(function (body, status, headers) {
-        config.pending = false;
-        defer.resolve(body);
-      }).error(function (body, status, headers) {
-        var error = handleError(body, status, headers, href, config);
-        defer.reject(error);
-      });
+      if (cache.has({url: baseUrl + href, params: params})) {
+        defer.resolve(cache.get({url: baseUrl + href, params: params}));
+      } else {
+        $http({
+                method: 'GET',
+                url: baseUrl + href,
+                params: params,
+                headers: config.headers,
+                timeout: config.cancelPromise,
+                transformResponse: function (value) {
+                  return JSON.parse(value);
+                }
+              }).then(function (body, status, headers) {
+          config.pending = false;
+          defer.resolve(body);
+          cache.set({url: baseUrl + href, params: params}, body);
+        }, function (body, status, headers) {
+          var error = handleError(body, status, headers, href, config);
+          defer.reject(error);
+        });
+      }
     }
     return defer.promise;
   };
@@ -112,12 +117,12 @@ module.exports = ['$http', '$q', 'sriClientConfiguration', '$timeout', function 
         dataType: 'json',
         headers: config.headers,
         timeout: config.cancelPromise
-      }).success(function(body, status, headers) {
+      }).then(function(body, status, headers) {
         body = body || {};
         body.getResponseHeader = headers;
         config.pending = false;
         defer.resolve(body);
-      }).error(function (body, status, headers) {
+      }, function (body, status, headers) {
         var error = handleError(body, status, headers, href, config);
         defer.reject(error);
       });
@@ -146,10 +151,10 @@ module.exports = ['$http', '$q', 'sriClientConfiguration', '$timeout', function 
         dataType: 'json',
         headers: config.headers,
         timeout: config.cancelPromise
-      }).success(function (body, status, headers) {
+      }).then(function (body, status, headers) {
         config.pending = false;
         defer.resolve(body);
-      }).error(function (body, status, headers) {
+      }, function (body, status, headers) {
         var error = handleError(body, status, headers, href, config);
         defer.reject(error);
       });
