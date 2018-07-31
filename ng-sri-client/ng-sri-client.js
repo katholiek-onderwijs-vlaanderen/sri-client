@@ -40,10 +40,10 @@ module.exports = ['$http', '$q', 'sriClientConfiguration', '$timeout', function 
           }
         }).then(function (response) {
           config.pending = false;
-          defer.resolve(response.body);
-          cache.set({url: baseUrl + href, params: params}, response.body);
+          defer.resolve(response.data);
+          cache.set({url: baseUrl + href, params: params}, response.data);
         }, function (response) {
-          var error = handleError(response.body, response.status, response.headers, href, config);
+          var error = handleError(response.data, response.status, response.headers, href, config);
           defer.reject(error);
         });
       }
@@ -118,12 +118,12 @@ module.exports = ['$http', '$q', 'sriClientConfiguration', '$timeout', function 
         headers: config.headers,
         timeout: config.cancelPromise
       }).then(function(response) {
-        var body = response.body || {};
+        var body = response.data || {};
         body.getResponseHeader = response.headers;
         config.pending = false;
         defer.resolve(body);
       }, function (response) {
-        var error = handleError(response.body, response.status, response.headers, href, config);
+        var error = handleError(response.data, response.status, response.headers, href, config);
         defer.reject(error);
       });
     }
@@ -153,9 +153,9 @@ module.exports = ['$http', '$q', 'sriClientConfiguration', '$timeout', function 
         timeout: config.cancelPromise
       }).then(function (response) {
         config.pending = false;
-        defer.resolve(response.body);
+        defer.resolve(response.data);
       }, function (response) {
-        var error = handleError(response.body, response.status, response.headers, href, config);
+        var error = handleError(response.data, response.status, response.headers, href, config);
         defer.reject(error);
       });
     }
