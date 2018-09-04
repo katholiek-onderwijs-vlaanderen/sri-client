@@ -18,7 +18,7 @@ const addSubCityHref = async function (address, api) {
   if(address.cityHref) {
     subCities = await api.getAll('/commons/subcities', {city: address.cityHref}, {expand: 'city'});
   } else {
-    subCities = await api.getAll('/commons/subcities', {nameContains: thisSubCityClean.replace(/\'/g, "''")}, {expand: 'city'});
+    subCities = await api.getAll('/commons/subcities', {nameContains: thisSubCityClean}, {expand: 'city'});
   }
   var matches = [];
   var checkedSubCities = null;
