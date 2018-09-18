@@ -248,9 +248,18 @@ class DateError {
   }
 }
 
-const adaptPeriod = function(resource, options, periodic, onlyEnlargePeriod) {
-  const startDateChanged = options.oldStartDate && ((!onlyEnlargePeriod && options.oldStartDate !== resource.startDate) || (onlyEnlargePeriod && isBefore(resource.startDate, options.oldStartDate)));
-  const endDateChanged = (!onlyEnlargePeriod && options.oldEndDate !== resource.endDate) || (onlyEnlargePeriod && isAfter(resource.endDate, options.oldEndDate));
+const adaptPeriod = function(resource, options, periodic, referenceOptions) {
+  const onlyEnlargePeriod = referenceOptions && referenceOptions.onlyEnlargePeriod;
+  const onlyShortenPeriod = referenceOptions && referenceOptions.onlyShortenPeriod;
+  const startDateChanged = options.oldStartDate && (
+          (!onlyEnlargePeriod && !onlyShortenPeriod && options.oldStartDate !== resource.startDate) ||
+          (onlyEnlargePeriod && !onlyShortenPeriod && isBefore(resource.startDate, options.oldStartDate)) ||
+          (onlyShortenPeriod && !onlyEnlargePeriod && isAfter(resource.startDate, options.oldStartDate))
+        );
+  const endDateChanged =
+        (!onlyEnlargePeriod && !onlyShortenPeriod && options.oldEndDate !== resource.endDate) ||
+        (onlyEnlargePeriod && !onlyShortenPeriod && isAfter(resource.endDate, options.oldEndDate)) ||
+        (onlyShortenPeriod && !onlyEnlargePeriod && isBefore(resource.endDate, options.oldEndDate));
 
   let ret = false;
 
@@ -335,7 +344,7 @@ const manageDateChanges = async function(resource, options, api) {
       dependencies.forEach( (dependency, $index) => {
         const batchIndex = options.batch ? _.findIndex(options.batch, elem => elem.href === dependency.$$meta.permalink) : -1;
         const body = batchIndex === -1 ? dependency : options.batch[batchIndex].body;
-        const changed = adaptPeriod(resource, options, body, reference.onlyEnlargePeriod);
+        const changed = adaptPeriod(resource, options, body, reference);
         if(changed) {
           changes.push(body);
           if(options.batch && batchIndex === -1) {
