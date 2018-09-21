@@ -35,9 +35,9 @@ function setNow(newNow) {
   now = parse(newNow);
 }
 
-function clearTime(isoDateStr) {
+function stripTime(isoDateStr) {
   'use strict';
-  return isoDateStr ? isoDateStr.split('T')[0] : '';
+  return isoDateStr ? isoDateStr.split('T')[0] : isoDateStr;
 }
 
 function isBeforeOrEqual(a, b) {
@@ -368,7 +368,7 @@ const manageDateChanges = async function(resource, options, api) {
 module.exports = {
   getNow: getNow,
   setNow: setNow,
-  stripTime: clearTime,
+  stripTime: stripTime,
   toString: toString,
   parse: parse,
   isBeforeOrEqual: isBeforeOrEqual,

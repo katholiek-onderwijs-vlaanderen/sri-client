@@ -107,19 +107,38 @@ const isSameSubcity = function (a, b) {
   return a.subCity.replace(/\s?\(.+\)/g, '').toLowerCase() === b.subCity.replace(/\s?\(.+\)/g, '').toLowerCase();
 };
 
-const isSameHouseNumberAndMailBox = function (a, b) {
+const isSameHouseNumberAndMailbox = function (a, b) {
   var x =
     (
       (!a.houseNumber && !b.houseNumber) ||
       (
         a.houseNumber && b.houseNumber &&
-        a.houseNumber.replace(/[\_\s\/]/g, '').toLowerCase() === b.houseNumber.replace(/[\_\s\/]/g, '').toLowerCase()
+        a.houseNumber.toLowerCase()
+          .replace(/^[\_\s\/\.\-\(\)]*[\_\s\/\.\-\(\)]/g, '')
+          .replace(/[\_\s\/\.\-\(\)]*[\_\s\/\.\-\(\)]([0-9])/g, '_$1')
+          .replace(/[\_\s\/\.\-\(\)]*[\_\s\/\.\-\(\)]([a-zA-Z])/g, '$1')
+          .replace(/[\_\s\/\.\-\(\)]*[\_\s\/\.\-\(\)]$/g, '') ===
+        b.houseNumber.toLowerCase()
+          .replace(/^[\_\s\/\.\-\(\)]*[\_\s\/\.\-\(\)]/g, '')
+          .replace(/[\_\s\/\.\-\(\)]*[\_\s\/\.\-\(\)]([0-9])/g, '_$1')
+          .replace(/[\_\s\/\.\-\(\)]*[\_\s\/\.\-\(\)]([a-zA-Z])/g, '$1')
+          .replace(/[\_\s\/\.\-\(\)]*[\_\s\/\.\-\(\)]$/g, '')
       )
     ) &&
     (
       ((!a.mailboxNumber || a.mailboxNumber.trim() === '') && (!b.mailboxNumber || b.mailboxNumber.trim() === '')) ||
       ( a.mailboxNumber && b.mailboxNumber &&
-        a.mailboxNumber.replace(/[\_\s\/]/g, '').toLowerCase() === b.mailboxNumber.replace(/[\_\s\/]/g, '').toLowerCase())
+        a.mailboxNumber.toLowerCase()
+          .replace(/^[\_\s\/\.\-\(\)]*[\_\s\/\.\-\(\)]/g, '')
+          .replace(/[\_\s\/\.\-\(\)]*[\_\s\/\.\-\(\)]([0-9])/g, '_$1')
+          .replace(/[\_\s\/\.\-\(\)]*[\_\s\/\.\-\(\)]([a-zA-Z])/g, '$1')
+          .replace(/[\_\s\/\.\-\(\)]*[\_\s\/\.\-\(\)]$/g, '') ===
+        b.mailboxNumber.toLowerCase()
+          .replace(/^[\_\s\/\.\-\(\)]*[\_\s\/\.\-\(\)]/g, '')
+          .replace(/[\_\s\/\.\-\(\)]*[\_\s\/\.\-\(\)]([0-9])/g, '_$1')
+          .replace(/[\_\s\/\.\-\(\)]*[\_\s\/\.\-\(\)]([a-zA-Z])/g, '$1')
+          .replace(/[\_\s\/\.\-\(\)]*[\_\s\/\.\-\(\)]$/g, '')
+        )
     );
   return x;
 };
@@ -185,7 +204,7 @@ const isSameStreet = function (a, b) {
 };
 
 module.exports = {
-  isSameHouseNumberAndMailbox: isSameHouseNumberAndMailBox,
+  isSameHouseNumberAndMailbox: isSameHouseNumberAndMailbox,
   isSameStreet: isSameStreet,
   addSubCityHref: addSubCityHref,
   addStreetHref: addStreetHref
