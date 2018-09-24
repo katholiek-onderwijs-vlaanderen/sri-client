@@ -296,6 +296,22 @@ const adaptPeriod = function(resource, options, periodic, referenceOptions) {
   return ret;
 };
 
+const getDependenciesForReference = async function(resource, reference, api) {
+  reference.parameters = reference.parameters || {};
+  if(reference.property) {
+    reference.parameters[reference.property] = resource.$$meta.permalink;
+  } else if(reference.commonReference) {
+    reference.parameters[reference.commonReference] = resource[reference.commonReference].href;
+  } else {
+    throw new Error('You either have to add a reference or a commonProperty to the configuration for references.');
+  }
+  //reference.options = {logging: 'debug'}
+  const dependencies = await api.getAll(reference.href, reference.parameters, reference.options);
+  if(reference.filter) {
+    dependencies.filter(reference.filter);
+  }
+};
+
 const manageDateChanges = async function(resource, options, api) {
   const startDateChanged = options.oldStartDate && options.oldStartDate !== resource.startDate;
   const endDateChanged = options.oldEndDate !== resource.endDate;
@@ -324,23 +340,12 @@ const manageDateChanges = async function(resource, options, api) {
     }
 
     for(let reference of options.references) {
-      let changes = [];
       reference.parameters = reference.parameters || {};
-      if(reference.property) {
-        reference.parameters[reference.property] = resource.$$meta.permalink;
-      } else if(reference.commonReference) {
-        reference.parameters[reference.commonReference] = resource[reference.commonReference].href;
-      } else {
-        throw new Error('You either have to add a reference or a commonProperty to the configuration for references.');
-      }
       if(startDateChanged && !endDateChanged && !options.intermediateStrategy) {
         reference.parameters.startDate = options.oldStartDate;
       }
-      //reference.options = {logging: 'debug'}
-      const dependencies = await api.getAll(reference.href, reference.parameters, reference.options);
-      if(reference.filter) {
-        dependencies.filter(reference.filter);
-      }
+      const dependencies = await getDependenciesForReference(resource, reference, api);
+      const changes = [];
       dependencies.forEach( (dependency, $index) => {
         const batchIndex = options.batch ? _.findIndex(options.batch, elem => elem.href === dependency.$$meta.permalink) : -1;
         const body = batchIndex === -1 ? dependency : options.batch[batchIndex].body;
@@ -358,6 +363,35 @@ const manageDateChanges = async function(resource, options, api) {
       });
       if(reference.alias) {
         ret[reference.alias] = changes;
+      }
+    }
+  }
+
+  return ret;
+};
+
+const manageDeletes = async function(resource, options, api) {
+  const ret = {};
+
+  if(options.references) {
+    if(!Array.isArray(options.references)) {
+      options.references = [options.references];
+    }
+
+    for(let reference of options.references) {
+      const dependencies = await getDependenciesForReference(resource, reference, api);
+      dependencies.forEach( (dependency, $index) => {
+        const batchIndex = options.batch ? _.findIndex(options.batch, elem => elem.href === dependency.$$meta.permalink) : -1;
+        options.batch.push({
+          href: dependency.$$meta.permalink,
+          verb: 'DELETE'
+        });
+        if(batchIndex > -1) {
+          options.batch.splice(batchIndex, 1);
+        }
+      });
+      if(reference.alias) {
+        ret[reference.alias] = dependencies;
       }
     }
   }
@@ -394,5 +428,6 @@ module.exports = {
   //onStartDateSet: onStartDateSet,
   //onEndDateSet: onEndDateSet,
   manageDateChanges: manageDateChanges,
+  manageDeletes: manageDeletes,
   DateError: DateError
 };
