@@ -310,6 +310,7 @@ const getDependenciesForReference = async function(resource, reference, api) {
   if(reference.filter) {
     dependencies.filter(reference.filter);
   }
+  return dependencies;
 };
 
 const manageDateChanges = async function(resource, options, api) {
