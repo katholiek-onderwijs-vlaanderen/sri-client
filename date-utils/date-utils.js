@@ -298,6 +298,15 @@ const adaptPeriod = function(resource, options, periodic, referenceOptions) {
 
 const getDependenciesForReference = async function(resource, reference, api) {
   reference.parameters = reference.parameters || {};
+  if(reference.subResources) {
+    reference.parameters.expand = reference.parameters.expand || '';
+    reference.subResources.forEach(subResource => {
+      if(reference.parameters.expand !== '') {
+        reference.parameters.expand += ',';
+      }
+      reference.parameters.expand += 'results.'+subResource;
+    });
+  }
   if(reference.property) {
     reference.parameters[reference.property] = resource.$$meta.permalink;
   } else if(reference.commonReference) {
@@ -360,6 +369,18 @@ const manageDateChanges = async function(resource, options, api) {
               body: body
             });
           }
+          if(reference.subResources) {
+            reference.subResources.forEach(subResource => {
+              const subResourceChanged = adaptPeriod(resource, options, body[subResource].$$expanded, reference);
+              if(subResourceChanged && options.batch && batchIndex === -1) {
+                options.batch.push({
+                  href: body[subResource].href,
+                  verb: 'PUT',
+                  body: body[subResource].$$meta.permalink
+                });
+              }
+            });
+          }
         }
       });
       if(reference.alias) {
@@ -389,6 +410,14 @@ const manageDeletes = async function(resource, options, api) {
         });
         if(batchIndex > -1) {
           options.batch.splice(batchIndex, 1);
+        }
+        if(reference.subResources) {
+          reference.subResources.forEach(subResource => {
+            options.batch.push({
+              href: dependency[subResource].href,
+              verb: 'DELETE'
+            });
+          });
         }
       });
       if(reference.alias) {
