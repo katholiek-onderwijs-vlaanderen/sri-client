@@ -376,7 +376,7 @@ const manageDateChanges = async function(resource, options, api) {
                 options.batch.push({
                   href: body[subResource].href,
                   verb: 'PUT',
-                  body: body[subResource].$$meta.permalink
+                  body: body[subResource].$$expanded
                 });
               }
             });
