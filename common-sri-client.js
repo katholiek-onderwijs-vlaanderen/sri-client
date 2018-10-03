@@ -68,7 +68,7 @@ const splitSize = 100;
 const getAllHrefsWithoutBatch = async function (baseHref, parameterName, hrefs, params, options, core) {
   params.expand = 'FULL';
   var total = 0;
-  const promises = [];
+  //const promises = []; TODO make use of pQueue to do this in concurrency
   var allResults = [];
   const map = {};
   while(total < hrefs.length) {
@@ -83,16 +83,10 @@ const getAllHrefsWithoutBatch = async function (baseHref, parameterName, hrefs, 
     const thisOptions = Object.assign({}, options);
     thisParams[parameterName] = parameterValue;
     //const partPromise = getAll(query, null, options, core);
-    const partPromise = getAll(baseHref, thisParams, thisOptions, core);
-    promises.push(partPromise);
-    partPromise.then(function(results) {
-      allResults = allResults.concat(results);
-    }).catch(function(error) {
-      throw error;
-    });
+    const results = getAll(baseHref, thisParams, thisOptions, core);
+    allResults = allResults.concat(results);
   }
 
-  await Promise.all(promises);
   if(options.raw) {
     throw new Error('You can not get a raw result for getAllHrefs or getAllReferencesTo');
   } else if(options.asMap) {

@@ -69,6 +69,25 @@ const doGet = async function (href, params, options = {}, my) {
       }
     });
   });
+
+    /*const response = await my.baseRequest({
+      method: 'GET',
+      url: baseUrl + href,
+      qs: params,
+      json: true,
+      maxAttempts: options.maxAttempts || 3,
+      retryDelay: options.retryDelay || 5000,
+      retryStrategy: options.retryStrategy || request.RetryStrategies.HTTPOrNetworkError,
+      delayStrategy: options.delayStrategy,
+      headers: options.headers,
+      timeout: options.timeout || 10000});
+
+      if(response.statusCode >= 200 && response.statusCode < 400) {
+        return response.body;
+      } else {
+        throw new SriClientError(handleError('GET ' + baseUrl + common.paramsToString(href, params), null, response, my.configuration, options, stack));
+      }// nog error gooien als request in error
+      */
 };
 
 const sendPayload = async function (href, payload, options = {}, method, my) {
