@@ -265,6 +265,14 @@ const adaptPeriod = function(resource, options, periodic, referenceOptions) {
 
   if(endDateChanged) {
     // TODO look for all errors and return them all
+    if(options.intermediateStrategy && isAfterOrEqual(periodic.startDate, resource.endDate)) {
+      throw new DateError(periodic.$$meta ? periodic.$$meta.permalink : JSON.stringify(periodic) + ' starts after the new endDate, ' + resource.endDate, {
+          resource: resource,
+          periodic: periodic,
+          property: 'endDate',
+          code: 'starts.after.new.end'
+        });
+    }
     if(options.intermediateStrategy && isAfter(periodic.endDate, resource.endDate) && isBefore(periodic.endDate, options.oldEndDate)) {
       if(options.intermediateStrategy === 'FORCE') {
         periodic.endDate = resource.endDate;
@@ -274,23 +282,24 @@ const adaptPeriod = function(resource, options, periodic, referenceOptions) {
           resource: resource,
           periodic: periodic,
           property: 'endDate',
-          conflict: 'ends.inbetween'
+          code: 'ends.inbetween'
         });
       }
     } else if(periodic.endDate === options.oldEndDate) {
       periodic.endDate = resource.endDate;
       ret = true;
-    } else if(isAfterOrEqual(periodic.startDate, resource.endDate)) {
-      throw new DateError(periodic.$$meta ? periodic.$$meta.permalink : JSON.stringify(periodic) + ' starts after the new endDate, ' + resource.endDate, {
-          resource: resource,
-          periodic: periodic,
-          property: 'endDate',
-          code: 'starts.after.new.end'
-        });
     }
   }
   if(startDateChanged) {
-    if(options.intermediateStrategy && periodic.startDate !== options.startDate && isAfter(resource.startDate, options.oldStartDate) && isBefore(periodic.startDate, resource.startDate)) {
+    if(options.intermediateStrategy && isBeforeOrEqual(periodic.endDate, resource.startDate)) {
+      throw new DateError(periodic.$$meta ? periodic.$$meta.permalink : JSON.stringify(periodic) + ' ends before the new startDate, ' + resource.startDate, {
+          resource: resource,
+          periodic: periodic,
+          property: 'startDate',
+          code: 'ends.before.new.start'
+        });
+    }
+    if(options.intermediateStrategy && periodic.startDate !== options.startDate && isAfter(periodic.startDate, options.oldStartDate) && isBefore(periodic.startDate, resource.startDate)) {
       if(options.intermediateStrategy === 'FORCE') {
         periodic.startDate = resource.startDate;
         ret = true;
@@ -305,13 +314,6 @@ const adaptPeriod = function(resource, options, periodic, referenceOptions) {
     } else if(periodic.startDate === options.oldStartDate) {
       periodic.startDate = resource.startDate;
       ret = true;
-    } else if(isBeforeOrEqual(periodic.endDate, resource.startDate)) {
-      throw new DateError(periodic.$$meta ? periodic.$$meta.permalink : JSON.stringify(periodic) + ' ends before the new startDate, ' + resource.startDate, {
-          resource: resource,
-          periodic: periodic,
-          property: 'startDate',
-          code: 'ends.before.new.start'
-        });
     }
   }
   return ret;
