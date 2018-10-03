@@ -83,7 +83,7 @@ const getAllHrefsWithoutBatch = async function (baseHref, parameterName, hrefs, 
     const thisOptions = Object.assign({}, options);
     thisParams[parameterName] = parameterValue;
     //const partPromise = getAll(query, null, options, core);
-    const results = getAll(baseHref, thisParams, thisOptions, core);
+    const results = await getAll(baseHref, thisParams, thisOptions, core);
     allResults = allResults.concat(results);
   }
 
