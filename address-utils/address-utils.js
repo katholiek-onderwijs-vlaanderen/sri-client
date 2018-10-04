@@ -1,6 +1,11 @@
 const _ = require('lodash');
 const util = require('util');
 
+const printAddress = function(address) {
+  return address.street + (address.houseNumber ? ' ' + address.houseNumber : '') + (address.mailboxNumber ? ' ' + address.mailboxNumber : '') +
+    ', ' + address.zipCode + ' ' + address.subCity;
+};
+
 const addSubCityHref = async function (address, api) {
   const thisSubCityClean = address.subCity.split('(')[0].trim();
   var subCities = null;
@@ -204,6 +209,7 @@ const isSameStreet = function (a, b) {
 };
 
 module.exports = {
+  printAddress: printAddress,
   isSameHouseNumberAndMailbox: isSameHouseNumberAndMailbox,
   isSameStreet: isSameStreet,
   addSubCityHref: addSubCityHref,

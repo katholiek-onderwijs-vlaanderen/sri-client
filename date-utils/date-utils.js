@@ -372,6 +372,7 @@ const manageDateChanges = async function(resource, options, api) {
       options.references = [options.references];
     }
 
+    const errors = [];
     for(let reference of options.references) {
       reference.parameters = reference.parameters || {};
       if(startDateChanged && !endDateChanged && !options.intermediateStrategy) {
@@ -382,33 +383,41 @@ const manageDateChanges = async function(resource, options, api) {
       dependencies.forEach( (dependency, $index) => {
         const batchIndex = options.batch ? _.findIndex(options.batch, elem => elem.href === dependency.$$meta.permalink) : -1;
         const body = batchIndex === -1 ? dependency : options.batch[batchIndex].body;
-        const changed = adaptPeriod(resource, options, body, reference);
-        if(changed) {
-          changes.push(body);
-          if(options.batch && batchIndex === -1) {
-            options.batch.push({
-              href: body.$$meta.permalink,
-              verb: 'PUT',
-              body: body
-            });
+        try {
+          const changed = adaptPeriod(resource, options, body, reference);
+          if(changed) {
+            changes.push(body);
+            if(options.batch && batchIndex === -1) {
+              options.batch.push({
+                href: body.$$meta.permalink,
+                verb: 'PUT',
+                body: body
+              });
+            }
+            if(reference.subResources) {
+              reference.subResources.forEach(subResource => {
+                const subResourceChanged = adaptPeriod(resource, options, body[subResource].$$expanded, reference);
+                if(subResourceChanged && options.batch && batchIndex === -1) {
+                  options.batch.push({
+                    href: body[subResource].href,
+                    verb: 'PUT',
+                    body: body[subResource].$$expanded
+                  });
+                }
+              });
+            }
           }
-          if(reference.subResources) {
-            reference.subResources.forEach(subResource => {
-              const subResourceChanged = adaptPeriod(resource, options, body[subResource].$$expanded, reference);
-              if(subResourceChanged && options.batch && batchIndex === -1) {
-                options.batch.push({
-                  href: body[subResource].href,
-                  verb: 'PUT',
-                  body: body[subResource].$$expanded
-                });
-              }
-            });
-          }
+        } catch (error) {
+          throw error;
+          errors.push(error);
         }
       });
       if(reference.alias) {
         ret[reference.alias] = changes;
       }
+    }
+    if(errors.length > 0) {
+      throw new DateError('There are references with conflicting periods that can not be adapted.', errors);
     }
   }
 
