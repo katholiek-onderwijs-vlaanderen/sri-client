@@ -408,8 +408,11 @@ const manageDateChanges = async function(resource, options, api) {
             }
           }
         } catch (error) {
-          throw error;
-          errors.push(error);
+          if(error instanceof DateError) {
+            errors.push(error);
+          } else {
+            throw error;
+          }
         }
       });
       if(reference.alias) {
