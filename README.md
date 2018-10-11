@@ -294,11 +294,12 @@ which is an array of resources with a period. array can also be an array of href
   * oldEndDate: the old endDate of the resource before it was updated.
   * batch: a batch array. All references to this resource that should be updated as well will be added to this batch array. If a depending resource is already present in the batch, it will update the body of that batch element.
   * properties: an array of strings containing the property names of the resource that have a period which should be updated together with the main period of the resource.
-  * intermediateStrategy: strategy to handle resources which start in between the new and the old startDate (or in between the new and the old endDate). Possible values are: 'NONE' (default, nothing is done with intermediate resources, validation errors will stop the period change from happening), 'ERROR' (if there are intermediate resources an error is thrown of type DateError), 'FORCE' (intermediate resources are forced to adapt their period so there are no conflicts)
+  * intermediateStrategy: strategy to handle resources which start in between the new and the old startDate (or in between the new and the old endDate). Possible values are: 'NONE' (nothing is done with intermediate resources, validation errors will stop the period change from happening), 'ERROR' (this is the default, if there are intermediate resources an error is thrown of type DateError), 'FORCE' (intermediate resources are forced to adapt their period so there are no conflicts)
   * references: an array of objects (or one object) with configuration to find the other resources referencing this resource and by consequence should have their period updated as well. The configuration has the following properties:
     * alias: not required but if you add an alias, the function will return an object with the given alias as a property which contains the referencing resources that should be updated as well. If there was no period change the returned object is null.
     * href: the path on which the referencing resources can be found.
     * property: the property name/parameter name of the referencing resource pointing to the given resource.
+    * intermediateStrategy: overwrite the general intermediateStrategy for this reference.
     * commonReference: If a referencing resource is not referencing directly to the given resource but they are related to each other because they are referencing to the same resource.
     * subResources: array with property paths to subResources of the reference which also need to be updated.
     * onlyEnlargePeriod: boolean (default is false). If true the period of the referencing is enlarged if the period of the given resource is enlarged, the period will never be shortened.
