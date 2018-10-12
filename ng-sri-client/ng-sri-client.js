@@ -166,8 +166,8 @@ module.exports = ['$http', '$q', 'sriClientConfiguration', '$timeout', function 
     get: doGet,
     sendPayload: sendPayload,
     put: put,
-    updateResource: function (resource, config) {
-      return put(resource.$$meta.permalink);
+    updateResource: function (resource, options) {
+      return put(resource.$$meta.permalink, resource, options);
     },
     post: post,
     delete: doDelete

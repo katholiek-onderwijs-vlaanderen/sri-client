@@ -24,7 +24,7 @@ Returns a promise with the array of the expanded results that match the query (s
 The list of results is all the results that match the query, because the next links are requested as well and concatenated to the result.
 The result also has a method count() which returns the count from the $$meta section.
 * **put(href, payload, options):** http put to href with the given payload.
-* **updateResouce(resource, options):** http to resource.$$meta.permalink with resouce as payload. Compact function to do an update of an existing resource.
+* **updateResouce(resource, options):** http put to resource.$$meta.permalink with resource as payload. Compact function to do an update of an existing resource.
 * **post(href, payload, options):** http post to href with the given payload.
 * **delete(href, options):** http delete to href.
 * **getAllHrefs(hrefs, batchHref, parameters, options):** returns an array of all objects for hrefs, a given array with permalinks.
