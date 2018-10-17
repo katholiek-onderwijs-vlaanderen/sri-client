@@ -1,4 +1,6 @@
-const _ = require('lodash');
+const _ = {};
+_.findIndex = require('lodash/findIndex');
+
 const util = require('util');
 
 const printAddress = function(address) {
