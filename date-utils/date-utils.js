@@ -1,4 +1,8 @@
-const _ = require('lodash');
+const _ = {};
+_.remove = require('lodash/remove');
+_.findIndex = require('lodash/findIndex');
+_.filter = require('lodash/filter');
+
 let now = null;
 
 function appendZero(number) {
