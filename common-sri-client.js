@@ -2,10 +2,27 @@ const util = require('util');
 const validate = require('jsonschema').validate;
 const commonUtils = require('./common-utils');
 
+const wrapGet = async (href, params, options, core) => {
+  if(options.inBatch) {
+    const batch = [{
+      href: paramsToString(href, params),
+      verb: 'GET'
+    }];
+    const batchResp = await core.put(options.inBatch, batch, options, core.my);
+    if(batchResp[0].status < 300) {
+      return batchResp[0].body;
+    } else {
+      throw batchResp[0].body;
+    }
+  } else {
+    return core.get(href, params, options, core.my);
+  }
+};
+
 const getAllFromResult = async function (data, options, core) {
   var results = data.results;
   if (data.$$meta.next) {
-    const nextResult = await core.get(data.$$meta.next, undefined, options, core.my);
+    const nextResult = await wrapGet(data.$$meta.next, undefined, options, core);
     const nextResults = await getAllFromResult(nextResult, options, core);
     results = results.concat(nextResults);
   }
@@ -18,7 +35,7 @@ const getAll = async function (href, params = {}, options = {}, core) {
   const expand = options.expand;
   options.expand = undefined;
   params.limit = params.limit || 500;
-  const result = await core.get(href, params, options, core.my);
+  const result = await wrapGet(href, params, options, core);
   var allResults = await getAllFromResult(result, options, core);
   if (!options.raw && !(params && params.expand && params.expand === 'NONE')) {
     allResults = allResults.map(function (item) {
@@ -36,7 +53,7 @@ const getAll = async function (href, params = {}, options = {}, core) {
 
 const getList = async function (href, params, options = {}, core) {
   options = options || {};
-  const result = await core.get(href, params, options, core.my);
+  const result = await wrapGet(href, params, options, core);
   var results = result.results;
   if (!options.raw && !(params && params.expand && params.expand === 'NONE')) {
     results = results.map(function (item) {
@@ -58,7 +75,7 @@ const paramsToString = function (path, params) {
       } else {
         ret += '&';
       }
-      ret += key + '=' + params[key];
+      ret += encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
     }
   }
   return ret;
@@ -111,9 +128,10 @@ const getAllHrefs = async function (hrefs, batchHref, params = {}, options = {},
   params = params || {};
   options = options || {};
   params.limit = 500;
-  const hrefParts = hrefs[0].split('/');
+  /*const hrefParts = hrefs[0].split('/');
   hrefParts.splice(hrefParts.length-1);
-  const baseHref = hrefParts.join('/');
+  const baseHref = hrefParts.join('/');*/
+  const baseHref =commonUtils.getPathFromPermalink(hrefs[0]);
   if(!batchHref) {
     return getAllHrefsWithoutBatch(baseHref, 'hrefs', hrefs, params, options, core);
   }
@@ -477,6 +495,7 @@ const includeJson = async function(json, inclusions, core) {
 
 module.exports = {
   paramsToString: paramsToString,
+  wrapGet: wrapGet,
   getList: getList,
   getAll: getAll,
   getAllHrefs: getAllHrefs,

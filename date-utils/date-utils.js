@@ -251,7 +251,7 @@ class DateError {
 const adaptPeriod = function(resource, options, periodic, referenceOptions) {
   const onlyEnlargePeriod = referenceOptions && referenceOptions.onlyEnlargePeriod;
   const onlyShortenPeriod = referenceOptions && referenceOptions.onlyShortenPeriod;
-  const intermediateStrategy = referenceOptions.intermediateStrategy || options.intermediateStrategy;
+  const intermediateStrategy = referenceOptions && referenceOptions.intermediateStrategy ? referenceOptions.intermediateStrategy : options.intermediateStrategy;
   const startDateChanged = options.oldStartDate && (
           (!onlyEnlargePeriod && !onlyShortenPeriod && options.oldStartDate !== resource.startDate) ||
           (onlyEnlargePeriod && !onlyShortenPeriod && isBefore(resource.startDate, options.oldStartDate)) ||

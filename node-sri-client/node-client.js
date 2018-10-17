@@ -42,7 +42,7 @@ const handleError = function (httpRequest, error, response = {}, configuration, 
   };
 };
 
-const doGet = async function (href, params, options = {}, my) {
+const doGet = function (href, params, options = {}, my) {
   options.pending = true;
   var baseUrl = getBaseUrl(my.configuration, options);
   if((my.configuration.logging === 'debug') || options.logging === 'debug') {
@@ -52,8 +52,8 @@ const doGet = async function (href, params, options = {}, my) {
   return new Promise(function(resolve, reject) {
     my.baseRequest({
       method: 'GET',
-      url: baseUrl + href,
-      qs: params,
+      url: baseUrl + common.paramsToString(href, params),
+      //qs: params,
       json: true,
       maxAttempts: options.maxAttempts || 3,
       retryDelay: options.retryDelay || 5000,
