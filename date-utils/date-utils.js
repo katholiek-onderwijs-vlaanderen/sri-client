@@ -344,9 +344,9 @@ const getDependenciesForReference = async function(resource, reference, api) {
     throw new Error('You either have to add a reference, a commonProperty or a listOfHrefs to the configuration for references.');
   }
   //reference.options = {logging: 'debug'}
-  const dependencies = await api.getAll(reference.href, reference.parameters, reference.options);
+  let dependencies = await api.getAll(reference.href, reference.parameters, reference.options);
   if(reference.filter) {
-    dependencies.filter(reference.filter);
+    dependencies = dependencies.filter(reference.filter);
   }
   return dependencies;
 };

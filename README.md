@@ -289,6 +289,7 @@ which is an array of resources with a period. array can also be an array of href
     * commonReference: If a referencing resource is not referencing directly to the given resource but they are related to each other because they are referencing to the same resource. [For example you are not deleting the basket. But the apples and oranges both refer to a promotion which gave two free apples when buying an orange, upon deleting the orange you want to delete all apples that reference the same 'promotion', it is required that apples an oranges both have a property that have the same property name 'promotion']
     * subResources: array with property paths to subResources of the reference which also need to be deleted.
     * parameters: optional parameters to filter on the references. [For example only delete the green apples upon deleting the basket]
+    * filter: function that filters out certain resources in memory
     * options: an options object that will be passed on as a parameter to the sriClient.getAll function.
 * **manageDateChanges(resource, options, sriClient):** manages the propagation of date changes for the given resource to it's dependencies. It needs an sriClient to query for this dependencies [This works in the same way as deletes but with updates on the period instead of deletes]. The options are:
   * oldStartDate: the old startDate of the resource before it was updated.
@@ -306,6 +307,7 @@ which is an array of resources with a period. array can also be an array of href
     * onlyEnlargePeriod: boolean (default is false). If true the period of the referencing is enlarged if the period of the given resource is enlarged, the period will never be shortened.
     * onlyShortenPeriod: boolean (default is false). If true the period of the referencing is shortened if the period of the given resource is shortened, the period will never be enlarged.
     * parameters: optional parameters to filter on the references.
+    * filter: function that filters out certain resources in memory
     * options: an options object that will be passed on as a parameter to the sriClient.getAll function.
 If an error occurs when hanling a periodic reference to the given resource, a DateError is thrown with two properties, a message and the periodic.
 
