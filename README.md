@@ -51,7 +51,7 @@ All methods have an **options** object that you can pass on as a parameter. You 
 * **common**
   * **baseUrl:** sends the http request to this baseUrl instead of the default baseUrl that is set in the initialisation of the configuration.
   * **headers:** An object with headers that are added on the http request. f.e.: {'foo': 'bar'} adds a header foo with value bar.
-  * **inBatch:** For GET methods (getAll, getList, etc.) sends the GET in batch. This can be usefull when their is a potential of an request url that becomes too long.
+  * **inBatch:** Specify the href where the batch needs to be send to. This is for GET methods (getAll, getList, etc.) and wraps the regular request into a batch request. This can be usefull when their is a potential of an request url that becomes too long.
   * **expand:** array with property paths that you want to expand client side. You can expand as deep as you want and don't need to add $$expanded to the path. See the examples.
   You can also replace a property path string with an object to pass on more advanced options. The object contains the following proerties:
     * property: [required] the property path.
