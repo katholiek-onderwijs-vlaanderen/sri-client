@@ -118,8 +118,14 @@ module.exports = ['$http', '$q', 'sriClientConfiguration', '$timeout', function 
         headers: config.headers,
         timeout: config.cancelPromise
       }).then(function(response) {
-        var body = response.data || {};
-        body.getResponseHeader = response.headers;
+        var body = {};
+        if (response && response.data && typeof response.data === 'object'){
+          body = response.data;
+        }
+        body.getResponseHeader = {};
+        if (response && response.headers){
+          body.getResponseHeader = response.headers;
+        }
         config.pending = false;
         defer.resolve(body);
       }, function (response) {
