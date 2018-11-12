@@ -5,6 +5,6 @@ module.factory({
  sriClient: require('./ng-sri-client'),
 });
 
-module.provider('sriClientConfiguration', require('./sri-client-configuration.js'));
+//module.provider('sriClientConfiguration', require('./sri-client-configuration.js'));
 
 module.exports = module;

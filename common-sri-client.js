@@ -5,7 +5,7 @@ const commonUtils = require('./common-utils');
 const wrapGet = async (href, params, options, core) => {
   if(options.inBatch) {
     const batch = [{
-      href: paramsToString(href, params),
+      href: commonUtils.parametersToString(href, params),
       verb: 'GET'
     }];
     const batchResp = await core.put(options.inBatch, batch, options, core.my);
@@ -66,21 +66,6 @@ const getList = async function (href, params, options = {}, core) {
   return results;
 };
 
-const paramsToString = function (path, params) {
-  var ret = path;
-  for (var key in params) {
-    if (params.hasOwnProperty(key)) {
-      if(!ret.match(/\?/g)) {
-        ret += '?';
-      } else {
-        ret += '&';
-      }
-      ret += encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
-    }
-  }
-  return ret;
-};
-
 const splitSize = 100;
 const getAllHrefsWithoutBatch = async function (baseHref, parameterName, hrefs, params, options, core) {
   params.expand = params.expand || 'FULL';
@@ -89,7 +74,7 @@ const getAllHrefsWithoutBatch = async function (baseHref, parameterName, hrefs, 
   var allResults = [];
   const map = {};
   while(total < hrefs.length) {
-    //var query = paramsToString(baseHref, params) + '&'+parameterName+'=';
+    //var query = commonUtils.parametersToString(baseHref, params) + '&'+parameterName+'=';
     let parameterValue = '';
     for(var i = 0; i <= (options.groupBy ? options.groupBy : splitSize) && total < hrefs.length; i++) {
       map[hrefs[i]] = null;
@@ -140,7 +125,7 @@ const getAllHrefs = async function (hrefs, batchHref, params = {}, options = {},
   const map = {};
 
   while(total < hrefs.length) {
-    var query = paramsToString(baseHref, params) + '&hrefs'+'=';
+    var query = commonUtils.parametersToString(baseHref, params) + '&hrefs'+'=';
     for(var i = 0; i <= 500 && total < hrefs.length; i++) {
       map[hrefs[i]] = null;
       query += (i === 0 ? '' : ',')+hrefs[total];
@@ -494,7 +479,6 @@ const includeJson = async function(json, inclusions, core) {
 };
 
 module.exports = {
-  paramsToString: paramsToString,
   wrapGet: wrapGet,
   getList: getList,
   getAll: getAll,

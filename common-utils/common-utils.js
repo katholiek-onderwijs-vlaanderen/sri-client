@@ -77,11 +77,27 @@ const strip$$PropertiesFromBatch = function (batch) {
   return newBatch;
 };
 
+const paramsToString = function (path, params) {
+  var ret = path;
+  for (var key in params) {
+    if (params.hasOwnProperty(key)) {
+      if(!ret.match(/\?/g)) {
+        ret += '?';
+      } else {
+        ret += '&';
+      }
+      ret += encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
+    }
+  }
+  return ret;
+};
+
 module.exports = {
   generateUUID: generateUUID,
   splitPermalink: splitPermalink,
   getKeyFromPermalink: getKeyFromPermalink,
   getPathFromPermalink: getPathFromPermalink,
+  parametersToString: paramsToString,
   replaceSpecialCharacters: replaceSpecialCharacters,
   strip$$Properties: strip$$Properties,
   strip$$PropertiesFromBatch: strip$$PropertiesFromBatch
