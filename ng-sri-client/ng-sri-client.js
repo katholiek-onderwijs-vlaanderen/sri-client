@@ -42,7 +42,7 @@ module.exports = ['$http', '$q', 'sriClientConfiguration', '$timeout', function 
         headers: options.headers,
         timeout: options.cancelPromise
       }).then(function(response) {
-        var body = response.data || {};
+        var body = response.data;
         body.getResponseHeader = response.headers;
         defer.resolve(body);
       }, function (response) {
