@@ -200,7 +200,14 @@ this configuration can have te following properties:
 * accessToken: an object with properties name and value. Each request will have a request header added with the given name and value. This is added to the headers if they are specified.
 * caching: object with properties timeout in seconds (default is 0 = no caching) and maxSize in MB (default is 10MB)
 
-#### batch ####
+### caching ###
+
+There is always a cache assigned to the client. If no configuration is added the timout will be 0 and the maxSize is null.
+The default timeout can be overwritten by both the get method with options or in options.expand. An empty object for caching configuration or caching = false is the same thing as timeout = 0
+which always goes to the api and the response is not stored in the cache.
+When timeout is greater than 0 the cache will be checked. There will be a miss when the item is not there
+
+### batch ###
 
 To write more compacter code there is a Batch class which helps you to add things in batch just in one line.
 On a Batch class you can do the following methods:
@@ -211,14 +218,14 @@ On a Batch class you can do the following methods:
 * getPayload()
 * send(href, sriClient)
 ```javascript
-const api = require('/@kathondvla/sri-client/node-sri-client')(configuration)
-const Batch = require('/@kathondvla/sri-client/batch')
+const api = require('/@kathondvla/sri-client/node-sri-client')(configuration);
+const Batch = require('/@kathondvla/sri-client/batch');
 try {
   const batch = new Batch();
   batch.put(person.$$meta.permalink, person);
   batch.delete(person.$$emails.primary.href);
   batch.post('/persons/changepassword', passwordPayload);
-  await batch.send('/persons/batch', api); // or await api.put('/persons/batch', batch.getPayload()
+  await batch.send('/persons/batch', api); // or await api.put('/persons/batch', batch.getPayload())
 } catch (error) {
   if(error instanceof SriClientError) {
     console.error(util.inspect(error.body, {depth:7}));
@@ -229,13 +236,13 @@ try {
 }
 ```
 
-#### error handling ####
+### error handling ###
 
 If the response is different from status code 200 or 201 or there is no response the response is rejected and an error object is returned of type SriClientError.
 So you can catch errors coming from the sri client and catch http error by filtering on  this error, for example:
 
 ```javascript
-const SriClientError = require('/@kathondvla/sri-client/sri-client-error')
+const SriClientError = require('/@kathondvla/sri-client/sri-client-error');
 // create a batch array
 try {
   await api.put('/batch', batch);
