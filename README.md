@@ -186,7 +186,7 @@ const configuration = {
   baseUrl: 'https://api.katholiekonderwijs.vlaanderen',
 }
 
-const api = require('/@kathondvla/sri-client/node-sri-client')(configuration)
+const api = require('@kathondvla/sri-client/node-sri-client')(configuration)
 
 let secondarySchools = await api.get('/schools', {educationLevels: 'SECUNDAIR'});
 ```
@@ -205,7 +205,14 @@ this configuration can have te following properties:
 There is always a cache assigned to the client. If no configuration is added the timout will be 0 and the maxSize is null.
 The default timeout can be overwritten by both the get method with options or in options.expand. An empty object for caching configuration or caching = false is the same thing as timeout = 0
 which always goes to the api and the response is not stored in the cache.
-When timeout is greater than 0 the cache will be checked. There will be a miss when the item is not there
+When timeout is greater than 0 the cache will be checked. There will be a miss when the item is not there or age is larger than timeout in seconds, It will be retrieved from the API and the promise will be added/replaced in the cache.
+So if two resources ask the same href close to each other the call will only be done once.
+When a list resource is asked, all the individual resources will be added in the cache as well.
+
+A PUT or DELETE operation might alter the information in the cache therefore the cache distinguishes 3 kinds of hrefs:
+* single resources: they will be only removed on a PUT or DELETE on the resource itself
+* basic lists: this are lists which only have basic parameters limit, offset, keyOffset, hrefs or expand=full, summary or none. They will be removed on a PUT or DELETE of a resource with the same resource path.
+* complex hrefs: All lists with other parameters or server side expanded single resources. They will be deleted on any PUT or DELETE because they can even be invalid because of the changing of other resources.
 
 ### batch ###
 
@@ -218,8 +225,8 @@ On a Batch class you can do the following methods:
 * getPayload()
 * send(href, sriClient)
 ```javascript
-const api = require('/@kathondvla/sri-client/node-sri-client')(configuration);
-const Batch = require('/@kathondvla/sri-client/batch');
+const api = require('@kathondvla/sri-client/node-sri-client')(configuration);
+const Batch = require('@kathondvla/sri-client/batch');
 try {
   const batch = new Batch();
   batch.put(person.$$meta.permalink, person);
@@ -242,7 +249,7 @@ If the response is different from status code 200 or 201 or there is no response
 So you can catch errors coming from the sri client and catch http error by filtering on  this error, for example:
 
 ```javascript
-const SriClientError = require('/@kathondvla/sri-client/sri-client-error');
+const SriClientError = require('@kathondvla/sri-client/sri-client-error');
 // create a batch array
 try {
   await api.put('/batch', batch);
@@ -269,7 +276,7 @@ This is a library with common utility functions
 
 #### usage ####
 ```javascript
-const commonUtils = require('/@kathondvla/sri-client/common-utils');
+const commonUtils = require('@kathondvla/sri-client/common-utils');
 ```
 
 #### interface ####
@@ -290,7 +297,7 @@ If a date as a string is null or undefined it is interpreted as infinitely in th
 
 #### usage ####
 ```javascript
-const dateUtils = require('/@kathondvla/sri-client/date-utils');
+const dateUtils = require('@kathondvla/sri-client/date-utils');
 ```
 
 #### interface ####
@@ -359,7 +366,7 @@ This is a library with utility functions for address objects as specified in the
 
 #### usage ####
 ```javascript
-const addressUtils = require('/@kathondvla/sri-client/address-utils');
+const addressUtils = require('@kathondvla/sri-client/address-utils');
 ```
 
 #### interface ####

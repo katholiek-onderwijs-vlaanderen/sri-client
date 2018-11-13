@@ -34,7 +34,7 @@ const createCacheRecord = function (body) {
 const getHrefType = (fullHref, isList) => {
   const containsQuestionMark = fullHref.match(/^.*\?.*$/g);
   if(containsQuestionMark) {
-    if(fullHref.toLowerCase().match(/\?(limit\=[^&]+|offset\=[^&]+|keyoffset\=[^&]+|hrefs\=[^&]+|expand\=full)(&(limit\=[^&]+|offset\=[^&]+|keyoffset\=[^&]+|hrefs\=[^&]+|expand\=full))*$/g)) {
+    if(fullHref.toLowerCase().match(/\?(limit\=[^&]+|offset\=[^&]+|keyoffset\=[^&]+|hrefs\=[^&]+|expand\=(full|summary|none))(&(limit\=[^&]+|offset\=[^&]+|keyoffset\=[^&]+|hrefs\=[^&]+|expand\=(full|summary|none)))*$/g)) {
       return 'BASIC_LIST';
     } else {
       return 'COMPLEX';
