@@ -186,7 +186,7 @@ const configuration = {
   baseUrl: 'https://api.katholiekonderwijs.vlaanderen',
 }
 
-const api = require('sri-client/node-sri-client')(configuration)
+const api = require('/@kathondvla/sri-client/node-sri-client')(configuration)
 
 let secondarySchools = await api.get('/schools', {educationLevels: 'SECUNDAIR'});
 ```
@@ -208,16 +208,17 @@ On a Batch class you can do the following methods:
 * put(href, payload)
 * post(href, payload)
 * delete(href)
+* getPayload()
 * send(href, sriClient)
 ```javascript
-const Batch = require('sri-client/batch')
+const api = require('/@kathondvla/sri-client/node-sri-client')(configuration)
+const Batch = require('/@kathondvla/sri-client/batch')
 try {
   const batch = new Batch();
   batch.put(person.$$meta.permalink, person);
   batch.delete(person.$$emails.primary.href);
   batch.post('/persons/changepassword', passwordPayload);
-  batch.send('/persons/batch', sriClient)
-  await api.put('/batch', batch);
+  await batch.send('/persons/batch', api); // or await api.put('/persons/batch', batch.getPayload()
 } catch (error) {
   if(error instanceof SriClientError) {
     console.error(util.inspect(error.body, {depth:7}));
@@ -234,7 +235,7 @@ If the response is different from status code 200 or 201 or there is no response
 So you can catch errors coming from the sri client and catch http error by filtering on  this error, for example:
 
 ```javascript
-const SriClientError = require('sri-client/sri-client-error')
+const SriClientError = require('/@kathondvla/sri-client/sri-client-error')
 // create a batch array
 try {
   await api.put('/batch', batch);
@@ -261,7 +262,7 @@ This is a library with common utility functions
 
 #### usage ####
 ```javascript
-const commonUtils = require('sri-client/common-utils');
+const commonUtils = require('/@kathondvla/sri-client/common-utils');
 ```
 
 #### interface ####
@@ -282,7 +283,7 @@ If a date as a string is null or undefined it is interpreted as infinitely in th
 
 #### usage ####
 ```javascript
-const dateUtils = require('sri-client/date-utils');
+const dateUtils = require('/@kathondvla/sri-client/date-utils');
 ```
 
 #### interface ####
@@ -351,7 +352,7 @@ This is a library with utility functions for address objects as specified in the
 
 #### usage ####
 ```javascript
-const addressUtils = require('sri-client/address-utils');
+const addressUtils = require('/@kathondvla/sri-client/address-utils');
 ```
 
 #### interface ####
