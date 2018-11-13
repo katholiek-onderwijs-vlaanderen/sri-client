@@ -301,7 +301,7 @@ module.exports = class SriClient {
     }
   }
 
-  async expandJson(json, properties, cachingOptions = {}) {
+  async expandJson(json, properties, cachingOptions) {
     if(!Array.isArray(properties)) {
       properties = [properties];
     }
@@ -310,15 +310,17 @@ module.exports = class SriClient {
       let propertyName = property;
       let includeOptions = null;
       let required = true;
+      let localCachingOptions = null;
       if (!(typeof property === 'string' || property instanceof String)) {
         propertyName = property.property;
         includeOptions = property.include;
         required = property.required;
+        localCachingOptions = property.caching;
       }
       if(includeOptions) {
         let localHrefs = travelHrefsOfJson(json, propertyName.split('.'), {required: required});
         if(localHrefs.length > 0) {
-          await this.add$$expanded(localHrefs, json, [property], includeOptions, cachingOptions);
+          await this.add$$expanded(localHrefs, json, [property], includeOptions, localCachingOptions || cachingOptions);
         }
       } else {
         allHrefs = new Set([...allHrefs, ...travelHrefsOfJson(json, propertyName.split('.'), {required: required})]);

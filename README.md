@@ -51,6 +51,7 @@ All methods have an **options** object that you can pass on as a parameter. You 
 * **common**
   * **baseUrl:** sends the http request to this baseUrl instead of the default baseUrl that is set in the initialisation of the configuration.
   * **headers:** An object with headers that are added on the http request. f.e.: {'foo': 'bar'} adds a header foo with value bar.
+  * **caching:** An object with properties timeout (in seconds) which overwrites the default timeout (you don't need to set up default caching, you can just start caching several requests). The resource will be get from the cache if it it is not older than the timeout in seconds.
   * **inBatch:** Specify the href where the batch needs to be send to. This is for GET methods (getAll, getList, etc.) and wraps the regular request into a batch request. This can be usefull when their is a potential of an request url that becomes too long.
   * **expand:** array with property paths that you want to expand client side. You can expand as deep as you want and don't need to add $$expanded to the path. See the examples.
   You can also replace a property path string with an object to pass on more advanced options. The object contains the following proerties:
@@ -58,6 +59,7 @@ All methods have an **options** object that you can pass on as a parameter. You 
     * required: default is true. If true an error will be thrown if a property in the property path can not be found. This is to help the user detect typo's.
     If required is false, no error will be thrown and expansion will be ignored for objects that do not have a property in the property path. If the property path contains properties that are not required you need to set this proeprty to false.
     * include: you can include resources within the expanded resources. Works the same as the include property on the root of the options.
+    * caching: overwrite the caching options from this point onwards. For example when you can not cache the resource you are getting but the resources that are expanded can be cached for a very long time.
   Example: api.getAll('/responsibilities/relations', {to: #{an href to a responsibility}}, {expand: [from.organisationalunit]}) expands in two steps first all froms in the resultset, and in a second step all organisationalunits of those froms.
   * **include:** array of objects with configuration to include a property of the/all resrouce(s) (in the resultset). The configuration can contain the following properties:
     * alias: [required] An {{alias}} property will be added to the resource or every resource in the resultset if it is a list. It is recommended to add a $$ prefix in front of them so the client will not send this back to the server on PUT.
@@ -75,6 +77,7 @@ All methods have an **options** object that you can pass on as a parameter. You 
   * **raw:** boolean that can be used for getList and getAll. If set to true the array of results will contain the raw result of the body.results, so the items will be an object with an href and a $$expanded object.
   * **asMap:** boolean that can be used for getAllHrefs. If set to true an object with be returned which contains all the hrefs as keys and the object to which it refers as value.
 * **ng-sri-client specific**
+  * **raw** default is false. The response will be parsed. If raw is true the response will not be parsed.
   * **cancelPromise:** A promise that will cancel the request, if it gets resolved.
   * **pending:** boolean that will be set to true by every method when the request starts and set to false once the result is fetched.
 * **node-sri-client specific**
@@ -180,7 +183,7 @@ Here is an example how to use the module.
 
 ```javascript
 const configuration = {
-  baseUrl: 'https://api.katholiekonderwijs.vlaanderen'
+  baseUrl: 'https://api.katholiekonderwijs.vlaanderen',
 }
 
 const api = require('sri-client/node-sri-client')(configuration)
@@ -195,6 +198,35 @@ this configuration can have te following properties:
 * password: password for basic authentication calls.
 * headers: each request will have the headers specified added in the request header.
 * accessToken: an object with properties name and value. Each request will have a request header added with the given name and value. This is added to the headers if they are specified.
+* caching: object with properties timeout in seconds (default is 0 = no caching) and maxSize in MB (default is 10MB)
+
+#### batch ####
+
+To write more compacter code there is a Batch class which helps you to add things in batch just in one line.
+On a Batch class you can do the following methods:
+* get(href)
+* put(href, payload)
+* post(href, payload)
+* delete(href)
+* send(href, sriClient)
+```javascript
+const Batch = require('sri-client/batch')
+try {
+  const batch = new Batch();
+  batch.put(person.$$meta.permalink, person);
+  batch.delete(person.$$emails.primary.href);
+  batch.post('/persons/changepassword', passwordPayload);
+  batch.send('/persons/batch', sriClient)
+  await api.put('/batch', batch);
+} catch (error) {
+  if(error instanceof SriClientError) {
+    console.error(util.inspect(error.body, {depth:7}));
+    console.error(error.stack);
+  } else {
+    console.error(error);
+  }
+}
+```
 
 #### error handling ####
 
@@ -202,15 +234,16 @@ If the response is different from status code 200 or 201 or there is no response
 So you can catch errors coming from the sri client and catch http error by filtering on  this error, for example:
 
 ```javascript
+const SriClientError = require('sri-client/sri-client-error')
 // create a batch array
 try {
   await api.put('/batch', batch);
 } catch (error) {
-  if(error instanceof api.SriClientError) {
+  if(error instanceof SriClientError) {
     console.error(util.inspect(error.body, {depth:7}));
     console.error(error.stack);
   } else {
-    console.error(error.stack);
+    console.error(error);
   }
 }
 ```
