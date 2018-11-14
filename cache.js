@@ -88,21 +88,22 @@ module.exports = class Cache {
   }
 
   async get(href, params, options = {}, isList, client) {
+    console.log(isList)
     const cacheOptions = options.caching || {};
     const timeout = cacheOptions.timeout || this.timeout;
     if(timeout === 0) {
       return client.getRaw(href, params, options);
     }
     const fullHref = commonUtils.parametersToString(href, params);
-    const cacheRecord = this.getCacheRecord(fullHref);
+    const cacheRecord = this.getCacheRecord(fullHref, isList);
     if(!cacheRecord || (new Date().getTime() - cacheRecord.timestamp.getTime() > timeout * 1000)) {
       console.log('cache MISS for ' + fullHref);
       const body = client.getRaw(href, params, options);
-      this.updateCacheRecord(fullHref, body);
+      this.updateCacheRecord(fullHref, isList, body);
       body.then(result => {
         if(isList && (!href.match(/^.+[\?\&]expand\=.+$/) || href.match(/^.+[\?\&]expand\=FULL.*$/))) {
           result.results.forEach(obj => {
-            this.updateCacheRecord(obj.href, Promise.resolve(obj.$$expanded));
+            this.updateCacheRecord(obj.href, false, Promise.resolve(obj.$$expanded));
           });
         }
 
@@ -145,9 +146,9 @@ module.exports = class Cache {
     }
   }
 
-  updateCacheRecord(fullHref, body) {
+  updateCacheRecord(fullHref, isList, body) {
     const cacheRecord = createCacheRecord(body);
-    switch(getHrefType(fullHref)) {
+    switch(getHrefType(fullHref, isList)) {
       case 'PERMALINK':
         const parts = commonUtils.splitPermalink(fullHref);
         if(!this.cache[parts.path]) {
@@ -156,7 +157,6 @@ module.exports = class Cache {
         this.cache[parts.path][parts.key] = cacheRecord;
         break;
       case 'BASIC_LIST':
-        console.log('das een basic list he')
         this.cache.basicLists[fullHref] = cacheRecord;
         break;
       case 'COMPLEX':
@@ -167,17 +167,16 @@ module.exports = class Cache {
   }
 
   onResourceUpdated(permalink) {
-    console.log('handle invalid cache entries because of '+ permalink)
     this.cache.complex = {};
     const parts = commonUtils.splitPermalink(permalink);
     Object.keys(this.cache.basicLists).forEach(entry => {
       if(entry.startsWith(parts.path)) {
-        this.cache.basicLists[entry] = undefined;
+        delete this.cache.basicLists[entry];
       }
     });
     const group = this.cache[parts.path];
     if(group) {
-      group[parts.key] = undefined;
+      delete group[parts.key];
     }
   }
 
