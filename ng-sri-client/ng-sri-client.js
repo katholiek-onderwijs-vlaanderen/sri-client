@@ -9,6 +9,15 @@ module.exports = ['$http', '$q', 'sriClientConfiguration', '$timeout', function 
       super(config);
     }
 
+    getBaseUrl(options) {
+      var baseUrl = options.baseUrl || configuration.config.baseUrl;
+      if (!baseUrl) {
+        console.error('There is no baseUrl configured. Do sriClientConfiguration.set(parameters) to configure the vsko-sri-client module.');
+        return null;
+      }
+      return baseUrl;
+    };
+
     getRaw(href, params, options = {}) {
       var defer = $q.defer();
       var baseUrl = this.getBaseUrl(options);
