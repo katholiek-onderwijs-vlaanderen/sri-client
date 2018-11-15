@@ -88,7 +88,6 @@ module.exports = class Cache {
   }
 
   async get(href, params, options = {}, isList, client) {
-    console.log(isList)
     const cacheOptions = options.caching || {};
     const timeout = cacheOptions.timeout || this.timeout;
     if(timeout === 0) {

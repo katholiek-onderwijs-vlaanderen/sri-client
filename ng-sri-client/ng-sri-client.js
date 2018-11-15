@@ -24,7 +24,6 @@ module.exports = ['$http', '$q', 'sriClientConfiguration', '$timeout', function 
       $http({
         method: 'GET',
         url: baseUrl + commonUtils.parametersToString(href, params),
-        params: params,
         headers: options.headers,
         timeout: options.cancelPromise,
         transformResponse: function (value) {
