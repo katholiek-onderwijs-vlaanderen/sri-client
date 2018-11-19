@@ -7,8 +7,7 @@ module.exports = class SriClient {
   constructor(config = {}) {
     this.configuration = config;
     this.groupBy = config.groupBy || 100;
-    const cacheConfig = config.caching || {};
-    this.cache = new Cache(cacheConfig.timeout, cacheConfig.maxSize);
+    this.cache = new Cache(config.caching, this);
   }
 
   /*get configuration() {
@@ -48,7 +47,7 @@ module.exports = class SriClient {
         throw batchResp[0].body;
       }
     } else {
-      result = await this.cache.get(href, params, options, !isSingleResource, this);
+      result = await this.cache.get(href, params, options, !isSingleResource);
       if(isSingleResource && result.results) {
         throw Error('Do not use the get method to ask for lists. Use getList or getAll instead. You can also use getRaw but this method does not use caching, client side expansion and inclusion.');
       }

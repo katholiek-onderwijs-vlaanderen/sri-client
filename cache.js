@@ -77,30 +77,39 @@ function memorySizeOf(object) {
 };
 
 module.exports = class Cache {
-  constructor(timeout = 0, maxSize = 10) {
-    this.timeout = timeout;
-    this.maxSize = maxSize;
+  constructor(config = {}, api) {
+    this.timeout = config.timeout || 0;
+    this.maxSize = config.maxSize || 10;
+    this.api = api;
     this.cache = {
       basicLists: {},
       complexHrefs: {},
       totalSize: 0
     };
+    if(config.initialise) {
+      config.initialise.forEach(init => {
+        init.hrefs.forEach(href => {
+          const cacheConfig = {timeout: init.timeout ? init.timeout : this.timeout};
+          this.api.getAll(href, undefined, {cachinig: cacheConfig});
+        });
+      });
+    }
   }
 
-  async get(href, params, options = {}, isList, client) {
+  async get(href, params, options = {}, isList) {
     const cacheOptions = options.caching || {};
     const timeout = cacheOptions.timeout || this.timeout;
     if(timeout === 0) {
-      return client.getRaw(href, params, options);
+      return this.api.getRaw(href, params, options);
     }
     const fullHref = commonUtils.parametersToString(href, params);
     const cacheRecord = this.getCacheRecord(fullHref, isList);
     if(!cacheRecord || (new Date().getTime() - cacheRecord.timestamp.getTime() > timeout * 1000)) {
       console.log('cache MISS for ' + fullHref);
-      const body = client.getRaw(href, params, options);
+      const body = this.api.getRaw(href, params, options);
       this.updateCacheRecord(fullHref, isList, body);
       body.then(result => {
-        if(isList && (!href.match(/^.+[\?\&]expand\=.+$/) || href.match(/^.+[\?\&]expand\=FULL.*$/))) {
+        if(isList && (!href.toLowerCase().match(/^.+[\?\&]expand\=.+$/) || href.toLowerCase.match(/^.+[\?\&]expand\=full.*$/))) {
           result.results.forEach(obj => {
             this.updateCacheRecord(obj.href, false, Promise.resolve(obj.$$expanded));
           });
