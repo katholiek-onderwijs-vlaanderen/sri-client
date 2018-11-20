@@ -34,31 +34,35 @@ module.exports = class SriClient {
   }
 
   async wrapGet(href, params, options, isSingleResource) {
-    let result;
-    if(options.inBatch && !this.cache.has(href, params, options.caching)) {
-      const batch = [{
-        href: commonUtils.parametersToString(href, params),
-        verb: 'GET'
-      }];
-      const batchResp = await this.put(options.inBatch, batch, options);
-      if(batchResp[0].status < 300) {
-        result = batchResp[0].body;
+    try {
+      let result;
+      if(options.inBatch && !this.cache.has(href, params, options.caching)) {
+        const batch = [{
+          href: commonUtils.parametersToString(href, params),
+          verb: 'GET'
+        }];
+        const batchResp = await this.put(options.inBatch, batch, options);
+        if(batchResp[0].status < 300) {
+          result = batchResp[0].body;
+        } else {
+          throw batchResp[0].body;
+        }
       } else {
-        throw batchResp[0].body;
+        result = await this.cache.get(href, params, options, !isSingleResource);
+        if(isSingleResource && result.results) {
+          throw Error('Do not use the get method to ask for lists. Use getList or getAll instead. You can also use getRaw but this method does not use caching, client side expansion and inclusion.');
+        }
       }
-    } else {
-      result = await this.cache.get(href, params, options, !isSingleResource);
-      if(isSingleResource && result.results) {
-        throw Error('Do not use the get method to ask for lists. Use getList or getAll instead. You can also use getRaw but this method does not use caching, client side expansion and inclusion.');
+      if(options.expand) {
+        await this.expandJson(result, options.expand, options.caching);
       }
+      if(options.include) {
+        await this.includeJson(result, options.include, options.caching);
+      }
+      return result;
+    } catch(error) {
+      throw error;
     }
-    if(options.expand) {
-      await this.expandJson(result, options.expand, options.caching);
-    }
-    if(options.include) {
-      await this.includeJson(result, options.include, options.caching);
-    }
-    return result;
   }
 
   async getAllFromResult(data, options) {
@@ -238,7 +242,7 @@ module.exports = class SriClient {
     const hrefsMap = {};
     for(let href of hrefs) {
       if(this.cache.has(href, undefined, cachingOptions)) {
-        hrefsMap[href] = await this.cache.get(href, undefined, {caching: cachingOptions}, this);
+        hrefsMap[href] = await this.cache.get(href, undefined, {caching: cachingOptions}, false);
       } else {
         const path = commonUtils.getPathFromPermalink(href);
         if(!uncachedHrefs[path]) {
