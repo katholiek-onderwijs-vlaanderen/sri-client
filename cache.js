@@ -6,7 +6,7 @@ const pDebounce = require('p-debounce');
 
 const checkCacheSize = (cache, maxSize) => {
   return new Promise(resolve => {
-    console.log('we gaan eens kijken of de cache niet te groot is');
+    //console.log('we gaan eens kijken of de cache niet te groot is');
     if(memorySizeOf(cache) > maxSize) {
       console.warn('The cache is too big! Help!');
       // Do clean up!
@@ -81,16 +81,21 @@ module.exports = class Cache {
     this.timeout = config.timeout || 0;
     this.maxSize = config.maxSize || 10;
     this.api = api;
+    this.initialConfig = config.initialise;
     this.cache = {
       basicLists: {},
       complexHrefs: {},
       totalSize: 0
     };
-    if(config.initialise) {
-      config.initialise.forEach(init => {
+  }
+
+
+  initialise() {
+    if(this.initialConfig) {
+      this.initialConfig.forEach(init => {
         init.hrefs.forEach(href => {
           const cacheConfig = {timeout: init.timeout ? init.timeout : this.timeout};
-          this.api.getAll(href, undefined, {cachinig: cacheConfig});
+          this.api.getAll(href, undefined, {caching: cacheConfig});
         });
       });
     }

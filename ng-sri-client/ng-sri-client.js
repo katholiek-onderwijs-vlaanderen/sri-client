@@ -7,6 +7,7 @@ module.exports = ['$http', '$q', 'sriClientConfiguration', '$timeout', function 
   class NgClient extends SriClient {
     constructor(config = {}) {
       super(config);
+      this.cache.initialise();
     }
 
     getBaseUrl(options) {

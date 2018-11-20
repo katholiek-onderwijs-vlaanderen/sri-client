@@ -10,14 +10,14 @@ module.exports = class Batch {
   get(href) {
     this.batchArray.push({
       href: href,
-      method: 'GET'
+      verb: 'GET'
     });
   }
 
   put(href, payload) {
     this.batchArray.push({
       href: href,
-      method: 'PUT',
+      verb: 'PUT',
       body: payload
     });
   }
@@ -25,7 +25,7 @@ module.exports = class Batch {
   post(href, payload) {
     this.batchArray.push({
       href: href,
-      method: 'POST',
+      verb: 'POST',
       body: payload
     });
   }
@@ -33,7 +33,7 @@ module.exports = class Batch {
   delete(href) {
     this.batchArray.push({
       href: href,
-      method: 'DELETE'
+      verb: 'DELETE'
     });
   }
 

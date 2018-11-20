@@ -5,6 +5,7 @@ const commonUtils = require('../common-utils');
 const SriClientError = require('../sri-client-error');
 
 class NodeClient extends SriClient {
+
   constructor(config = {}) {
     super(config);
     const defaultOptions = {
@@ -20,6 +21,7 @@ class NodeClient extends SriClient {
       defaultOptions.headers[config.accessToken.name] = config.accessToken.value;
     }
     this.baseRequest = request.defaults(defaultOptions);
+    this.cache.initialise();
   }
 
   getRaw(href, params, options = {}) {
