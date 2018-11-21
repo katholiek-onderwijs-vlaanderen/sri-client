@@ -1,6 +1,8 @@
 const commonUtils = require('./common-utils');
-const deepcopy = require('deepcopy/index.js');
-const util = require('util')
+const deepcopy = function(obj) {
+  return JSON.parse(JSON.stringify(obj));
+};
+const util = require('util');
 
 const pDebounce = require('p-debounce');
 

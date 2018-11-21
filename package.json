@@ -17,7 +17,6 @@
   ],
   "license": "private",
   "dependencies": {
-    "deepcopy": "^1.0.0",
     "jsonschema": "^1.2.2",
     "lodash": "^4.17.4",
     "p-debounce": "^1.0.0",
