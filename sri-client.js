@@ -320,7 +320,7 @@ module.exports = class SriClient {
         required = property.required;
         localCachingOptions = property.caching;
       }
-      if(includeOptions) {
+      if(includeOptions || localCachingOptions) {
         let localHrefs = travelHrefsOfJson(json, propertyName.split('.'), {required: required});
         if(localHrefs.length > 0) {
           await this.add$$expanded(localHrefs, json, [property], includeOptions, localCachingOptions || cachingOptions);
@@ -345,6 +345,7 @@ module.exports = class SriClient {
       //options.reference can just be a string when the parameter name is the same as the reference property itself or it can be an object which specifies both.
       let referenceProperty = options.reference;
       let referenceParameterName = options.reference;
+      const localCachingOptions = options.caching;
       if (!(typeof options.reference === 'string' || options.reference instanceof String)) {
         referenceProperty = options.reference.property;
         referenceParameterName = options.reference.parameterName ? options.reference.parameterName : referenceProperty;
@@ -360,7 +361,7 @@ module.exports = class SriClient {
               options.filters.expand = 'NONE';
             }
             options.filters[referenceParameterName] = object[propertyArray[0]];
-            promises.push(this.getAll(options.href, options.filters, {include: options.include, caching: cachingOptions}).then(function(results) {
+            promises.push(this.getAll(options.href, options.filters, {include: options.include, caching: localCachingOptions || cachingOptions}).then(function(results) {
               resource[options.alias] = options.singleton ? (results.length === 0 ? null : results[0]) : results;
             }));
             return [];
@@ -369,7 +370,7 @@ module.exports = class SriClient {
         await Promise.all(promises);
       } else {
         const hrefs = travelHrefsOfJson(json, ('$$meta.permalink').split('.'));
-        const results = await this.getAllReferencesTo(options.href, options.filters, referenceParameterName, hrefs, {expand: options.expand, include: options.include, caching: cachingOptions});
+        const results = await this.getAllReferencesTo(options.href, options.filters, referenceParameterName, hrefs, {expand: options.expand, include: options.include, caching: localCachingOptions || cachingOptions});
         // this is not super optimal. Everything splits out in groups of 100. Expansion and inclusion is done for each batch of 100 urls. But the bit bellow is not working.
         /*if(options.expand) {
           expandJson(results, options.expand, core);

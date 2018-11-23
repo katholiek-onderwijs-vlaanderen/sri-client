@@ -15,11 +15,20 @@ module.exports = class Batch {
   }
 
   put(href, payload) {
-    this.batchArray.push({
-      href: href,
-      verb: 'PUT',
-      body: payload
-    });
+    //make it also possible to just do put of a resource and get the href from the $$meta permalink.
+    if (typeof href === 'object' && href.$$meta && href.$$meta.permalink) {
+      this.batchArray.push({
+        href: href.$$meta.permalink,
+        verb: 'PUT',
+        body: href
+      });
+    } else {
+      this.batchArray.push({
+        href: href,
+        verb: 'PUT',
+        body: payload
+      });
+    }
   }
 
   post(href, payload) {

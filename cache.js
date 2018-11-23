@@ -112,7 +112,9 @@ module.exports = class Cache {
     const fullHref = commonUtils.parametersToString(href, params);
     const cacheRecord = this.getCacheRecord(fullHref, isList);
     if(!cacheRecord || (new Date().getTime() - cacheRecord.timestamp.getTime() > timeout * 1000)) {
-      console.log('cache MISS for ' + fullHref);
+      if(true || options.logging === 'debug') {
+        console.log('cache MISS for ' + fullHref);
+      }
       const body = this.api.getRaw(href, params, options);
       this.updateCacheRecord(fullHref, isList, body);
       body.then(result => {
@@ -127,7 +129,9 @@ module.exports = class Cache {
       const resolvedBody = await body;
       return deepcopy(resolvedBody);
     } else {
-      console.log('cache HIT for ' + fullHref);
+      if(true || options.logging === 'debug') {
+        console.log('cache HIT for ' + fullHref);
+      }
       //console.log(util.inspect(cacheRecord, {depth: 10}))
       cacheRecord.lastUsed = new Date;
       const resolvedBody = await cacheRecord.body;
