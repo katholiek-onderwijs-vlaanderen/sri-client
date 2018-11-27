@@ -155,28 +155,39 @@ All methods have an **options** object that you can pass on as a parameter. You 
   // Within these last responsibilities the organisationalUnit will be expanded
   ```
 
-### ng-sri-client ###
+
+### initialisation ###
+
+#### ng-sri-client ####
 
 ```javascript
-@gunther add here how to use the module.
+const basicConfig = const configuration = {
+  name: 'api',
+  baseUrl: 'https://api.katholiekonderwijs.vlaanderen'
+}
+
+const fastlyConfig = const configuration = {
+  name: 'cachedApi',
+  baseUrl: 'https://fastly-api.be'
+}
+
+require('@kathondvla/sri-client/ng-sri-client')([basicConfig, fastlyConfig]);
+
+const app = angular.module(
+  'MyApp',
+  [
+    'ng-sri-client'
+  ]
+);
+
+//nside a component
+
+['api', 'cachedApi', function (api, cachedApi) {
+  let secondarySchools = await api.get('/schools', {educationLevels: 'SECUNDAIR'});
+  let cities = await cachedApi.getAll('/cities');
+}];
 ```
-
-In a future module we might add an Oauth Interceptor module to support authentication to an Oauth Server.
-On every call to the baseUrl configured in the configuration it will make sure that a bearer token is added for authentication.
-If the token is expired it will take care of getting a new one. If you are not or no longer logged in it will redirect you to the login page.
-
-#### initialisation ####
-
-ng-sri-client requires to specify a baseUrl and the oauth parameters.
-Call the sriClientConfiguration service and call sriClientConfiguration.set(newConfiguration) to initialise the configuration for the module.
-
-The possible properties are:
-
-* baseUrl: the default baseUrl for all the api calls.
-* logging: For every request logs the response body if the status code >= 400 to the console for any value. If the value is 'debug' the request url will also be logged to the console.
-* caching: object with properties timeout in seconds (default is 0 = no caching) and maxSize in MB (default is 10MB)
-
-### node-sri-client ###
+#### node-sri-client ####
 
 This module is build upon [requestretry][npm-requestretry] which itself is build upon [request][npm-request].
 Here is an example how to use the module.
@@ -184,6 +195,15 @@ Here is an example how to use the module.
 ```javascript
 const configuration = {
   baseUrl: 'https://api.katholiekonderwijs.vlaanderen',
+  username: 'foo',
+  password: 'bar',
+  caching: {
+    timeout: 400,
+    initialise: [{
+      timeout: 10000,
+      hrefs: ['/commons/cities', '/commons/countries']
+    ]
+  }
 }
 
 const api = require('@kathondvla/sri-client/node-sri-client')(configuration)
@@ -191,19 +211,23 @@ const api = require('@kathondvla/sri-client/node-sri-client')(configuration)
 let secondarySchools = await api.get('/schools', {educationLevels: 'SECUNDAIR'});
 ```
 
-this configuration can have te following properties:
+It is recommended to initialise the library with some default configuration which can have te following properties:
 
 * baseUrl: the default baseUrl for all the api calls.
-* username: username for basic authentication calls.
-* password: password for basic authentication calls.
-* headers: each request will have the headers specified added in the request header.
-* accessToken: an object with properties name and value. Each request will have a request header added with the given name and value. This is added to the headers if they are specified.
+* logging: For every request logs the response body if the status code >= 400 to the console for any value. If the value is 'debug' the request url will also be logged to the console.
 * caching: object with properties
   * timeout: default timeout in seconds that will be used for every call that does not specify it's own caching in the options (default is 0 = no caching)
   * maxSize: maximum size of the cache in MB. When this size is reached the 25% of the hrefs that were not used for the longest time will be removed from the cache. (default is 10MB)
   * initialisation: array of objects
     * hrefs: array of hrefs that should be called
     * timeout: optional timeout that these initial hrefs should be cached. If not mentioned the default timeout above will be taken.
+
+and the following properties are for the node-sri-client only:
+
+* username: username for basic authentication calls.
+* password: password for basic authentication calls.
+* headers: each request will have the headers specified added in the request header.
+* accessToken: an object with properties name and value. Each request will have a request header added with the given name and value. This is added to the headers if they are specified.
 
 ### caching ###
 
@@ -234,12 +258,13 @@ On a Batch class you can do the following methods:
 ```javascript
 const api = require('@kathondvla/sri-client/node-sri-client')(configuration);
 const Batch = require('@kathondvla/sri-client/batch');
+
 try {
-  const batch = new Batch();
+  const batch = new Batch(api); // OR api.createBatch();
   batch.put(person.$$meta.permalink, person);
   batch.delete(person.$$emails.primary.href);
   batch.post('/persons/changepassword', passwordPayload);
-  await batch.send('/persons/batch', api); // or await api.put('/persons/batch', batch.getPayload())
+  await batch.send('/persons/batch'); // OR await api.put('/persons/batch', batch.getPayload())
 } catch (error) {
   if(error instanceof SriClientError) {
     console.error(util.inspect(error.body, {depth:7}));
