@@ -158,6 +158,24 @@ All methods have an **options** object that you can pass on as a parameter. You 
 
 ### initialisation ###
 
+It is recommended to initialise the library with some default configuration which can have te following properties:
+
+* baseUrl: the default baseUrl for all the api calls.
+* logging: For every request logs the response body if the status code >= 400 to the console for any value. If the value is 'debug' the request url will also be logged to the console.
+* caching: object with properties
+  * timeout: default timeout in seconds that will be used for every call that does not specify it's own caching in the options (default is 0 = no caching)
+  * maxSize: maximum size of the cache in MB. When this size is reached the 25% of the hrefs that were not used for the longest time will be removed from the cache. (default is 10MB)
+  * initialisation: array of objects
+    * hrefs: array of hrefs that should be called
+    * timeout: optional timeout that these initial hrefs should be cached. If not mentioned the default timeout above will be taken.
+
+and the following properties are for the node-sri-client only:
+
+* username: username for basic authentication calls.
+* password: password for basic authentication calls.
+* headers: each request will have the headers specified added in the request header.
+* accessToken: an object with properties name and value. Each request will have a request header added with the given name and value. This is added to the headers if they are specified.
+
 #### ng-sri-client ####
 
 ```javascript
@@ -172,6 +190,8 @@ const fastlyConfig = const configuration = {
 }
 
 require('@kathondvla/sri-client/ng-sri-client')([basicConfig, fastlyConfig]);
+// if you only need one version of an API you can just pass on an object as an argument instead of an array:
+// require('@kathondvla/sri-client/ng-sri-client')(basicConfig]);
 
 const app = angular.module(
   'MyApp',
@@ -210,24 +230,6 @@ const api = require('@kathondvla/sri-client/node-sri-client')(configuration)
 
 let secondarySchools = await api.get('/schools', {educationLevels: 'SECUNDAIR'});
 ```
-
-It is recommended to initialise the library with some default configuration which can have te following properties:
-
-* baseUrl: the default baseUrl for all the api calls.
-* logging: For every request logs the response body if the status code >= 400 to the console for any value. If the value is 'debug' the request url will also be logged to the console.
-* caching: object with properties
-  * timeout: default timeout in seconds that will be used for every call that does not specify it's own caching in the options (default is 0 = no caching)
-  * maxSize: maximum size of the cache in MB. When this size is reached the 25% of the hrefs that were not used for the longest time will be removed from the cache. (default is 10MB)
-  * initialisation: array of objects
-    * hrefs: array of hrefs that should be called
-    * timeout: optional timeout that these initial hrefs should be cached. If not mentioned the default timeout above will be taken.
-
-and the following properties are for the node-sri-client only:
-
-* username: username for basic authentication calls.
-* password: password for basic authentication calls.
-* headers: each request will have the headers specified added in the request header.
-* accessToken: an object with properties name and value. Each request will have a request header added with the given name and value. This is added to the headers if they are specified.
 
 ### caching ###
 
