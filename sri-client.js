@@ -2,12 +2,17 @@ const util = require('util');
 const validate = require('jsonschema').validate;
 const commonUtils = require('./common-utils');
 const Cache = require('./cache.js');
+const Batch = require('./batch');
 
 module.exports = class SriClient {
   constructor(config = {}) {
     this.configuration = config;
     this.groupBy = config.groupBy || 100;
     this.cache = new Cache(config.caching, this);
+  }
+
+  createBatch() {
+    return new Batch(this);
   }
 
   /*get configuration() {

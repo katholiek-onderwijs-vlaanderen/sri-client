@@ -1,14 +1,15 @@
 module.exports = class Batch {
-  constructor() {
-    this.batchArray = [];
+  constructor(sriClient) {
+    this.array = [];
+    this.sriClient = sriClient;
   }
 
   getPayload() {
-    return this.batchArray;
+    return this.array;
   }
 
   get(href) {
-    this.batchArray.push({
+    this.array.push({
       href: href,
       verb: 'GET'
     });
@@ -17,13 +18,13 @@ module.exports = class Batch {
   put(href, payload) {
     //make it also possible to just do put of a resource and get the href from the $$meta permalink.
     if (typeof href === 'object' && href.$$meta && href.$$meta.permalink) {
-      this.batchArray.push({
+      this.array.push({
         href: href.$$meta.permalink,
         verb: 'PUT',
         body: href
       });
     } else {
-      this.batchArray.push({
+      this.array.push({
         href: href,
         verb: 'PUT',
         body: payload
@@ -32,7 +33,7 @@ module.exports = class Batch {
   }
 
   post(href, payload) {
-    this.batchArray.push({
+    this.array.push({
       href: href,
       verb: 'POST',
       body: payload
@@ -40,13 +41,13 @@ module.exports = class Batch {
   }
 
   delete(href) {
-    this.batchArray.push({
+    this.array.push({
       href: href,
       verb: 'DELETE'
     });
   }
 
   send(href, sriClient) {
-    return sriClient.put(href, this.batchArray);
+    return sriClient ? sriClient.put(href, this.array) : this.sriClient.put(href, this.array);
   }
 };
