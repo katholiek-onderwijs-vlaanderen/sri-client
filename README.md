@@ -193,14 +193,9 @@ require('@kathondvla/sri-client/ng-sri-client')([basicConfig, fastlyConfig]);
 // if you only need one version of an API you can just pass on an object as an argument instead of an array:
 // require('@kathondvla/sri-client/ng-sri-client')(basicConfig]);
 
-const app = angular.module(
-  'MyApp',
-  [
-    'ng-sri-client'
-  ]
-);
+const app = angular.module('MyApp', ['ng-sri-client']);
 
-//nside a component
+//inside a component
 
 ['api', 'cachedApi', function (api, cachedApi) {
   let secondarySchools = await api.get('/schools', {educationLevels: 'SECUNDAIR'});
@@ -251,12 +246,13 @@ Be carefull with server side expansion because they are not cached very well.
 
 To write more compacter code there is a Batch class which helps you to add things in batch just in one line.
 On a Batch class you can do the following methods:
-* get(href)
-* put(href, payload)
-* post(href, payload)
-* delete(href)
-* getPayload()
-* send(href, sriClient)
+* get(href): adds an object to the batch with GET as verb and href as href.
+* put(href, payload): adds an object to the batch with PUT as verb, href as href, and resource as body.
+* put(resource): adds an object to the batch with PUT as verb, resource.$$meta.permalink as href, and resource as body.
+* post(href, payload): adds an object to the batch with POST as verb, href as href, and resource as body.
+* delete(href): adds an object to the batch with DELETE as verb and href as href.
+* getPayload(): returns the array of the batch. (you can also do batch.array for the same result)
+* send(href, sriClient): does a PUT to href with the build up batch array as payload using sriClient. If you have initialised the batch with a client or got the batch from the client [sriClient.createBatch()]
 ```javascript
 const api = require('@kathondvla/sri-client/node-sri-client')(configuration);
 const Batch = require('@kathondvla/sri-client/batch');
@@ -266,7 +262,7 @@ try {
   batch.put(person.$$meta.permalink, person);
   batch.delete(person.$$emails.primary.href);
   batch.post('/persons/changepassword', passwordPayload);
-  await batch.send('/persons/batch'); // OR await api.put('/persons/batch', batch.getPayload())
+  await batch.send('/persons/batch'); // OR await api.put('/persons/batch', batch.array)
 } catch (error) {
   if(error instanceof SriClientError) {
     console.error(util.inspect(error.body, {depth:7}));
