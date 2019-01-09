@@ -131,6 +131,15 @@ function getStartofSchoolYear(stringDate) {
   return ret;
 }
 
+function getClosestSchoolYearSwitch (stringDate) {
+  const date = parse(stringDate) || now;
+  if(date.getMonth() < 2) {
+    return toString(new Date(date.getFullYear() - 1, 8, 1));
+  } else {
+    return toString(new Date(date.getFullYear(), 8, 1));
+  }
+};
+
 function getNextDay(date, nbOfDays = 1) {
   if (!date) {
     return date;
@@ -270,7 +279,7 @@ const adaptPeriod = function(resource, options, periodic, referenceOptions) {
 
   if(endDateChanged) {
     if(intermediateStrategy !== 'NONE' && isAfterOrEqual(periodic.startDate, resource.endDate)) {
-      throw new DateError(periodic.$$meta ? periodic.$$meta.permalink : JSON.stringify(periodic) + ' starts after the new endDate, ' + resource.endDate, {
+      throw new DateError((periodic.$$meta ? periodic.$$meta.permalink : JSON.stringify(periodic)) + ' starts after the new endDate, ' + resource.endDate, {
           resource: resource,
           periodic: periodic,
           property: 'endDate',
@@ -390,6 +399,7 @@ const manageDateChanges = async function(resource, options, api) {
       dependencies.forEach( (dependency, $index) => {
         const batchIndex = options.batch ? _.findIndex(options.batch, elem => elem.href === dependency.$$meta.permalink) : -1;
         const body = batchIndex === -1 ? dependency : options.batch[batchIndex].body;
+
         try {
           const changed = adaptPeriod(resource, options, body, reference);
           if(changed) {
@@ -416,7 +426,16 @@ const manageDateChanges = async function(resource, options, api) {
           }
         } catch (error) {
           if(error instanceof DateError) {
-            errors.push(error);
+            // If strategy is FORCE and there is a dependency that starts after the new endDate than it has to be deleted.
+            const intermediateStrategy = reference.intermediateStrategy ? reference.intermediateStrategy : options.intermediateStrategy;
+            if(intermediateStrategy === 'FORCE' && error.code === 'starts.after.new.end' && options.batch) {
+              options.batch.push({
+                href: body.$$meta.permalink,
+                verb: 'DELETE'
+              });
+            } else {
+              errors.push(error);
+            }
           } else {
             throw error;
           }
@@ -489,6 +508,7 @@ module.exports = {
   isConsecutiveWithOneDayInBetween: isConsecutiveWithOneDayInBetween,
   getStartOfSchoolYear: getStartofSchoolYear,
   getEndOfSchoolYear: getEndofSchoolYear,
+  getClosestSchoolYearSwitch: getClosestSchoolYearSwitch,
   getPreviousDay: getPreviousDay,
   getNextDay: getNextDay,
   getPreviousMonth: getPreviousMonth,

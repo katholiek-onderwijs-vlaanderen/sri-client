@@ -83,7 +83,11 @@ module.exports = class Cache {
     this.timeout = config.timeout || 0;
     this.maxSize = config.maxSize || 10;
     this.api = api;
-    this.initialConfig = config.initialise;
+    if(config.initialise && !Array.isArray(config.initialise)) {
+      this.initialConfig = [config.initialise];
+    } else {
+      this.initialConfig = config.initialise;
+    }
     this.cache = {
       basicLists: {},
       complexHrefs: {},
@@ -112,7 +116,8 @@ module.exports = class Cache {
     const fullHref = commonUtils.parametersToString(href, params);
     const cacheRecord = this.getCacheRecord(fullHref, isList);
     if(!cacheRecord || (new Date().getTime() - cacheRecord.timestamp.getTime() > timeout * 1000)) {
-      if(true || options.logging === 'debug') {
+      const logging = options.logging || this.api.configuration.logging;
+      if(/caching/.test(logging)) {
         console.log('cache MISS for ' + fullHref);
       }
       const body = this.api.getRaw(href, params, options);
@@ -124,12 +129,13 @@ module.exports = class Cache {
           });
         }
 
-        debouncedCheckCacheSize(this.cache, this.maxSize);
+        // do not do cache size checking yet. Gunther experience problems when loading 6000 resources of ZILL curriculum which made the app stall for 6 seconds
+        //debouncedCheckCacheSize(this.cache, this.maxSize);
       });
       const resolvedBody = await body;
       return deepcopy(resolvedBody);
     } else {
-      if(true || options.logging === 'debug') {
+      if(options.logging === 'cacheInfo' || options.logging === 'debug') {
         console.log('cache HIT for ' + fullHref);
       }
       //console.log(util.inspect(cacheRecord, {depth: 10}))

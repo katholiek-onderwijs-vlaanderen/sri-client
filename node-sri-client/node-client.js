@@ -26,7 +26,8 @@ class NodeClient extends SriClient {
 
   getRaw(href, params, options = {}) {
     var baseUrl = this.getBaseUrl(options);
-    if((this.configuration.logging === 'debug') || options.logging === 'debug') {
+    const logging = options.logging || this.configuration.logging;
+    if(/get/.test(logging)) {
       console.log('GET ' + baseUrl + commonUtils.parametersToString(href, params));
     }
     var stack = new Error().stack;
@@ -46,7 +47,7 @@ class NodeClient extends SriClient {
         if(!error && response.statusCode >= 200 && response.statusCode < 400) {
           resolve(response.body);
         } else {
-          reject(new SriClientError(handleError('GET ' + baseUrl + commonUtils.parametersToString(href, params), error, response, this.configuration, options, stack)));
+          reject(new SriClientError(this.handleError('GET ' + baseUrl + commonUtils.parametersToString(href, params), error, response, options, stack)));
         }
       });
     });
@@ -54,7 +55,8 @@ class NodeClient extends SriClient {
 
   sendPayload(href, payload, options = {}, method) {
     const baseUrl = this.getBaseUrl(options);
-    if((this.configuration.logging === 'debug') || options.logging === 'debug') {
+    const logging = options.logging || this.configuration.logging;
+    if((new RegExp(method.toLowerCase)).test(logging)) {
       console.log(method + ' ' + baseUrl + href + ':\n' + JSON.stringify(payload));
     }
     if(options.strip$$Properties !== false) {
@@ -87,7 +89,7 @@ class NodeClient extends SriClient {
           };
           resolve(body);
         } else {
-          reject(new SriClientError(handleError(method + ' ' + baseUrl + href, error, response, this.configuration, options)));
+          reject(new SriClientError(this.handleError(method + ' ' + baseUrl + href, error, response, options)));
         }
       });
     });
@@ -109,31 +111,34 @@ class NodeClient extends SriClient {
         if(!error && response.statusCode >= 200 && response.statusCode < 400) {
           resolve(response.body);
         } else {
-          reject(new SriClientError(handleError('DELETE ' + baseUrl + href, error, response, this.configuration, options)));
+          reject(new SriClientError(this.handleError('DELETE ' + baseUrl + href, error, response, options)));
         }
       });
     });
   }
-};
 
-const handleError = function (httpRequest, error, response = {}, configuration, options, stack) {
-  if((configuration && configuration.logging) || options.logging) {
-    console.error(response.statusCode + ': An error occured for ' + httpRequest);
-    if(response.body) {
-      console.error(util.inspect(response.body, {depth: 7}));
-    } else {
-      console.error(error);
+  handleError(httpRequest, error, response = {}, options, stack) {
+    const logging = options.logging || options.logging === false ? options.logging : this.configuration.logging;
+    if(logging) {
+      console.error(response.statusCode + ': An error occured for ' + httpRequest);
+      if(response.body) {
+        console.error(util.inspect(response.body, {depth: 7}));
+      } else {
+        console.error(error);
+      }
     }
-  }
-  return {
-    status: response.statusCode || null,
-    body: response.body || null,
-    getResponseHeader: function(header) {
-      return response.headers[header];
-    },
-    stack: stack
+    return {
+      status: response.statusCode || null,
+      body: response.body || null,
+      getResponseHeader: function(header) {
+        return response.headers[header];
+      },
+      stack: stack
+    };
   };
 };
+
+
 
 module.exports = function(configuration) {
   return new NodeClient(configuration);

@@ -87,7 +87,7 @@ All methods have an **options** object that you can pass on as a parameter. You 
   * **retryDelay:** The number of miliseconds of delay untill another attempt is made for this same request. The default is 5000 miliseconds.
   * **delayStrategy:** You can pass on your own strategy on how to delay a request. The default is to have a fixed time (options.retryDelay) in between the requests. See the documentation of [requestretry][npm-requestretry-delaystrategey] to see how to define your own delay strategy.
   * **strip$$Properties:** strips the $$-properties from the payload. The default is true.
-  * **logging:** logs the response body if the status code >= 400 to the console for any value. If the value is 'debug' the request url will also be logged to the console.
+  * **logging:** logs the response body if the status code >= 400 to the console for any value. Any value always logs errors. Otherwise you can add a string containing values: 'get','put','post','delete','caching','expand'.
 
 #### examples ####
 
@@ -161,7 +161,7 @@ All methods have an **options** object that you can pass on as a parameter. You 
 It is recommended to initialise the library with some default configuration which can have te following properties:
 
 * baseUrl: the default baseUrl for all the api calls.
-* logging: For every request logs the response body if the status code >= 400 to the console for any value. If the value is 'debug' the request url will also be logged to the console.
+* logging: For every request logs the response body if the status code >= 400 to the console for any value. Any value always logs errors. Otherwise you can add a string containing values: 'get','put','post','delete','caching','expand'.
 * caching: object with properties
   * timeout: default timeout in seconds that will be used for every call that does not specify it's own caching in the options (default is 0 = no caching)
   * maxSize: maximum size of the cache in MB. When this size is reached the 25% of the hrefs that were not used for the longest time will be removed from the cache. (default is 10MB)
@@ -252,7 +252,7 @@ On a Batch class you can do the following methods:
 * post(href, payload): adds an object to the batch with POST as verb, href as href, and resource as body.
 * delete(href): adds an object to the batch with DELETE as verb and href as href.
 * getPayload(): returns the array of the batch. (you can also do batch.array for the same result)
-* send(href, sriClient): does a PUT to href with the build up batch array as payload using sriClient. If you have initialised the batch with a client or got the batch from the client [sriClient.createBatch()]
+* send(href, sriClient): does a PUT to href with the build up batch array as payload using sriClient. If you have initialised the batch with a client or got the batch from the client [sriClient.createBatch()] you don't have to add the sriClient here.
 ```javascript
 const api = require('@kathondvla/sri-client/node-sri-client')(configuration);
 const Batch = require('@kathondvla/sri-client/batch');
@@ -349,6 +349,7 @@ const dateUtils = require('@kathondvla/sri-client/date-utils');
 * **isConsecutiveWithOneDayInBetween(a, b):**: returns true if the periods of a and b are strictly following each other in any order with one day in between. So b starts the day after a ends or a starts the day after b ends.
 * **getStartOfSchoolYear(dateString):** returns the first of september before datestring (the first of september before getNow() if dateString is null),
 * **getEndOfSchoolYear(dateString):** returns the first of september after dateString (the first of september after getNow() if dateString is null),
+* **getClosestSchoolYearSwitch(dateString):** returns the first of september which is the closest to the dateString (the first of september after getNow() if dateString is null) [for all dates in march untill august it returns getEndOfSchoolYear(), for all dates in setember untill februari it returns getStartOfSchoolYear()],
 * **getPreviousDay(dateString, nbOfDays):** returns the date which is the given number of days before dateString, as a string. nbOfDays is optional, the default is 1.
 * **getNextDay(dateString, nbOfDays):** returns the date which is the given number of days after dateString, as a string. nbOfDays is optional, the default is 1.
 * **getPreviousMonth(dateString, nbOfMonths):** returns the date which is the given number of months before dateString, as a string. nbOfMonths is optional, the default is 1.

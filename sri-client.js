@@ -59,10 +59,10 @@ module.exports = class SriClient {
         }
       }
       if(options.expand) {
-        await this.expandJson(result, options.expand, options.caching);
+        await this.expandJson(result, options.expand, options.caching, options.logging ? options.logging.replace('get', '').replace('expand', 'expand,get') : undefined);
       }
       if(options.include) {
-        await this.includeJson(result, options.include, options.caching);
+        await this.includeJson(result, options.include, options.caching, options.logging ? options.logging.replace('get', '').replace('expand', 'expand,get') : undefined);
       }
       return result;
     } catch(error) {
@@ -97,7 +97,7 @@ module.exports = class SriClient {
       return result.$$meta.count;
     };
     if(expand) {
-      await this.expandJson(allResults, expand, options.caching);
+      await this.expandJson(allResults, expand, options.caching, options.logging ? options.logging.replace('get', '').replace('expand', 'expand,get') : undefined);
     }
     return allResults;
   }
@@ -179,10 +179,10 @@ module.exports = class SriClient {
     }
     const batchResp = await this.sendPayload(batchHref, batch, options, batchHref === '/persons/batch' ? 'PUT' : 'POST');
     if(options.expand) {
-      await this.expandJson(batchResp, options.expand, options.caching);
+      await this.expandJson(batchResp, options.expand, options.caching, options.logging ? options.logging.replace('get', '').replace('expand', 'expand,get') : undefined);
     }
     if(options.include) {
-      await this.includeJson(batchResp, options.include, options.caching);
+      await this.includeJson(batchResp, options.include, options.logging ? options.logging.replace('get', '').replace('expand', 'expand,get') : undefined);
     }
     return new Promise(function(resolve, reject) {
       var ret = [];
@@ -241,13 +241,13 @@ module.exports = class SriClient {
 
 };*/
 
-  async add$$expanded(hrefs, json, properties, includeOptions, cachingOptions) {
+  async add$$expanded(hrefs, json, properties, includeOptions, cachingOptions, loggingOptions) {
     //const pathsMap = getPathsMap(hrefs);
     const uncachedHrefs = {};
     const hrefsMap = {};
     for(let href of hrefs) {
       if(this.cache.has(href, undefined, cachingOptions)) {
-        hrefsMap[href] = await this.cache.get(href, undefined, {caching: cachingOptions}, false);
+        hrefsMap[href] = await this.cache.get(href, undefined, {caching: cachingOptions, logging: loggingOptions}, false);
       } else {
         const path = commonUtils.getPathFromPermalink(href);
         if(!uncachedHrefs[path]) {
@@ -260,7 +260,7 @@ module.exports = class SriClient {
     for(let path of Object.keys(uncachedHrefs)) {
       // TODO: make configurable to know on which batch the hrefs can be retrieved
       // TODO: use p-fun here because this could be a problem if there are too many hrefs
-      promises.push(this.getAllHrefs(uncachedHrefs[path], null, {}, {asMap: true, include: includeOptions, caching: cachingOptions}).then(function(newMap) {
+      promises.push(this.getAllHrefs(uncachedHrefs[path], null, {}, {asMap: true, include: includeOptions, caching: cachingOptions, logging: loggingOptions}).then(function(newMap) {
         Object.assign(hrefsMap, newMap);
       }));
     }
@@ -305,11 +305,11 @@ module.exports = class SriClient {
       console.warn('[WARNING] The data is inconsistent. There are hrefs that can not be retrieved because they do not exist or because they are deleted. hrefs: ' + JSON.stringify([...newHrefs]));
     }
     if(newHrefs.length > 0 && !converged) {
-      await this.add$$expanded(newHrefs, json, properties, null, cachingOptions);
+      await this.add$$expanded(newHrefs, json, properties, null, cachingOptions, loggingOptions);
     }
   }
 
-  async expandJson(json, properties, cachingOptions) {
+  async expandJson(json, properties, cachingOptions, loggingOptions) {
     if(!Array.isArray(properties)) {
       properties = [properties];
     }
@@ -328,18 +328,18 @@ module.exports = class SriClient {
       if(includeOptions || localCachingOptions) {
         let localHrefs = travelHrefsOfJson(json, propertyName.split('.'), {required: required});
         if(localHrefs.length > 0) {
-          await this.add$$expanded(localHrefs, json, [property], includeOptions, localCachingOptions || cachingOptions);
+          await this.add$$expanded(localHrefs, json, [property], includeOptions, localCachingOptions || cachingOptions, loggingOptions);
         }
       } else {
         allHrefs = new Set([...allHrefs, ...travelHrefsOfJson(json, propertyName.split('.'), {required: required})]);
       }
     };
     if(allHrefs.size > 0) {
-      await this.add$$expanded(allHrefs, json, properties, undefined, cachingOptions);
+      await this.add$$expanded(allHrefs, json, properties, undefined, cachingOptions, loggingOptions);
     }
   }
 
-  async includeJson(json, inclusions, cachingOptions = {}) {
+  async includeJson(json, inclusions, cachingOptions = {}, loggingOptions) {
     if(!Array.isArray(inclusions)) {
       inclusions = [inclusions];
     }
@@ -366,7 +366,7 @@ module.exports = class SriClient {
               options.filters.expand = 'NONE';
             }
             options.filters[referenceParameterName] = object[propertyArray[0]];
-            promises.push(this.getAll(options.href, options.filters, {include: options.include, caching: localCachingOptions || cachingOptions}).then(function(results) {
+            promises.push(this.getAll(options.href, options.filters, {include: options.include, caching: localCachingOptions || cachingOptions, logging: loggingOptions}).then(function(results) {
               resource[options.alias] = options.singleton ? (results.length === 0 ? null : results[0]) : results;
             }));
             return [];
@@ -375,7 +375,7 @@ module.exports = class SriClient {
         await Promise.all(promises);
       } else {
         const hrefs = travelHrefsOfJson(json, ('$$meta.permalink').split('.'));
-        const results = await this.getAllReferencesTo(options.href, options.filters, referenceParameterName, hrefs, {expand: options.expand, include: options.include, caching: localCachingOptions || cachingOptions});
+        const results = await this.getAllReferencesTo(options.href, options.filters, referenceParameterName, hrefs, {expand: options.expand, include: options.include, caching: localCachingOptions || cachingOptions, logging: loggingOptions});
         // this is not super optimal. Everything splits out in groups of 100. Expansion and inclusion is done for each batch of 100 urls. But the bit bellow is not working.
         /*if(options.expand) {
           expandJson(results, options.expand, core);

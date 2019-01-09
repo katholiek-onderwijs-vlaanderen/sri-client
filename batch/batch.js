@@ -41,10 +41,19 @@ module.exports = class Batch {
   }
 
   delete(href) {
-    this.array.push({
-      href: href,
-      verb: 'DELETE'
-    });
+    //make it also possible to just delete a resource and get the href from the $$meta permalink.
+    if (typeof href === 'object' && href.$$meta && href.$$meta.permalink) {
+      this.array.push({
+        href: href.$$meta.permalink,
+        verb: 'DELETE'
+      });
+    } else {
+      this.array.push({
+        href: href,
+        verb: 'DELETE'
+      });
+    }
+
   }
 
   send(href, sriClient) {
