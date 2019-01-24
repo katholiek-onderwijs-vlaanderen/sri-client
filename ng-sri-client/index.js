@@ -15,5 +15,5 @@ module.exports = function(configurations) {
 
   module.factory(factory);
 
-  return module;
+  return 'ng-sri-client';
 };

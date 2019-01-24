@@ -189,11 +189,9 @@ const fastlyConfig = const configuration = {
   baseUrl: 'https://fastly-api.be'
 }
 
-require('@kathondvla/sri-client/ng-sri-client')([basicConfig, fastlyConfig]);
-// if you only need one version of an API you can just pass on an object as an argument instead of an array:
-// require('@kathondvla/sri-client/ng-sri-client')(basicConfig]);
 
-const app = angular.module('MyApp', ['ng-sri-client']);
+// if you only need one version of an API you can just pass on an object as an argument instead of an array: require('@kathondvla/sri-client/ng-sri-client')(basicConfig]);
+const app = angular.module('MyApp', [require('@kathondvla/sri-client/ng-sri-client')([basicConfig, fastlyConfig])]);
 
 //inside a component
 
