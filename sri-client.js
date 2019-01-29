@@ -24,7 +24,7 @@ module.exports = class SriClient {
   }*/
 
   getBaseUrl(options) {
-    const baseUrl = options.baseUrl || this.configuration.baseUrl;
+    const baseUrl = (options && options.baseUrl) || this.configuration.baseUrl;
     if (!baseUrl) {
       throw Error({message: "There is no baseUrl configured. The specification for the node-sri-client module can be found at https://bitbucket.org/vskovzw/kathondvla-utils"});
     }
