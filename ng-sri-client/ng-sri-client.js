@@ -66,7 +66,7 @@ module.exports = function(configuration) {
         return defer.promise;
       }
 
-      delete(href, options) {
+      delete(href, options = {}) {
         var defer = $q.defer();
         var baseUrl = this.getBaseUrl(options);
         $http({
