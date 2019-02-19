@@ -176,6 +176,28 @@ and the following properties are for the node-sri-client only:
 * headers: each request will have the headers specified added in the request header.
 * accessToken: an object with properties name and value. Each request will have a request header added with the given name and value. This is added to the headers if they are specified.
 
+#### fetch-sri-client ####
+
+This module uses the Fetch API.
+Here is an example how to use the module.
+
+```javascript
+const configuration = {
+  baseUrl: 'https://api.katholiekonderwijs.vlaanderen',
+  caching: {
+    timeout: 400,
+    initialise: [{
+      timeout: 10000,
+      hrefs: ['/commons/cities', '/commons/countries']
+    ]
+  }
+}
+
+const api = require('@kathondvla/sri-client/fetch-sri-client')(configuration)
+
+let secondarySchools = await api.get('/schools', {educationLevels: 'SECUNDAIR'});
+```
+
 #### ng-sri-client ####
 
 ```javascript
