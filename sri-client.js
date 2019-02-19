@@ -87,6 +87,9 @@ module.exports = class SriClient {
     options.expand = undefined;
     params.limit = params.limit || 500;
     const result = await this.wrapGet(href, params, options);
+    if(!result || !result.$$meta) {
+      console.log('no results for ' + href);
+    }
     var allResults = await this.getAllFromResult(result, options);
     if (!options.raw && !(params && params.expand && params.expand === 'NONE')) {
       allResults = allResults.map(function (item) {

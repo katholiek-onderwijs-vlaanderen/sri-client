@@ -130,9 +130,7 @@ class NodeClient extends SriClient {
     return {
       status: response.statusCode || null,
       body: response.body || null,
-      getResponseHeader: function(header) {
-        return response.headers[header];
-      },
+      headers: response.headers || null,
       stack: stack
     };
   };

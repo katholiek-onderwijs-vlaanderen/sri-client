@@ -8,24 +8,30 @@ const printAddress = function(address) {
     ', ' + address.zipCode + ' ' + address.subCity;
 };
 
-const addSubCityHref = async function (address, api) {
+const addSubCityHref = async function (address, api, dateUtils = require('../date-utils')) {
   const thisSubCityClean = address.subCity.split('(')[0].trim();
   var subCities = null;
   if(address.nisCode && !address.cityHref) {
-    address.cityHref = '/commons/cities/'+address.nisCode;
+    address.cityHref = '/sam/commons/cities/'+address.nisCode;
   }
   if(!address.cityHref && address.streetHref) {
     try {
       const street = await api.get(address.streetHref);
-      address.cityHref = street.city.href;
+      if(dateUtils.isBefore(street.endDate, dateUtils.getNow())) {
+        address.cityHref = street.city.href;
+      }
     } catch(error) {
       console.warn('street with permalink ' + address.streetHref + ' can not be found in the API');
     }
   }
   if(address.cityHref) {
-    subCities = await api.getAll('/commons/subcities', {city: address.cityHref}, {expand: 'city'});
+    subCities = await api.getAll('/sam/commons/subcities', {city: address.cityHref}, {expand: 'city'});
+    // when cities were merged on 01/01/2019 and we still had to be able to handle the past schoolyear. Subcities are not linked historically.
+    if(subCities.length === 0) {
+      subCities = await api.getAll('/sam/commons/subcities', {nameContains: thisSubCityClean}, {expand: 'city'});
+    }
   } else {
-    subCities = await api.getAll('/commons/subcities', {nameContains: thisSubCityClean}, {expand: 'city'});
+    subCities = await api.getAll('/sam/commons/subcities', {nameContains: thisSubCityClean}, {expand: 'city'});
   }
   var matches = [];
   var checkedSubCities = null;
@@ -67,7 +73,7 @@ const addSubCityHref = async function (address, api) {
   }
 };
 
-const addStreetHref = async function(address, api) {
+const addStreetHref = async function(address, api, dateUtils = require('../date-utils')) {
   if(!address.nisCode && !address.cityHref && !address.subCityHref) {
     await addSubCityHref(address, api);
   }
@@ -76,13 +82,13 @@ const addStreetHref = async function(address, api) {
     address.nisCode = words[words.length-1];
   }*/
   if(!address.cityHref && address.nisCode) {
-    address.cityHref = '/commons/cities/'+address.niscode;
+    address.cityHref = '/sam/commons/cities/'+address.niscode;
   }
   if(!address.cityHref) {
     console.warn('no street match could be found for ' + address.street + ' in ' + address.subCity + ' because there is no city in the address.');
     return;
   }
-  const streets = await api.getAll('/commons/streets', {city: address.cityHref});
+  const streets = await api.getAll('/sam/commons/streets', {city: address.cityHref, endDateAfter: dateUtils.getNow()});
   const matches = [];
   streets.forEach(function(street) {
     if(isStreetNameMatch(street.name, address.street)) {
@@ -203,7 +209,7 @@ const isSameStreet = function (a, b) {
           //a.street.toLowerCase() === b.street.toLowerCase() &&
           isStreetNameMatch(a.street, b.street) &&
           (
-            (a.city && b.city && a.city.toLowerCase === b.city.toLowerCase) ||
+            (a.city && b.city && a.city.toLowerCase() === b.city.toLowerCase())|
             (a.zipCode === b.zipCode && isSameSubcity(a, b))
           )
         );
