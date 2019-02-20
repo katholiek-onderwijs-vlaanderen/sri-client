@@ -20,7 +20,7 @@ class FetchClient extends SriClient {
   getRaw(href, params, options = {}) {
     var baseUrl = this.getBaseUrl(options);
     const logging = options.logging || this.configuration.logging;
-    if(/get/.test(logging)) {
+    if(logging && /get/.test(logging.toLowerCase())) {
       console.log('GET ' + baseUrl + commonUtils.parametersToString(href, params));
     }
     const stack = new Error().stack;
@@ -28,6 +28,7 @@ class FetchClient extends SriClient {
       fetch(baseUrl + commonUtils.parametersToString(href, params), {
         method: 'GET',
         cache: 'no-cache',
+        credentials: options.credentials || 'omit',
         signal: options.cancel,
         headers: Object.assign(this.defaultHeaders, options.headers ? options.headers : {})
       })
@@ -45,7 +46,7 @@ class FetchClient extends SriClient {
   sendPayload(href, payload, options = {}, method) {
     const baseUrl = this.getBaseUrl(options);
     const logging = options.logging || this.configuration.logging;
-    if((new RegExp(method.toLowerCase)).test(logging)) {
+    if(logging && (new RegExp(method.toLowerCase)).test(logging.toLowerCase())) {
       console.log(method + ' ' + baseUrl + href + ':\n' + JSON.stringify(payload));
     }
     const stack = new Error().stack;
@@ -60,6 +61,7 @@ class FetchClient extends SriClient {
       fetch(baseUrl + href, {
         method: method,
         cache: 'no-cache',
+        credentials: 'omit',
         signal: options.cancel,
         headers: Object.assign(this.defaultHeaders, {'Content-Type': 'application/json;charset=UTF-8'}, options.headers ? options.headers : {}),
         body: JSON.stringify(payload)
@@ -82,6 +84,7 @@ class FetchClient extends SriClient {
       fetch(baseUrl + href, {
         method: 'DELETE',
         cache: 'no-cache',
+        credentials: 'omit',
         signal: options.cancel,
         headers: Object.assign(this.defaultHeaders, options.headers ? options.headers : {})
       })
