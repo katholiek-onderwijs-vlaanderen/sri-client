@@ -158,6 +158,11 @@ module.exports = class SriClient {
   }
 
   async getAllHrefs(hrefs, batchHref, params = {}, options = {}) {
+    if(!(batchHref === null || typeof batchHref === 'string' || batchHref instanceof String)) {
+      options = params;
+      params = batchHref;
+      batchHref = null;
+    }
     params.limit = 500;
     const baseHref = commonUtils.getPathFromPermalink(hrefs[0]);
     if(!batchHref) {

@@ -27,6 +27,7 @@ The result also has a method count() which returns the count from the $$meta sec
 * **updateResouce(resource, options):** http put to resource.$$meta.permalink with resource as payload. Compact function to do an update of an existing resource.
 * **post(href, payload, options):** http post to href with the given payload.
 * **delete(href, options):** http delete to href.
+* **getAllHrefs(hrefs, parameters, options):** returns an array of all objects for hrefs, a given array with permalinks.
 * **getAllHrefs(hrefs, batchHref, parameters, options):** returns an array of all objects for hrefs, a given array with permalinks.
 All these parameters need to be of the same resource type! You can provide expansion (or other) parameters with parameters.
 It will get all these permalinks in the most efficient way if an href to the corresponding batch url is provided.

@@ -109,7 +109,7 @@ function isConsecutiveWithOneDayInBetween(a, b) {
 
 function getEndofSchoolYear(stringDate) {
   'use strict';
-  const date = parse(stringDate) || now;
+  const date = parse(stringDate) || now || parse(getNow());
   var ret = null;
   if (date.getMonth() < 8) {
     ret = toString(new Date(date.getFullYear(), 8, 1));
@@ -121,7 +121,7 @@ function getEndofSchoolYear(stringDate) {
 
 function getStartofSchoolYear(stringDate) {
   'use strict';
-  const date = parse(stringDate) || now;
+  const date = parse(stringDate) || now || parse(getNow());
   var ret = null;
   if (date.getMonth() < 8) {
     ret = toString(new Date(date.getFullYear() - 1, 8, 1));
@@ -132,7 +132,7 @@ function getStartofSchoolYear(stringDate) {
 }
 
 function getClosestSchoolYearSwitch (stringDate) {
-  const date = parse(stringDate) || now;
+  const date = parse(stringDate) || now || parse(getNow());
   if(date.getMonth() < 2) {
     return toString(new Date(date.getFullYear() - 1, 8, 1));
   } else {
