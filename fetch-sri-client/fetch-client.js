@@ -43,7 +43,7 @@ class FetchClient extends SriClient {
     });
   }
 
-  sendPayload(href, payload, options = {}, method) {
+  async sendPayload(href, payload, options = {}, method) {
     const baseUrl = this.getBaseUrl(options);
     const logging = options.logging || this.configuration.logging;
     if(logging && (new RegExp(method.toLowerCase)).test(logging.toLowerCase())) {
@@ -57,24 +57,29 @@ class FetchClient extends SriClient {
         payload = commonUtils.strip$$Properties(payload);
       }
     }
-    return new Promise((resolve, reject) => {
-      fetch(baseUrl + href, {
-        method: method,
-        cache: 'no-cache',
-        credentials: 'omit',
-        signal: options.cancel,
-        headers: Object.assign(this.defaultHeaders, {'Content-Type': 'application/json;charset=UTF-8'}, options.headers ? options.headers : {}),
-        body: JSON.stringify(payload)
-      })
-      .then(response => {
-        if(response.ok) {
-          resolve(options.raw ? response.body : response.json());
+    try {
+      const response = await fetch(baseUrl + href, {
+          method: method,
+          cache: 'no-cache',
+          credentials: 'omit',
+          signal: options.cancel,
+          headers: Object.assign(this.defaultHeaders, {'Content-Type': 'application/json;charset=UTF-8'}, options.headers ? options.headers : {}),
+          body: JSON.stringify(payload)
+        });
+
+      if(response.ok) {
+        const text = await response.text();
+        if(options.raw || !text) {
+          return text;
         } else {
-          reject(new SriClientError(this.handleError(method + baseUrl + href, response, options, stack)));
+          return JSON.parse(text);
         }
-      })
-      .catch(error => reject(new SriClientError(this.handleError(method + baseUrl + href, error, options, stack))) );
-    });
+      } else {
+        throw new SriClientError(this.handleError(method + baseUrl + href, response, options, stack));
+      }
+    } catch (error) {
+      throw new SriClientError(this.handleError(method + baseUrl + href, error, options, stack));
+    }
   }
 
   delete(href, options = {}) {
