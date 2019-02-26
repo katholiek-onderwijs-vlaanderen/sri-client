@@ -117,9 +117,14 @@ class FetchClient extends SriClient {
     if(!response.status) {
       return response;
     }
+    const text = response ? response.text() : null;
+    let json = null;
+    try {
+      json = JSON.parse(text);
+    } catch(error) {}
     return new SriClientError({
       status: response.status || null,
-      body: response.json() || null,
+      body: json || text,
       headers: response.headers || null,
       stack: stack
     });
