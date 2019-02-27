@@ -158,6 +158,9 @@ module.exports = class SriClient {
   }
 
   async getAllHrefs(hrefs, batchHref, params = {}, options = {}) {
+    if(hrefs.length === 0) {
+      return [];
+    }
     if(!(batchHref === null || typeof batchHref === 'string' || batchHref instanceof String)) {
       options = params;
       params = batchHref;

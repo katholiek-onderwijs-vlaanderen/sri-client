@@ -17,14 +17,44 @@ class FetchClient extends SriClient {
     this.cache.initialise();
   }
 
-  getRaw(href, params, options = {}) {
+  async getRaw(href, params, options = {}) {
     var baseUrl = this.getBaseUrl(options);
     const logging = options.logging || this.configuration.logging;
-    if(logging && /get/.test(logging.toLowerCase())) {
+    if(logging && typeof logging === 'string' && /get/.test(logging.toLowerCase())) {
       console.log('GET ' + baseUrl + commonUtils.parametersToString(href, params));
     }
     const stack = new Error().stack;
-    return new Promise((resolve, reject) => {
+    try {
+      const response = await fetch(baseUrl + commonUtils.parametersToString(href, params), {
+        method: 'GET',
+        cache: 'no-cache',
+        credentials: options.credentials || 'omit',
+        redirect: options.redirect || "follow",
+        signal: options.cancel,
+        headers: Object.assign(this.defaultHeaders, options.headers ? options.headers : {})
+      });
+      if(response.ok) {
+        try {
+          const text = await response.text();
+          if(options.raw || !text) {
+            return text;
+          } else {
+            try {
+              return JSON.parse(text);
+            } catch(err) {
+              return text;
+            }
+          }
+        } catch(err) {
+          return response.html();
+        }
+      } else {
+        throw new SriClientError(this.handleError('GET ' + baseUrl + commonUtils.parametersToString(href, params), response, options, stack));
+      }
+    } catch(error) {
+      throw new SriClientError(this.handleError('GET ' + baseUrl + commonUtils.parametersToString(href, params), error, options, stack));
+    }
+    /*return new Promise((resolve, reject) => {
       fetch(baseUrl + commonUtils.parametersToString(href, params), {
         method: 'GET',
         cache: 'no-cache',
@@ -40,13 +70,13 @@ class FetchClient extends SriClient {
         }
       })
       .catch(error => reject(new SriClientError(this.handleError('GET ' + baseUrl + commonUtils.parametersToString(href, params), error, options, stack))) );
-    });
+    });*/
   }
 
   async sendPayload(href, payload, options = {}, method) {
     const baseUrl = this.getBaseUrl(options);
     const logging = options.logging || this.configuration.logging;
-    if(logging && (new RegExp(method.toLowerCase)).test(logging.toLowerCase())) {
+    if(logging && typeof logging === 'string' && (new RegExp(method.toLowerCase)).test(logging.toLowerCase())) {
       console.log(method + ' ' + baseUrl + href + ':\n' + JSON.stringify(payload));
     }
     const stack = new Error().stack;
@@ -61,18 +91,27 @@ class FetchClient extends SriClient {
       const response = await fetch(baseUrl + href, {
           method: method,
           cache: 'no-cache',
-          credentials: 'omit',
+          credentials: options.credentials || 'omit',
+          redirect: options.redirect || "follow",
           signal: options.cancel,
           headers: Object.assign(this.defaultHeaders, {'Content-Type': 'application/json;charset=UTF-8'}, options.headers ? options.headers : {}),
           body: JSON.stringify(payload)
         });
 
       if(response.ok) {
-        const text = await response.text();
-        if(options.raw || !text) {
-          return text;
-        } else {
-          return JSON.parse(text);
+        try {
+          const text = await response.text();
+          if(options.raw || !text) {
+            return text;
+          } else {
+            try {
+              return JSON.parse(text);
+            } catch(err) {
+              return text;
+            }
+          }
+        } catch(err) {
+          return response.html();
         }
       } else {
         throw new SriClientError(this.handleError(method + baseUrl + href, response, options, stack));
@@ -82,10 +121,35 @@ class FetchClient extends SriClient {
     }
   }
 
-  delete(href, options = {}) {
+  async delete(href, options = {}) {
     const baseUrl = this.getBaseUrl(options);
     const stack = new Error().stack;
-    return new Promise((resolve, reject) => {
+    try {
+      const response = await fetch(baseUrl + href, {
+        method: 'DELETE',
+        cache: 'no-cache',
+        credentials: 'omit',
+        signal: options.cancel,
+        headers: Object.assign(this.defaultHeaders, options.headers ? options.headers : {})
+      });
+      const text = await response.text();
+      if(response.ok) {
+        if(options.raw || !text) {
+          return text;
+        } else {
+          try {
+            return JSON.parse(text);
+          } catch(err) {
+            return text;
+          }
+        }
+      } else {
+        throw new SriClientError(this.handleError('DELETE' + baseUrl + href, response, options, stack));
+      }
+    } catch (error) {
+      throw new SriClientError(this.handleError('DELETE' + baseUrl + href, error, options, stack));
+    }
+    /*return new Promise((resolve, reject) => {
       fetch(baseUrl + href, {
         method: 'DELETE',
         cache: 'no-cache',
@@ -101,7 +165,7 @@ class FetchClient extends SriClient {
         }
       })
       .catch(error => reject(new SriClientError(this.handleError('DELETE' + baseUrl + href, error, options, stack))) );
-    });
+    });*/
   }
 
   handleError(httpRequest, response, options, stack) {
@@ -117,14 +181,24 @@ class FetchClient extends SriClient {
     if(!response.status) {
       return response;
     }
-    const text = response ? response.text() : null;
-    let json = null;
+    let text=null, json = null, html = null;
     try {
-      json = JSON.parse(text);
-    } catch(error) {}
+      text = response.text();
+      if(options.raw || !text) {
+
+      } else {
+        try {
+          json = JSON.parse(text);
+        } catch(err) {}
+      }
+    } catch(err) {
+      try {
+        html = response.html();
+      } catch(err) {}
+    }
     return new SriClientError({
       status: response.status || null,
-      body: json || text,
+      body: json || text || html,
       headers: response.headers || null,
       stack: stack
     });
