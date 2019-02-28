@@ -116,6 +116,8 @@ module.exports = class SriClient {
     results.count = function () {
       return result.$$meta.count;
     };
+    results.count = result.$$meta.count;
+    results.next = result.$$meta.next;
     return results;
   }
 
