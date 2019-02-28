@@ -18,11 +18,11 @@ They both have the same generic interface
 * **get(href, parameters, options):** http get of the href with the given parameters. Returns a promise with the exact result from the api.
 * **getList(href, parameters, options):** http get of the href with the given parameters where href is suposed to be a list resource.
 Returns a promise with the array of the expanded results that match the query (so not an object with an href and $$expanded, but the object that is $$expanded.
-The list of results is limited to only one API call so the lenght will be maximum the limit. The result also has a method count() which returns the count from the $$meta section.
+The list of results is limited to only one API call so the lenght will be maximum the limit. The resulting array will also have properties count and next from the original $$meta section.
 * **getAll(href, parameters, options):** http get of the href with the given parameters where href is suposed to be a list resource.
 Returns a promise with the array of the expanded results that match the query (so not an object with an href and $$expanded, but the object that is $$expanded.
 The list of results is all the results that match the query, because the next links are requested as well and concatenated to the result.
-The result also has a method count() which returns the count from the $$meta section.
+The resulting array will also have properties count and next from the original $$meta section.
 * **put(href, payload, options):** http put to href with the given payload.
 * **updateResouce(resource, options):** http put to resource.$$meta.permalink with resource as payload. Compact function to do an update of an existing resource.
 * **post(href, payload, options):** http post to href with the given payload.
@@ -77,6 +77,10 @@ All methods have an **options** object that you can pass on as a parameter. You 
   * **limit:** return a limited number of results for getList, the limit can also be higher than the maximum limit that the server allows. =TODO
   * **raw:** boolean that can be used for getList and getAll. If set to true the array of results will contain the raw result of the body.results, so the items will be an object with an href and a $$expanded object.
   * **asMap:** boolean that can be used for getAllHrefs. If set to true an object with be returned which contains all the hrefs as keys and the object to which it refers as value.
+* **fetch-sri-client**
+  * **cancel**: A promise that will cancel the request when resolved
+  * **credentials**: omit (default) || include (adds the cookies to the request)
+  * **fullResponse**: the response will be an object with properties body and headers
 * **ng-sri-client specific**
   * **raw** default is false. The response will be parsed. If raw is true the response will not be parsed.
   * **cancelPromise:** A promise that will cancel the request, if it gets resolved.

@@ -34,7 +34,7 @@ class FetchClient extends SriClient {
         headers: Object.assign(this.defaultHeaders, options.headers ? options.headers : {})
       });
       if(response.ok) {
-        try {
+        /*try {
           const text = await response.text();
           if(options.raw || !text) {
             return text;
@@ -47,12 +47,14 @@ class FetchClient extends SriClient {
           }
         } catch(err) {
           return response.html();
-        }
+        }*/
+        const resp = await this.readResponse(response);
+        return options.fullResponse ? resp : resp.body;
       } else {
-        throw new SriClientError(this.handleError('GET ' + baseUrl + commonUtils.parametersToString(href, params), response, options, stack));
+        throw new SriClientError(await this.handleError('GET ' + baseUrl + commonUtils.parametersToString(href, params), response, options, stack));
       }
     } catch(error) {
-      throw new SriClientError(this.handleError('GET ' + baseUrl + commonUtils.parametersToString(href, params), error, options, stack));
+      throw new SriClientError(await this.handleError('GET ' + baseUrl + commonUtils.parametersToString(href, params), error, options, stack));
     }
     /*return new Promise((resolve, reject) => {
       fetch(baseUrl + commonUtils.parametersToString(href, params), {
@@ -99,7 +101,7 @@ class FetchClient extends SriClient {
         });
 
       if(response.ok) {
-        try {
+        /*try {
           const text = await response.text();
           if(options.raw || !text) {
             return text;
@@ -112,12 +114,14 @@ class FetchClient extends SriClient {
           }
         } catch(err) {
           return response.html();
-        }
+        }*/
+        const resp = await this.readResponse(response);
+        return options.fullResponse ? resp : resp.body;
       } else {
-        throw new SriClientError(this.handleError(method + baseUrl + href, response, options, stack));
+        throw new SriClientError(await this.handleError(method + baseUrl + href, response, options, stack));
       }
     } catch (error) {
-      throw new SriClientError(this.handleError(method + baseUrl + href, error, options, stack));
+      throw new SriClientError(await this.handleError(method + baseUrl + href, error, options, stack));
     }
   }
 
@@ -132,9 +136,9 @@ class FetchClient extends SriClient {
         signal: options.cancel,
         headers: Object.assign(this.defaultHeaders, options.headers ? options.headers : {})
       });
-      const text = await response.text();
+      //const text = await response.text();
       if(response.ok) {
-        if(options.raw || !text) {
+        /*if(options.raw || !text) {
           return text;
         } else {
           try {
@@ -142,12 +146,14 @@ class FetchClient extends SriClient {
           } catch(err) {
             return text;
           }
-        }
+        }*/
+        const resp = await this.readResponse(response);
+        return options.fullResponse ? resp : resp.body;
       } else {
-        throw new SriClientError(this.handleError('DELETE' + baseUrl + href, response, options, stack));
+        throw new SriClientError(await this.handleError('DELETE' + baseUrl + href, response, options, stack));
       }
     } catch (error) {
-      throw new SriClientError(this.handleError('DELETE' + baseUrl + href, error, options, stack));
+      throw new SriClientError(await this.handleError('DELETE' + baseUrl + href, error, options, stack));
     }
     /*return new Promise((resolve, reject) => {
       fetch(baseUrl + href, {
@@ -168,7 +174,34 @@ class FetchClient extends SriClient {
     });*/
   }
 
-  handleError(httpRequest, response, options, stack) {
+  async readResponse(response) {
+    const headers = [...response.headers].reduce( (acc, cur) => Object.assign({}, acc, {[cur[0]]: cur[1]}), {} );
+
+    const contentType = headers['content-type'];
+
+    let body = null;
+    if(contentType.match(/html/g)) {
+      console.log('response is html', response);
+      body = await response.text();
+      console.log('omzetten naar text is gelukt!', body)
+    } else {
+      body = await response.text();
+      if(body && contentType.match(/application\/json/g)) {
+        try {
+          body = JSON.parse(body);
+        } catch(err) {
+          console.log('Json parse is mislukt!', response);
+        }
+      }
+    }
+
+    return {
+      headers: headers,
+      body: body
+    };
+  };
+
+  async handleError(httpRequest, response, options, stack) {
     /*const logging = options.logging || options.logging === false ? options.logging : this.configuration.logging;
     if(logging) {
       console.error(response.status + ': An error occured for ' + httpRequest);
@@ -178,31 +211,21 @@ class FetchClient extends SriClient {
         console.error(error);
       }
     }*/
-    if(!response.status) {
+
+
+    if(!response || !response.status) {
       return response;
     }
-    let text=null, json = null, html = null;
-    try {
-      text = response.text();
-      if(options.raw || !text) {
+    const resp = await this.readResponse(response);
 
-      } else {
-        try {
-          json = JSON.parse(text);
-        } catch(err) {}
-      }
-    } catch(err) {
-      try {
-        html = response.html();
-      } catch(err) {}
-    }
     return new SriClientError({
       status: response.status || null,
-      body: json || text || html,
-      headers: response.headers || null,
+      body: resp.body,
+      headers: resp.headers,
       stack: stack
     });
   };
+
 };
 
 
