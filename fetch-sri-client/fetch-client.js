@@ -54,7 +54,7 @@ class FetchClient extends SriClient {
       console.log('[sri-client] ' + method + ' ' + baseUrl + href + ':\n' + JSON.stringify(payload));
     }
     const stack = new Error().stack;
-    if(options.strip$$Properties !== false) {
+    if(!options.raw && options.strip$$Properties !== false) {
       if(payload instanceof Array) {
         payload = commonUtils.strip$$PropertiesFromBatch(payload);
       } else {
@@ -69,7 +69,7 @@ class FetchClient extends SriClient {
           redirect: options.redirect || "follow",
           signal: options.cancel,
           headers: Object.assign(this.defaultHeaders, {'Content-Type': 'application/json;charset=UTF-8'}, options.headers ? options.headers : {}),
-          body: JSON.stringify(payload)
+          body: options.raw ? payload : JSON.stringify(payload)
         });
 
       if(response.ok) {
