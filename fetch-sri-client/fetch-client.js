@@ -149,8 +149,8 @@ class FetchClient extends SriClient {
     return new SriClientError({
       status: response.status || null,
       body: resp.body,
-      headers: resp.headers,
-      stack: stack
+      headers: resp.headers//,
+      //stack: stack
     });
   };
 

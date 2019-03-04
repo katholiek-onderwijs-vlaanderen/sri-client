@@ -107,6 +107,10 @@ function isConsecutiveWithOneDayInBetween(a, b) {
   return (a.endDate !== null && getNextDay(a.endDate) === b.startDate) || (b.endDate !== null && getNextDay(b.endDate) === a.startDate);
 }
 
+function printDate(dateString) {
+  return dateString.split('-').reverse().join('/');
+}
+
 function getEndofSchoolYear(stringDate) {
   'use strict';
   const date = parse(stringDate) || now || parse(getNow());
@@ -495,6 +499,7 @@ module.exports = {
   setNow: setNow,
   stripTime: stripTime,
   toString: toString,
+  printDate: printDate,
   parse: parse,
   isBeforeOrEqual: isBeforeOrEqual,
   isAfterOrEqual: isAfterOrEqual,
