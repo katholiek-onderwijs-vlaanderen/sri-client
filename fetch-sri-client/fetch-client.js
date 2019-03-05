@@ -37,13 +37,13 @@ class FetchClient extends SriClient {
         const resp = await this.readResponse(response);
         return options.fullResponse ? resp : resp.body;
       } else {
-        throw new SriClientError(await this.handleError('GET ' + baseUrl + commonUtils.parametersToString(href, params), response, options, stack));
+        throw await this.handleError('GET ' + baseUrl + commonUtils.parametersToString(href, params), response, options, stack);
       }
     } catch(error) {
       if(error instanceof SriClientError) {
         throw error;
       }
-      throw new SriClientError(await this.handleError('GET ' + baseUrl + commonUtils.parametersToString(href, params), error, options, stack));
+      throw await this.handleError('GET ' + baseUrl + commonUtils.parametersToString(href, params), error, options, stack);
     }
   }
 
@@ -76,13 +76,13 @@ class FetchClient extends SriClient {
         const resp = await this.readResponse(response);
         return options.fullResponse ? resp : resp.body;
       } else {
-        throw new SriClientError(await this.handleError(method + baseUrl + href, response, options, stack));
+        throw await this.handleError(method + baseUrl + href, response, options, stack);
       }
     } catch (error) {
       if(error instanceof SriClientError) {
         throw error;
       }
-      throw new SriClientError(await this.handleError(method + baseUrl + href, error, options, stack));
+      throw await this.handleError(method + baseUrl + href, error, options, stack);
     }
   }
 
@@ -101,13 +101,13 @@ class FetchClient extends SriClient {
         const resp = await this.readResponse(response);
         return options.fullResponse ? resp : resp.body;
       } else {
-        throw new SriClientError(await this.handleError('DELETE' + baseUrl + href, response, options, stack));
+        throw await this.handleError('DELETE' + baseUrl + href, response, options, stack);
       }
     } catch (error) {
       if(error instanceof SriClientError) {
         throw error;
       }
-      throw new SriClientError(await this.handleError('DELETE' + baseUrl + href, error, options, stack));
+      throw await this.handleError('DELETE' + baseUrl + href, error, options, stack);
     }
   }
 
@@ -128,7 +128,8 @@ class FetchClient extends SriClient {
 
       return {
         headers: headers,
-        body: body
+        body: body,
+        redirected: response.redirected
       };
     } catch(err) {
       console.warn('[sri-client] Het response kon niet worden uitgelezen.', response);
@@ -144,11 +145,13 @@ class FetchClient extends SriClient {
     if(!response || !(response instanceof Response)) {
       return response;
     }
+
     const resp = await this.readResponse(response);
 
     return new SriClientError({
       status: response.status || null,
       body: resp.body,
+      originalResponse: response,
       headers: resp.headers//,
       //stack: stack
     });
