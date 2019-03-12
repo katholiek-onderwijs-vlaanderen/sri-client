@@ -161,7 +161,7 @@ module.exports = class SriClient {
     if(hrefs.length === 0) {
       return [];
     }
-    if(!(batchHref === null || typeof batchHref === 'string' || batchHref instanceof String)) {
+    if(batchHref && typeof batchHref !== 'string' && !(batchHref instanceof String)) {
       options = params;
       params = batchHref;
       batchHref = null;
