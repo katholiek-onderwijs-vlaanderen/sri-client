@@ -96,9 +96,7 @@ module.exports = class SriClient {
         return item.$$expanded;
       });
     }
-    allResults.count = function () {
-      return result.$$meta.count;
-    };
+    allResults.count = result.$$meta.count;
     if(expand) {
       await this.expandJson(allResults, expand, options.caching, options.logging ? options.logging.replace('get', '').replace('expand', 'expand,get') : undefined);
     }
