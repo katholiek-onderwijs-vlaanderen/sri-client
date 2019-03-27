@@ -96,7 +96,9 @@ module.exports = class SriClient {
         return item.$$expanded;
       });
     }
-    allResults.count = result.$$meta.count;
+    if(result.$$meta) {
+      allResults.count = result.$$meta.count;
+    }
     if(expand) {
       await this.expandJson(allResults, expand, options.caching, options.logging ? options.logging.replace('get', '').replace('expand', 'expand,get') : undefined);
     }
@@ -105,17 +107,16 @@ module.exports = class SriClient {
 
   async getList(href, params, options = {}) {
     const result = await this.wrapGet(href, params, options);
-    var results = result.results;
+    const results = result.results;
     if (!options.raw && !(params && params.expand && params.expand === 'NONE')) {
       results = results.map(function (item) {
         return item.$$expanded;
       });
     }
-    results.count = function () {
-      return result.$$meta.count;
-    };
-    results.count = result.$$meta.count;
-    results.next = result.$$meta.next;
+    if(result.$$meta) {
+      results.count = result.$$meta.count;
+      results.next = result.$$meta.next;
+    }
     return results;
   }
 

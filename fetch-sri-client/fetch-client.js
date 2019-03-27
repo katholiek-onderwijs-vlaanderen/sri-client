@@ -72,13 +72,17 @@ class FetchClient extends SriClient {
           body: options.raw ? payload : JSON.stringify(payload)
         });
 
+      console.log('we send payload')
       if(response.ok) {
+        console.log('response is ok', response)
         const resp = await this.readResponse(response);
         return options.fullResponse ? resp : resp.body;
       } else {
+        console.log('response is not ok!', response)
         throw await this.handleError(method + baseUrl + href, response, options, stack);
       }
     } catch (error) {
+      console.log('we have an error', error)
       if(error instanceof SriClientError) {
         throw error;
       }
