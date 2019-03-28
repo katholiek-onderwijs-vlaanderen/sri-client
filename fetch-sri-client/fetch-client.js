@@ -66,23 +66,19 @@ class FetchClient extends SriClient {
           method: method,
           cache: 'no-cache',
           credentials: options.credentials || 'omit',
-          redirect: options.redirect || "follow",
+          redirect: options.redirect || 'follow',
           signal: options.cancel,
           headers: Object.assign(this.defaultHeaders, {'Content-Type': 'application/json;charset=UTF-8'}, options.headers ? options.headers : {}),
           body: options.raw ? payload : JSON.stringify(payload)
         });
 
-      console.log('we send payload')
       if(response.ok) {
-        console.log('response is ok', response)
         const resp = await this.readResponse(response);
         return options.fullResponse ? resp : resp.body;
       } else {
-        console.log('response is not ok!', response)
         throw await this.handleError(method + baseUrl + href, response, options, stack);
       }
     } catch (error) {
-      console.log('we have an error', error)
       if(error instanceof SriClientError) {
         throw error;
       }
