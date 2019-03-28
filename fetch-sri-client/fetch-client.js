@@ -37,11 +37,17 @@ class FetchClient extends SriClient {
         const resp = await this.readResponse(response);
         return options.fullResponse ? resp : resp.body;
       } else {
+        if(logging && typeof logging === 'string' && /get/.test(logging.toLowerCase())) {
+          console.log('[sri-client] response is not ok!', response);
+        }
         throw await this.handleError('GET ' + baseUrl + commonUtils.parametersToString(href, params), response, options, stack);
       }
     } catch(error) {
       if(error instanceof SriClientError) {
         throw error;
+      }
+      if(logging && typeof logging === 'string' && /get/.test(logging.toLowerCase())) {
+        console.log('[sri-client] an error occured when doing fetch', error);
       }
       throw await this.handleError('GET ' + baseUrl + commonUtils.parametersToString(href, params), error, options, stack);
     }
@@ -76,11 +82,17 @@ class FetchClient extends SriClient {
         const resp = await this.readResponse(response);
         return options.fullResponse ? resp : resp.body;
       } else {
+        if(logging && typeof logging === 'string' && (new RegExp(method.toLowerCase)).test(logging.toLowerCase())) {
+          console.log('[sri-client] response is not ok!', response);
+        }
         throw await this.handleError(method + baseUrl + href, response, options, stack);
       }
     } catch (error) {
       if(error instanceof SriClientError) {
         throw error;
+      }
+      if(logging && typeof logging === 'string' && (new RegExp(method.toLowerCase)).test(logging.toLowerCase())) {
+        console.log('[sri-client] an error occured when doing fetch', error);
       }
       throw await this.handleError(method + baseUrl + href, error, options, stack);
     }
