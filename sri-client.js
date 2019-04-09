@@ -107,7 +107,7 @@ module.exports = class SriClient {
 
   async getList(href, params, options = {}) {
     const result = await this.wrapGet(href, params, options);
-    const results = result.results;
+    let results = result.results;
     if (!options.raw && !(params && params.expand && params.expand === 'NONE')) {
       results = results.map(function (item) {
         return item.$$expanded;
