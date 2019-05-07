@@ -46,7 +46,9 @@ module.exports = class SriClient {
           href: commonUtils.parametersToString(href, params),
           verb: 'GET'
         }];
+        console.log(JSON.stringify(batch))
         const batchResp = await this.put(options.inBatch, batch, options);
+        console.log(JSON.stringify(batchResp))
         if(batchResp[0].status < 300) {
           result = batchResp[0].body;
         } else {
@@ -332,8 +334,6 @@ module.exports = class SriClient {
       let expandOptions = [];
       let required = true;
       let localCachingOptions = null;
-      //console.log('hallo hallo')
-      //console.log(property)
       if (!(typeof property === 'string' || property instanceof String)) {
         propertyName = property.property;
         includeOptions = property.include;
@@ -342,7 +342,6 @@ module.exports = class SriClient {
         expandOptions = property.expand;
       }
       if(includeOptions || localCachingOptions || expandOptions) {
-        //console.log(propertyName)
         let localHrefs = travelHrefsOfJson(json, propertyName.split('.'), {required: required});
         if(localHrefs.length > 0) {
           await this.add$$expanded(localHrefs, json, [property], includeOptions, expandOptions, localCachingOptions || cachingOptions, loggingOptions);

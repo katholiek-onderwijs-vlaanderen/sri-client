@@ -81,7 +81,9 @@ class NodeClient extends SriClient {
         timeout: options.timeout || (payload instanceof Array ? 120000 : 30000)
       }, (error, response) => {
         if(!error && response.statusCode >= 200 && response.statusCode < 400) {
-          const body = (response && response.data && typeof response.data === 'object') ? response.data : {};
+          console.log(util.inspect(response.data))
+          console.log(util.inspect(response.body))
+          const body = (response && response.body && typeof response.body === 'object') ? response.body : {};
 
           body.getResponseHeader = function(header) {
             return response.headers[header];
