@@ -432,7 +432,7 @@ const manageDateChanges = async function(resource, options, api) {
           if(error instanceof DateError) {
             // If strategy is FORCE and there is a dependency that starts after the new endDate than it has to be deleted.
             const intermediateStrategy = reference.intermediateStrategy ? reference.intermediateStrategy : options.intermediateStrategy;
-            if(intermediateStrategy === 'FORCE' && error.code === 'starts.after.new.end' && options.batch) {
+            if(intermediateStrategy === 'FORCE' && error.body.code === 'starts.after.new.end' && options.batch) {
               options.batch.push({
                 href: body.$$meta.permalink,
                 verb: 'DELETE'

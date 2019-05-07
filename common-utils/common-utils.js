@@ -38,16 +38,24 @@ const replaceSpecialCharacters = function (string) {
 	};
 
 const strip$$Properties = function (obj) {
-  if(!obj) {
+  if(!obj || typeof obj !== 'object') {
     return obj;
   }
-  const newObj = {};
-  Object.keys(obj).forEach(function(key) {
-    if(!key.match(/^\$\$/)) {
-      newObj[key] = obj[key];
-    }
-  });
-  return newObj;
+  if(Array.isArray(obj)) {
+    const newArray = [];
+    obj.forEach(elem => {
+      newArray.push(strip$$Properties(elem));
+    });
+    return newArray;
+  } else {
+    const newObj = {};
+    Object.keys(obj).forEach(function(key) {
+      if(!key.match(/^\$\$/)) {
+        newObj[key] = strip$$Properties(obj[key]);
+      }
+    });
+    return newObj;
+  }
 };
 
 const strip$$PropertiesFromObject = function(obj, newBatch) {

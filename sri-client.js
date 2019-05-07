@@ -253,7 +253,7 @@ module.exports = class SriClient {
 
 };*/
 
-  async add$$expanded(hrefs, json, properties, includeOptions, cachingOptions, loggingOptions) {
+  async add$$expanded(hrefs, json, properties, includeOptions, expandOptions, cachingOptions, loggingOptions) {
     //const pathsMap = getPathsMap(hrefs);
     const uncachedHrefs = {};
     const hrefsMap = {};
@@ -272,7 +272,7 @@ module.exports = class SriClient {
     for(let path of Object.keys(uncachedHrefs)) {
       // TODO: make configurable to know on which batch the hrefs can be retrieved
       // TODO: use p-fun here because this could be a problem if there are too many hrefs
-      promises.push(this.getAllHrefs(uncachedHrefs[path], null, {}, {asMap: true, include: includeOptions, caching: cachingOptions, logging: loggingOptions}).then(function(newMap) {
+      promises.push(this.getAllHrefs(uncachedHrefs[path], null, {}, {asMap: true, include: includeOptions, expand: expandOptions, caching: cachingOptions, logging: loggingOptions}).then(function(newMap) {
         Object.assign(hrefsMap, newMap);
       }));
     }
@@ -317,7 +317,7 @@ module.exports = class SriClient {
       console.warn('[WARNING] The data is inconsistent. There are hrefs that can not be retrieved because they do not exist or because they are deleted. hrefs: ' + JSON.stringify([...newHrefs]));
     }
     if(newHrefs.length > 0 && !converged) {
-      await this.add$$expanded(newHrefs, json, properties, null, cachingOptions, loggingOptions);
+      await this.add$$expanded(newHrefs, json, properties, null, null, cachingOptions, loggingOptions);
     }
   }
 
@@ -329,25 +329,30 @@ module.exports = class SriClient {
     for(let property of properties) {
       let propertyName = property;
       let includeOptions = null;
+      let expandOptions = [];
       let required = true;
       let localCachingOptions = null;
+      //console.log('hallo hallo')
+      //console.log(property)
       if (!(typeof property === 'string' || property instanceof String)) {
         propertyName = property.property;
         includeOptions = property.include;
         required = property.required;
         localCachingOptions = property.caching;
+        expandOptions = property.expand;
       }
-      if(includeOptions || localCachingOptions) {
+      if(includeOptions || localCachingOptions || expandOptions) {
+        //console.log(propertyName)
         let localHrefs = travelHrefsOfJson(json, propertyName.split('.'), {required: required});
         if(localHrefs.length > 0) {
-          await this.add$$expanded(localHrefs, json, [property], includeOptions, localCachingOptions || cachingOptions, loggingOptions);
+          await this.add$$expanded(localHrefs, json, [property], includeOptions, expandOptions, localCachingOptions || cachingOptions, loggingOptions);
         }
       } else {
         allHrefs = new Set([...allHrefs, ...travelHrefsOfJson(json, propertyName.split('.'), {required: required})]);
       }
     };
     if(allHrefs.size > 0) {
-      await this.add$$expanded(allHrefs, json, properties, undefined, cachingOptions, loggingOptions);
+      await this.add$$expanded(allHrefs, json, properties, undefined, undefined, cachingOptions, loggingOptions);
     }
   }
 

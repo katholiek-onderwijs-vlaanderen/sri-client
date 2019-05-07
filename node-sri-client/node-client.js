@@ -60,11 +60,12 @@ class NodeClient extends SriClient {
       console.log(method + ' ' + baseUrl + href + ':\n' + JSON.stringify(payload));
     }
     if(options.strip$$Properties !== false) {
-      if(payload instanceof Array) {
+      payload = commonUtils.strip$$Properties(payload);
+      /*if(payload instanceof Array) {
         payload = commonUtils.strip$$PropertiesFromBatch(payload);
       } else {
         payload = commonUtils.strip$$Properties(payload);
-      }
+      }*/
     }
     return new Promise((resolve, reject) => {
       this.baseRequest({
