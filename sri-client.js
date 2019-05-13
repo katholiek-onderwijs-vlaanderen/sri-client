@@ -46,9 +46,7 @@ module.exports = class SriClient {
           href: commonUtils.parametersToString(href, params),
           verb: 'GET'
         }];
-        console.log(JSON.stringify(batch))
         const batchResp = await this.put(options.inBatch, batch, options);
-        console.log(JSON.stringify(batchResp))
         if(batchResp[0].status < 300) {
           result = batchResp[0].body;
         } else {
@@ -257,11 +255,13 @@ module.exports = class SriClient {
 
   async add$$expanded(hrefs, json, properties, includeOptions, expandOptions, cachingOptions, loggingOptions) {
     //const pathsMap = getPathsMap(hrefs);
+    const cachedResources = [];
     const uncachedHrefs = {};
     const hrefsMap = {};
     for(let href of hrefs) {
       if(this.cache.has(href, undefined, cachingOptions)) {
         hrefsMap[href] = await this.cache.get(href, undefined, {caching: cachingOptions, logging: loggingOptions}, false);
+        cachedResources.push(hrefsMap[href]);
       } else {
         const path = commonUtils.getPathFromPermalink(href);
         if(!uncachedHrefs[path]) {
@@ -269,6 +269,9 @@ module.exports = class SriClient {
         }
         uncachedHrefs[path].push(href);
       }
+    }
+    if(expandOptions && cachedResources.length > 0) {
+      await this.expandJson(cachedResources, expandOptions, cachingOptions, loggingOptions);
     }
     const promises = [];
     for(let path of Object.keys(uncachedHrefs)) {
