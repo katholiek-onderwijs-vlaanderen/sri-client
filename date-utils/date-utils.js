@@ -111,6 +111,18 @@ function printDate(dateString) {
   return dateString.split('-').reverse().join('/');
 }
 
+const printFutureForPeriodic = (periodic) => {
+  let ret = '';
+  if (isAfter(periodic.startDate, getNow()) && periodic.endDate && isAfter(periodic.endDate, getNow())) {
+    ret += ' (van ' + printDate(periodic.startDate) + ' tot ' + printDate(periodic.endDate) + ')';
+  } else if (isAfter(periodic.startDate, getNow())) {
+    ret += ' (vanaf ' + printDate(periodic.startDate) + ')';
+  } else if (periodic.endDate && isAfter(periodic.endDate, getNow())) {
+    ret += ' (tot ' + printDate(periodic.endDate) + ')';
+  }
+  return ret;
+};
+
 function getEndofSchoolYear(stringDate) {
   'use strict';
   const date = parse(stringDate) || now || parse(getNow());
@@ -500,6 +512,7 @@ module.exports = {
   stripTime: stripTime,
   toString: toString,
   printDate: printDate,
+  printFutureForPeriodic: printFutureForPeriodic,
   parse: parse,
   isBeforeOrEqual: isBeforeOrEqual,
   isAfterOrEqual: isAfterOrEqual,
