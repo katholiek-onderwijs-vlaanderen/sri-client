@@ -50,7 +50,7 @@ const formatPhoneNumber = function(phone, formatBelgianInternationalNumbers) {
     }
   }
   if(isBelgianInternationalNumber) {
-    newValue = newValue.replace(/^0/, '+32');
+    newValue = newValue.replace(/^0/, '+32 ');
   }
   if(propertyName) {
     phone[propertyName] = newValue;
