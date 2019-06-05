@@ -233,7 +233,7 @@ function getAbolishedResources(array, referenceDate = getNow()) {
     if(resource.$$expanded) {
       resource = resource.$$expanded;
     }
-    return isBefore(resource.endDate, referenceDate);
+    return isBeforeOrEqual(resource.endDate, referenceDate);
   });
 };
 
