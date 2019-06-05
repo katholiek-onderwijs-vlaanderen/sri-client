@@ -211,7 +211,7 @@ function getNextYear(date, nbOfYears = 1) {
 }
 
 function getActiveResources(array, referenceDate = getNow()) {
-  return _.filter(array, function(resource) {
+  return array.filter(resource => {
     if(resource.$$expanded) {
       resource = resource.$$expanded;
     }
@@ -220,11 +220,20 @@ function getActiveResources(array, referenceDate = getNow()) {
 };
 
 function getNonAbolishedResources(array, referenceDate = getNow()) {
-  return _.filter(array, function(resource) {
+  return array.filter(resource => {
     if(resource.$$expanded) {
       resource = resource.$$expanded;
     }
     return isAfter(resource.endDate, referenceDate);
+  });
+};
+
+function getAbolishedResources(array, referenceDate = getNow()) {
+  return array.filter(resource => {
+    if(resource.$$expanded) {
+      resource = resource.$$expanded;
+    }
+    return isBefore(resource.endDate, referenceDate);
   });
 };
 
@@ -535,6 +544,7 @@ module.exports = {
   getNextYear: getNextYear,
   getActiveResources: getActiveResources,
   getNonAbolishedResources: getNonAbolishedResources,
+  getAbolishedResources: getAbolishedResources,
   //onStartDateSet: onStartDateSet,
   //onEndDateSet: onEndDateSet,
   manageDateChanges: manageDateChanges,

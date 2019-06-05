@@ -17,7 +17,7 @@ const dateUtils = require('@kathondvla/sri-client/date-utils');
 * **setNow(dateString):** sets now to another date for the whole library. From now on getNow() will return this date.
 * **toString(date):** return the javascript date as a string
 * **printDate(dateString):** returns the dateString of format YYYY-MM-DD to the more human readable string DD/MM/YYYY
-* **printFutureForPeriodic(periodic):** returns string with information about startDate " (vanaf dd/mm/yyyy)" and endDate " (tot dd/mm/yyyy)"" if they are in the future
+* **printFutureForPeriodic(periodic):** returns string with information about startDate " (vanaf dd/mm/yyyy)" and endDate " (tot dd/mm/yyyy)" if they are in the future
 * **parse(dateString):** returns the dateString as a javascript date
 * **stripTime(isoDateString):** returns the received isoDateString without the time section. YYYY-MM-DDTHH:mm:ss.sssZ -> YYYY-MM-DD
 * **isBeforeOrEqual(a,b):** returns true if a is before or on the same day as b, where a and b are dates as strings
@@ -42,6 +42,8 @@ const dateUtils = require('@kathondvla/sri-client/date-utils');
 * **getActiveResources(arrayOfResources, referenceDateString):** returns a new array with only the resources that are active on the referenceDateString (getNow() if dateString is null) from array,
 which is an array of resources with a period. array can also be an array of hrefs that is expanded.
 * **getNonAbolishedResources(arrayOfResources, referenceDateString):**  returns a new array with only the resources that are not abolished on the referenceDateString (getNow() if dateString is null) from array,
+which is an array of resources with a period. array can also be an array of hrefs that is expanded.
+* **getAbolishedResources(arrayOfResources, referenceDateString):**  returns a new array with only the resources that are abolished on the referenceDateString (getNow() if dateString is null) from array,
 which is an array of resources with a period. array can also be an array of hrefs that is expanded.
 * **manageDeletes(resource, options, sriClient):** manages the propagation of deletes for the given resource to it's dependencies. It needs sriClient to query these dependenies. The options are:
   * batch: a batch array. All references to this resource that should be deleted as well will be added to this batch array. If a depending resource is already present in the batch, it will be removed from the batch since this no longer seems necessary.
