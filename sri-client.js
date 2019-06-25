@@ -4,6 +4,21 @@ const commonUtils = require('./common-utils');
 const Cache = require('./cache.js');
 const Batch = require('./batch');
 
+const mergeObjRecursive = (obj, patch) => {
+  if(!patch) {
+    return Object.assign({}, obj);
+  }
+  const ret = {};
+  Object.keys(obj).forEach(key => {
+    if (typeof obj[key] === 'object') {
+      Object.assign(ret, {[obj[key]]: mergeObjRecursive(obj[key], patch[key])});
+    } else {
+      Object.assign(ret, {[obj[key]]: patch[key]});
+    }
+  });
+  return ret;
+};
+
 module.exports = class SriClient {
   constructor(config = {}) {
     this.configuration = config;
@@ -17,11 +32,15 @@ module.exports = class SriClient {
 
   /*get configuration() {
     return this._configuration;
+  }*/
+
+  setConfiguration(configuration) {
+    this.configuration = configuration;
   }
 
-  set configuration(configuration) {
-    this._configuration = configuration;
-  }*/
+  patchConfiguration(patch) {
+    this.setConfiguration(mergeObjRecursive(this.configuration, patch));
+  }
 
   getBaseUrl(options = {}) {
     const baseUrl = options.baseUrl || this.configuration.baseUrl;
