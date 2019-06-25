@@ -7,6 +7,11 @@ class FetchClient extends SriClient {
 
   constructor(config = {}) {
     super(config);
+    this.setDefaultHeaders(config);
+    this.cache.initialise();
+  }
+
+  setDefaultHeaders(config) {
     this.defaultHeaders = config.headers || {};
     /*if(config.username && config.password) {
       this.defaultOptions.hearders['Authorization'] = //base64encode config.username+':'+config.password
@@ -14,7 +19,11 @@ class FetchClient extends SriClient {
     if(config.accessToken) {
       this.defaultHeaders[config.accessToken.name] = config.accessToken.value;
     }
-    this.cache.initialise();
+  }
+
+  setConfiguration(config) {
+    super(config);
+    this.setDefaultHeaders(config);
   }
 
   async getRaw(href, params, options = {}) {
