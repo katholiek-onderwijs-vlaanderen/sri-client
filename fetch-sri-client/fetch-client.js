@@ -22,7 +22,7 @@ class FetchClient extends SriClient {
   }
 
   setConfiguration(config) {
-    super(config);
+    super.setConfiguration(config);
     this.setDefaultHeaders(config);
   }
 
