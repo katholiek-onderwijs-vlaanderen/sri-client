@@ -5,17 +5,17 @@ const Cache = require('./cache.js');
 const Batch = require('./batch');
 
 const mergeObjRecursive = (obj, patch) => {
-  if(!patch) {
-    return Object.assign({}, obj);
+  const ret = obj ?{...obj} : {};
+  if(patch) {
+    Object.keys(patch).forEach(key => {
+      if (typeof patch[key] === 'object') {
+        Object.assign(ret, {[key]: mergeObjRecursive(obj[key], patch[key])});
+      } else {
+        Object.assign(ret, {[key]: patch[key]});
+      }
+    });
   }
-  const ret = {};
-  Object.keys(obj).forEach(key => {
-    if (typeof obj[key] === 'object') {
-      Object.assign(ret, {[obj[key]]: mergeObjRecursive(obj[key], patch[key])});
-    } else {
-      Object.assign(ret, {[obj[key]]: patch[key]});
-    }
-  });
+
   return ret;
 };
 
