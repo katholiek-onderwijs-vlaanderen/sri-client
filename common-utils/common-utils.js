@@ -89,7 +89,7 @@ const paramsToString = function (path, params) {
   var ret = path;
   for (var key in params) {
     if (params.hasOwnProperty(key)) {
-      if(!ret.match(/\?/g)) {
+      if(!ret.match(/\?/g) && params[key]) {
         ret += '?';
       } else {
         ret += '&';
