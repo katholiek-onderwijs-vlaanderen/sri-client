@@ -133,7 +133,8 @@ class NodeClient extends SriClient {
       status: response.statusCode || null,
       body: response.body || null,
       headers: response.headers || null,
-      stack: stack
+      error,
+      stack,
     };
   };
 };
