@@ -173,7 +173,9 @@ module.exports = class SriClient {
   }
 
   getAllReferencesTo(baseHref, params = {}, parameterName, values, options = {}) {
-    params.limit = 500;
+    if(!params.limit && params.limit !== null) {
+      params.limit = 500;
+    }
     return this.getAllHrefsWithoutBatch(baseHref, parameterName, values, params, options);
   }
 
