@@ -104,7 +104,9 @@ module.exports = class SriClient {
     // We set it to undifined that the underlying get method does not take care of this.
     const expand = options.expand;
     options.expand = undefined;
-    params.limit = params.limit || 500;
+    if(!params.limit && params.limit !== null) {
+      params.limit = 500;
+    }
     const result = await this.wrapGet(href, params, options);
     if(!result || !result.$$meta) {
       console.log('no results for ' + href);
