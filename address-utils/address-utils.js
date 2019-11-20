@@ -220,6 +220,7 @@ module.exports = {
   printAddress: printAddress,
   isSameHouseNumberAndMailbox: isSameHouseNumberAndMailbox,
   isSameStreet: isSameStreet,
+  isStreetNameMatch: isStreetNameMatch,
   addSubCityHref: addSubCityHref,
   addStreetHref: addStreetHref
 };

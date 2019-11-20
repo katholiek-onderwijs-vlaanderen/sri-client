@@ -16,7 +16,7 @@ const formatPhoneNumber = function(phone, formatBelgianInternationalNumbers) {
     propertyName = phone.value ? 'value' : 'number';
     newValue = phone[propertyName];
   }
-  newValue = newValue.replace(/\//g, '').replace(/\./g, '').replace(/\s/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\-/g, '').replace(/\'/g, '');
+  newValue = newValue.replace(/\//g, '').replace(/\./g, '').replace(/\s/g, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\-/g, '').replace(/\'/g, '').replace(/;/g, '');
   if(!newValue.match(/^\+?0*[1-9]{1}[0-9]{6}[0-9]{0,8}$/)) {
     throw new InvalidFormatError('Can not format ' + newValue, phone);
   }

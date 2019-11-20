@@ -8,6 +8,7 @@ module.exports = class SriClientError {
     this.status = obj.status;
     this.body = obj.body;
     this.headers = obj.headers;
+    this.error = obj.error;
     this.stack = obj.stack;
   }
 

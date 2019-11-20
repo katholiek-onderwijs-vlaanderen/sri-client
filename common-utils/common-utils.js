@@ -88,8 +88,8 @@ const strip$$PropertiesFromBatch = function (batch) {
 const paramsToString = function (path, params) {
   var ret = path;
   for (var key in params) {
-    if (params.hasOwnProperty(key)) {
-      if(!ret.match(/\?/g) && params[key]) {
+    if (params.hasOwnProperty(key) && params[key]) {
+      if(!ret.match(/\?/g)) {
         ret += '?';
       } else {
         ret += '&';
