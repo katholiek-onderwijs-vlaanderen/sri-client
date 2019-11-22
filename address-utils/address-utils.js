@@ -107,7 +107,7 @@ const addStreetHref = async function(address, api, dateUtils = require('../date-
     if(nbOfExactMatches === 1) {
       address.streetHref = exactMatch.$$meta.permalink;
       if(changeStreetName) {
-        address.street = exactMatch.street;
+        address.street = exactMatch.name;
       }
     } else {
       console.warn('multiple street matches for ' + address.street + ' in ' + address.subCity);
@@ -117,7 +117,7 @@ const addStreetHref = async function(address, api, dateUtils = require('../date-
   } else {
     address.streetHref = matches[0].$$meta.permalink;
     if(changeStreetName) {
-      address.street = matches[0].street;
+      address.street = matches[0].name;
     }
   }
 };
