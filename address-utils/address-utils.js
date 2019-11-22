@@ -73,7 +73,7 @@ const addSubCityHref = async function (address, api, dateUtils = require('../dat
   }
 };
 
-const addStreetHref = async function(address, api, dateUtils = require('../date-utils')) {
+const addStreetHref = async function(address, api, dateUtils = require('../date-utils'), changeStreetName = false) {
   if(!address.nisCode && !address.cityHref && !address.subCityHref) {
     await addSubCityHref(address, api);
   }
@@ -97,15 +97,18 @@ const addStreetHref = async function(address, api, dateUtils = require('../date-
   });
   if(matches.length > 1) {
     let nbOfExactMatches = 0;
-    let exaxtMatch = null;
+    let exactMatch = null;
     matches.forEach(street => {
       if(street.name === address.street) {
         nbOfExactMatches++;
-        exaxtMatch = street;
+        exactMatch = street;
       }
     });
     if(nbOfExactMatches === 1) {
-      address.streetHref = exaxtMatch.$$meta.permalink;
+      address.streetHref = exactMatch.$$meta.permalink;
+      if(changeStreetName) {
+        address.street = exactMatch.street;
+      }
     } else {
       console.warn('multiple street matches for ' + address.street + ' in ' + address.subCity);
     }
@@ -113,6 +116,9 @@ const addStreetHref = async function(address, api, dateUtils = require('../date-
     console.warn('no street match could be found for ' + address.street + ' in ' + address.subCity);
   } else {
     address.streetHref = matches[0].$$meta.permalink;
+    if(changeStreetName) {
+      address.street = matches[0].street;
+    }
   }
 };
 
