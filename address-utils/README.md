@@ -16,7 +16,7 @@ const addressUtils = require('@kathondvla/sri-client/address-utils');
 * **isSameStreet(a, b):** returns true if sri address a and sri address b are the same streets. This means a match on  the street name in the same city. If both addresses have a streetHref a match is done based on this reference because it is a reference to the same street, independent of how it is spelled. Otherwise A match on street name is case insensitive and takes into account that parts of the name are abbreviated with a dot. For example 'F. Lintsstraat' matches with 'Frederik lintsstraat'.
 * **isStreetNameMatch(a, b):** returns true if a en b which are both strings are the same street independent of how they are spelled. It takes into account that parts are abbreviated with a dot. For example 'F. Lintsstraat' matches with 'Frederik lintsstraat'.
 * **addSubCityHref(sriAddress, api) [async]:** adds a subCityHref reference to the sriAddress. api is an instance of an sri-client library (ng-sri-client, node-sri-client, fetch-sri-client, etc.)
-* **addStreetHref(sriAddress, api) [async]:** adds a streetHref reference to the sriAddress. api is an instance of an sri-client library (ng-sri-client, node-sri-client, fetch-sri-client, etc.)
+* **addStreetHref(sriAddress, api, dateUtils, changeStreetName) [async]:** adds a streetHref reference to the sriAddress. api is an instance of an sri-client library (ng-sri-client, node-sri-client, fetch-sri-client, etc.). You can add dateUtils to look at a differnt point in time. You can also set option changeStreetName [default = false] to also change sriAddress.street to the the way it is written in /sam/commons/streets.
 
 ### Questions ###
 
