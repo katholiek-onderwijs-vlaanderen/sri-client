@@ -123,7 +123,7 @@ module.exports = class Cache {
       const body = this.api.getRaw(href, params, options);
       this.updateCacheRecord(fullHref, isList, body);
       body.then(result => {
-        if(isList && (!href.toLowerCase().match(/^.+[\?\&]expand\=.+$/) || href.toLowerCase.match(/^.+[\?\&]expand\=full.*$/))) {
+        if(isList && (!href.toLowerCase().match(/^.+[\?\&]expand\=.+$/) || href.toLowerCase().match(/^.+[\?\&]expand\=full.*$/))) {
           result.results.forEach(obj => {
             this.updateCacheRecord(obj.href, false, Promise.resolve(obj.$$expanded));
           });
