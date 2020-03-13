@@ -5,6 +5,10 @@ const generateUUID = function() {
   });
 };
 
+const isPermalink = function(string) {
+  return string.match(/^(?:\/[^\/]+)+\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/);
+};
+
 const splitPermalink = function(permalink) {
   const parts = permalink.split('/');
   return {
@@ -102,6 +106,7 @@ const paramsToString = function (path, params) {
 
 module.exports = {
   generateUUID: generateUUID,
+  isPermalink: isPermalink,
   splitPermalink: splitPermalink,
   getKeyFromPermalink: getKeyFromPermalink,
   getPathFromPermalink: getPathFromPermalink,
