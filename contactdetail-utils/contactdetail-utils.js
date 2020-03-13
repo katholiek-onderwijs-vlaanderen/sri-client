@@ -38,7 +38,7 @@ const formatPhoneNumber = function(phone, formatBelgianInternationalNumbers) {
         newValue = newValue.substring(0,2) + ' ' + newValue.substring(2,5) + ' ' + newValue.substring(5,7) + ' ' + newValue.substring(7);
       } else if( (newValue.substring(0,2) === '04' || newValue.substring(0,2) === '09') && (newValue.substring(2,3) === '2' || newValue.substring(2,3) === '3') ) {
         newValue = newValue.substring(0,2) + ' ' + newValue.substring(2,5) + ' ' + newValue.substring(5,7) + ' ' + newValue.substring(7);
-      } else if(newValue.substring(0,1) === '0') {
+      } else if(newValue.substring(0,1) === '0' && newValue.substring(1,2) !== '4' && newValue.substring(1,2) !== '9') {
         newValue = newValue.substring(0,3) + ' ' + newValue.substring(3,5) + ' ' + newValue.substring(5,7) + ' ' + newValue.substring(7);
       } else {
         throw new InvalidFormatError('Can not format ' + newValue, phone);

@@ -142,7 +142,10 @@ module.exports = class SriClient {
   }
 
   async getAllHrefsWithoutBatch(baseHref, parameterName, hrefs, params, options) {
-    params.expand = params.expand || 'FULL';
+    if (hrefs.length === 0) {
+      return [];
+    }
+    const groupBy = options.groupBy || Math.floor((6900 - commonUtils.parametersToString(baseHref, params).length - parameterName.length - 1) / (encodeURIComponent(hrefs[0]).length + 3));
     var total = 0;
     //const promises = []; TODO make use of pQueue to do this in concurrency
     var allResults = [];
@@ -150,7 +153,7 @@ module.exports = class SriClient {
     while(total < hrefs.length) {
       //var query = commonUtils.parametersToString(baseHref, params) + '&'+parameterName+'=';
       let parameterValue = '';
-      for(var i = 0; i <= (options.groupBy ? options.groupBy : this.groupBy) && total < hrefs.length; i++) {
+      for(var i = 0; i < groupBy && total < hrefs.length; i++) {
         map[hrefs[i]] = null;
         parameterValue += (i === 0 ? '' : ',')+hrefs[total];
         total++;
@@ -177,6 +180,9 @@ module.exports = class SriClient {
   getAllReferencesTo(baseHref, params = {}, parameterName, values, options = {}) {
     if(!params.limit && params.limit !== null) {
       params.limit = 500;
+    }
+    if (options.inBatch) {
+      // TODO
     }
     return this.getAllHrefsWithoutBatch(baseHref, parameterName, values, params, options);
   }
