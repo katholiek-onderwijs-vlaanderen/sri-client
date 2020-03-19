@@ -22,6 +22,8 @@ class NodeClient extends SriClient {
     }
     if(config.timeout) {
       defaultOptions.timeout = config.timeout;
+    } else  {
+      defaultOptions.timeout = 30000;
     }
     this.baseRequest = request.defaults(defaultOptions);
     this.cache.initialise();
