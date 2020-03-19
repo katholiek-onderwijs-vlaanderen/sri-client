@@ -20,6 +20,9 @@ class NodeClient extends SriClient {
     if(config.accessToken) {
       defaultOptions.headers[config.accessToken.name] = config.accessToken.value;
     }
+    if(config.timeout) {
+      defaultOptions.timeout = config.timeout;
+    }
     this.baseRequest = request.defaults(defaultOptions);
     this.cache.initialise();
   }
