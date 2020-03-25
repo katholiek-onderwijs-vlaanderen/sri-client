@@ -518,7 +518,7 @@ const travelHrefsOfJson = function(json, propertyArray, options = {}) {//, requi
       hrefs = travelHrefsOfObject(subResource, propertyArray, options);
     }
   }
-  return hrefs;
+  return hrefs.filter(href => !href.match(/^http/));
 };
 
 const travelResoure = function(resource, handlerFunction) {
