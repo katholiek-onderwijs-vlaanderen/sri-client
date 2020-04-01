@@ -32,6 +32,7 @@ const dateUtils = require('@kathondvla/sri-client/date-utils');
 * **isConsecutiveWithOneDayInBetween(a, b):**: returns true if the periods of a and b are strictly following each other in any order with one day in between. So b starts the day after a ends or a starts the day after b ends.
 * **getStartOfSchoolYear(dateString):** returns the first of september before datestring (the first of september before getNow() if dateString is null),
 * **getEndOfSchoolYear(dateString):** returns the first of september after dateString (the first of september after getNow() if dateString is null),
+* **getStartOfSchoolYearIncludingSummerGap(dateString):** returns the first of september before datestring when the month of datestring is not July or August. Otherwise, it returns the first of september after datestring. If datestring is null, the reference date for the above condictions is the current date (getNow()),
 * **getClosestSchoolYearSwitch(dateString):** returns the first of september which is the closest to the dateString (the first of september after getNow() if dateString is null) [for all dates in march untill august it returns getEndOfSchoolYear(), for all dates in setember untill februari it returns getStartOfSchoolYear()],
 * **getPreviousDay(dateString, nbOfDays):** returns the date which is the given number of days before dateString, as a string. nbOfDays is optional, the default is 1.
 * **getNextDay(dateString, nbOfDays):** returns the date which is the given number of days after dateString, as a string. nbOfDays is optional, the default is 1.

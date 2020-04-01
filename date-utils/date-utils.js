@@ -147,6 +147,18 @@ function getStartofSchoolYear(stringDate) {
   return ret;
 }
 
+function getStartOfSchoolYearIncludingSummerGap(stringDate) {
+  'use strict';
+  const date = parse(stringDate) || now || parse(getNow());
+  var ret = null;
+  if (date.getMonth() < 6) {
+    ret = toString(new Date(date.getFullYear() - 1, 8, 1));
+  } else {
+    ret = toString(new Date(date.getFullYear(), 8, 1));
+  }
+  return ret;
+}
+
 function getClosestSchoolYearSwitch (stringDate) {
   const date = parse(stringDate) || now || parse(getNow());
   if(date.getMonth() < 2) {
@@ -535,6 +547,7 @@ module.exports = {
   isConsecutiveWithOneDayInBetween: isConsecutiveWithOneDayInBetween,
   getStartOfSchoolYear: getStartofSchoolYear,
   getEndOfSchoolYear: getEndofSchoolYear,
+  getStartOfSchoolYearIncludingSummerGap: getStartOfSchoolYearIncludingSummerGap,
   getClosestSchoolYearSwitch: getClosestSchoolYearSwitch,
   getPreviousDay: getPreviousDay,
   getNextDay: getNextDay,
