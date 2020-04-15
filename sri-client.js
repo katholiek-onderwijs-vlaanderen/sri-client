@@ -518,7 +518,7 @@ const travelHrefsOfJson = function(json, propertyArray, options = {}) {//, requi
       hrefs = travelHrefsOfObject(subResource, propertyArray, options);
     }
   }
-  return hrefs.filter(href => !href.match(/^http/));
+  return hrefs.filter(href => href.match(/^\//)); // in content api there can be relations to external absolute urls.
 };
 
 const travelResoure = function(resource, handlerFunction) {
