@@ -15,7 +15,8 @@ They both have the same generic interface
 
 ### generic interface ###
 
-* **get(href, parameters, options):** http get of the href with the given parameters. Returns a promise with the exact result from the api.
+* **getRaw(href, parameters, options):** http get of the href with the given parameters. Returns a promise with the exact result from the api.
+* **get(href, parameters, options):** http get a single resource with the given href and the parameters. Returns a promise with the resource.
 * **getList(href, parameters, options):** http get of the href with the given parameters where href is suposed to be a list resource.
 Returns a promise with the array of the expanded results that match the query (so not an object with an href and $$expanded, but the object that is $$expanded.
 The list of results is limited to only one API call so the lenght will be maximum the limit. The resulting array will also have properties count and next from the original $$meta section.
