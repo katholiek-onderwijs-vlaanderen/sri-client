@@ -14,7 +14,7 @@ class NodeFetchClient extends SriClient {
   setDefaultHeaders(config) {
     this.defaultHeaders = config.headers || {};
     if(config.username && config.password) {
-      this.defaultOptions.hearders['Authorization'] = 'BASIC' + Buffer.from(config.username + ':' + config.password).toString('base64');
+      this.defaultHeaders['Authorization'] = 'BASIC' + Buffer.from(config.username + ':' + config.password).toString('base64');
     }
     if(config.accessToken) {
       this.defaultHeaders[config.accessToken.name] = config.accessToken.value;

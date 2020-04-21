@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 const util = require('util');
 const validate = require('jsonschema').validate;
 const commonUtils = require('./common-utils');
