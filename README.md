@@ -6,10 +6,11 @@
 * version 1.1.2
 
 ## sri-clients ##
-The project contains two client modules with all kind of functions to do API requests according to [SRI (Standard ROA Interface)][sri-documentation]:
+The project contains three client modules with all kind of functions to do API requests according to [SRI (Standard ROA Interface)][sri-documentation]:
 
-* an Angular 1 module
-* a node module
+* ng-sri-client: an Angular 1 module
+* node-fetch: a node module on the node version of fetch
+* fetch-sri-client: a module on browser fetch
 
 They both have the same generic interface
 
@@ -82,6 +83,8 @@ All methods have an **options** object that you can pass on as a parameter. You 
 * **fetch-sri-client**
   * **cancel**: A promise that will cancel the request when resolved
   * **credentials**: omit (default) || include (adds the cookies to the request)
+  * **fullResponse**: the response will be an object with properties body and headers
+* **node-fetch**
   * **fullResponse**: the response will be an object with properties body and headers
 * **ng-sri-client specific**
   * **raw** default is false. The response will be parsed. If raw is true the response will not be parsed.
