@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 const util = require('util');
 const validate = require('jsonschema').validate;
 const commonUtils = require('./common-utils');
@@ -260,6 +261,9 @@ module.exports = class SriClient {
 
   put(href, payload, options) {
     return this.wrapSendPayload(href, payload, options, 'PUT');
+  }
+  patch(href, payload, options) {
+    return this.wrapSendPayload(href, payload, options, 'PATCH');
   }
   updateResource(resource, options) {
     return this.put(resource.$$meta.permalink, resource, options);
