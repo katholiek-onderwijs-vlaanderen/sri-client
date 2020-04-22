@@ -40,6 +40,7 @@ class NodeFetchClient extends SriClient {
         // credentials: options.credentials || 'omit',
         redirect: options.redirect || "follow",
         // signal: options.cancel,
+        timeout: options.timeout || 0,
         headers: Object.assign(this.defaultHeaders, options.headers ? options.headers : {})
       });
       if(response.ok) {
