@@ -3,7 +3,7 @@
 # sri-client #
 
 * this is the project with all kind of utilities for clients which are using  A [sri4node][sri4node-project] API.
-* version 2.3.1
+* version 2.3.2
 
 ## sri-clients ##
 The project contains three client modules with all kind of functions to do API requests according to [SRI (Standard ROA Interface)][sri-documentation]:
@@ -86,6 +86,8 @@ All methods have an **options** object that you can pass on as a parameter. You 
   * **fullResponse**: the response will be an object with properties body and headers
 * **node-fetch**
   * **fullResponse**: the response will be an object with properties body and headers
+  * **username**: username for basic authentication
+  * **password**: password for basic authentication
 * **ng-sri-client specific**
   * **raw** default is false. The response will be parsed. If raw is true the response will not be parsed.
   * **cancelPromise:** A promise that will cancel the request, if it gets resolved.

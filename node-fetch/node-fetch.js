@@ -14,7 +14,7 @@ class NodeFetchClient extends SriClient {
   setDefaultHeaders(config) {
     this.defaultHeaders = config.headers || {};
     if(config.username && config.password) {
-      this.defaultHeaders['Authorization'] = 'BASIC' + Buffer.from(config.username + ':' + config.password).toString('base64');
+      this.defaultHeaders['Authorization'] = 'Basic ' + Buffer.from(config.username + ':' + config.password).toString('base64');
     }
     if(config.accessToken) {
       this.defaultHeaders[config.accessToken.name] = config.accessToken.value;
@@ -133,8 +133,9 @@ class NodeFetchClient extends SriClient {
   }
 
   async readResponse(response) {
+    let headers = null;
     try {
-      const headers = [...response.headers].reduce( (acc, cur) => Object.assign({}, acc, {[cur[0]]: cur[1]}), {} );
+      headers = [...response.headers].reduce( (acc, cur) => Object.assign({}, acc, {[cur[0]]: cur[1]}), {} );
       const contentType = headers['content-type'];
 
       let body = null;
@@ -153,13 +154,14 @@ class NodeFetchClient extends SriClient {
         redirected: response.redirected
       };
     } catch(err) {
-      console.log(err)
       console.warn('[sri-client] Het response kon niet worden uitgelezen.', response);
-      try {
-        return response.text();
-      } catch(err) {
-        console.log('[sri-client] We kunnen ook geen text maken van de response body');
-      }
+      return new SriClientError({
+        status: response.status,
+        body: null,
+        headers: headers,
+        originalResponse: response,
+        error: err
+      });
     }
   }
 

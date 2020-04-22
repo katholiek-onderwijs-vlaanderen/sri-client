@@ -154,11 +154,6 @@ class FetchClient extends SriClient {
       };
     } catch(err) {
       console.warn('[sri-client] Het response kon niet worden uitgelezen.', response);
-      try {
-        return response.text();
-      } catch(err) {
-        console.log('[sri-client] We kunnen ook geen text maken van de response body');
-      }
     }
   };
 
