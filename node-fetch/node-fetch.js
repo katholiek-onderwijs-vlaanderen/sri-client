@@ -153,6 +153,7 @@ class NodeFetchClient extends SriClient {
         redirected: response.redirected
       };
     } catch(err) {
+      console.log(err)
       console.warn('[sri-client] Het response kon niet worden uitgelezen.', response);
       try {
         return response.text();
@@ -163,9 +164,16 @@ class NodeFetchClient extends SriClient {
   }
 
   async handleError(httpRequest, response, options, stack) {
-    /*if(!response || !(response instanceof Response)) {
-      return response;
-    }*/
+    if (response.code === 'ENOTFOUND') {
+      return new SriClientError({
+        status: null,
+        body: null,
+        originalResponse: null,
+        headers: null,
+        error: response,
+        stack: stack
+      });
+    }
 
     const resp = await this.readResponse(response);
 
@@ -173,8 +181,8 @@ class NodeFetchClient extends SriClient {
       status: response.status || null,
       body: resp.body,
       originalResponse: response,
-      headers: resp.headers//,
-      //stack: stack
+      headers: resp.headers,
+      stack: stack
     });
   };
 
