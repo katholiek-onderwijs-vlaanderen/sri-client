@@ -3,6 +3,7 @@ const validate = require('jsonschema').validate;
 const commonUtils = require('./common-utils');
 const Cache = require('./cache.js');
 const Batch = require('./batch');
+const SriClientError = require('./sri-client-error');
 
 const mergeObjRecursive = (obj, patch) => {
   const ret = obj ?{...obj} : {};
@@ -253,6 +254,33 @@ module.exports = class SriClient {
   sendPayload() {}
 
   async wrapSendPayload(href, payload, options = {}, method) {
+    const originallyFullResponse = options.fullResponse;
+    if (options.keepBatchAlive) {
+      if (!href.match(/batch$/)) {
+        throw new Error({ message: 'You can only add the streaming option for batch requests' });
+      }
+      const batchResp = await this.sendPayload(href + '_streaming', payload, { ...options, fullResponse: true }, method);
+      if (batchResp.status) {
+        // in ng-client there is no fullResponse option, so no option to retrieve headers
+        if (batchResp.body.status >= 300) {
+          throw new SriClientError({
+            status: batchResp.status,
+            body: batchResp.results
+          });
+        } else {
+          return batchResp.results;
+        }
+      }
+      if (batchResp.body.status >= 300) {
+        throw new SriClientError({
+          status: batchResp.body.status,
+          body: batchResp.body.results,
+          headers: batchResp.headers
+        });
+      } else {
+        return originallyFullResponse ? batchResp.body : batchResp.body.results;
+      }
+    }
     const resp = await this.sendPayload(href, payload, options, method);
     this.cache.onDataAltered(href, payload, method);
     return resp;

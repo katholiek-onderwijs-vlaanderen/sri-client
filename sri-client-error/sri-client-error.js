@@ -14,7 +14,7 @@ module.exports = class SriClientError {
 
   getStatusCode() {
     return this.status;
-  };
+  }
 
   getResponseHeader(header) {
     return this.headers[header];

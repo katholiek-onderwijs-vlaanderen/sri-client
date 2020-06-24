@@ -141,8 +141,8 @@ class NodeClient extends SriClient {
       error,
       stack,
     };
-  };
-};
+  }
+}
 
 
 

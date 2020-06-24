@@ -155,7 +155,7 @@ class FetchClient extends SriClient {
     } catch(err) {
       console.warn('[sri-client] Het response kon niet worden uitgelezen.', response);
     }
-  };
+  }
 
   async handleError(httpRequest, response, options, stack) {
     if(!response || !(response instanceof Response)) {

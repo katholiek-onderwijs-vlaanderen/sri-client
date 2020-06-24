@@ -57,6 +57,7 @@ All methods have an **options** object that you can pass on as a parameter. You 
   * **headers:** An object with headers that are added on the http request. f.e.: {'foo': 'bar'} adds a header foo with value bar.
   * **caching:** An object with properties timeout (in seconds) which overwrites the default timeout (you don't need to set up default caching, you can just start caching several requests). The resource will be get from the cache if it it is not older than the timeout in seconds.
   * **inBatch:** Specify the href where the batch needs to be send to. This is for GET methods (getAll, getList, etc.) and wraps the regular request into a batch request. This can be usefull when their is a potential of an request url that becomes too long.
+  * **keepBatchAlive:** Only possible for requests to /batch. Handles the batch in a streaming way keeping the connection open so the server does not decide to break off the request (Heroku for example breaks off requests after 30s). This does not mean that you get your response in a streaming way. The response is the same for the client as a regular /batch.
   * **expand:** array with property paths that you want to expand client side. You can expand as deep as you want and don't need to add $$expanded to the path. See the examples.
   You can also replace a property path string with an object to pass on more advanced options. The object contains the following proerties:
     * property: [required] the property path.
@@ -84,7 +85,7 @@ All methods have an **options** object that you can pass on as a parameter. You 
   * **cancel**: A promise that will cancel the request when resolved
   * **credentials**: omit (default) || include (adds the cookies to the request)
   * **fullResponse**: the response will be an object with properties body and headers
-* **node-fetch**
+* **node-fetch / node-sri-client**
   * **fullResponse**: the response will be an object with properties body and headers
   * **username**: username for basic authentication
   * **password**: password for basic authentication
@@ -93,14 +94,6 @@ All methods have an **options** object that you can pass on as a parameter. You 
   * **raw** default is false. The response will be parsed. If raw is true the response will not be parsed.
   * **cancelPromise:** A promise that will cancel the request, if it gets resolved.
   * **pending:** boolean that will be set to true by every method when the request starts and set to false once the result is fetched.
-* **node-sri-client specific**
-  * **timeout:** The number of miliseconds to wait before the request times out. (default timeout is 10 seconds for a GET, 30 seconds for a sendPayload and 120 seconds for a batch)
-  * **maxAttempts:** The number of times the request will be attempted. The default is 3 times (so 2 retries).
-  * **retryStrategy:** You can pass on your own strategy on when to retry a request. The default is to retry on network errors (ECONNRESET, ENOTFOUND, ESOCKETTIMEDOUT, ETIMEDOUT, ECONNREFUSED, EHOSTUNREACH, EPIPE, EAI_AGAIN) or on http errors with status 5xx. See the documentation of [requestretry][npm-requestretry-strategy] to see how to define your own delay strategy.
-  * **retryDelay:** The number of miliseconds of delay untill another attempt is made for this same request. The default is 5000 miliseconds.
-  * **delayStrategy:** You can pass on your own strategy on how to delay a request. The default is to have a fixed time (options.retryDelay) in between the requests. See the documentation of [requestretry][npm-requestretry-delaystrategey] to see how to define your own delay strategy.
-  * **strip$$Properties:** strips the $$-properties from the payload. The default is true.
-  * **logging:** logs the response body if the status code >= 400 to the console for any value. Any value always logs errors. Otherwise you can add a string containing values: 'get','put','post','delete','caching','expand'.
 
 #### examples ####
 
