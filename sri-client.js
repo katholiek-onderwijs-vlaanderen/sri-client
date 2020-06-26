@@ -262,7 +262,7 @@ module.exports = class SriClient {
       const batchResp = await this.sendPayload(href + '_streaming', payload, { ...options, fullResponse: true }, method);
       if (batchResp.status) {
         // in ng-client there is no fullResponse option, so no option to retrieve headers
-        if (batchResp.body.status >= 300) {
+        if (batchResp.status >= 300) {
           throw new SriClientError({
             status: batchResp.status,
             body: batchResp.results
