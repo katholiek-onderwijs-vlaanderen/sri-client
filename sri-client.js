@@ -202,17 +202,21 @@ module.exports = class SriClient {
     if(!batchHref) {
       return this.getAllHrefsWithoutBatch(baseHref, 'hrefs', hrefs, params, options);
     }
-    var total = 0;
     const batch = [];
     const map = {};
-
-    while(total < hrefs.length) {
-      var query = commonUtils.parametersToString(baseHref, params) + '&hrefs'+'=';
-      for(var i = 0; i < params.limit && total < hrefs.length; i++) {
-        map[hrefs[i]] = null;
-        query += (i === 0 ? '' : ',')+hrefs[total];
-        total++;
+    let remainingHrefs = [].concat(hrefs);
+    
+    while(remainingHrefs.length) {
+      var query = commonUtils.parametersToString(baseHref, params) + '&hrefs=';
+      
+      const thisBatchHrefs = remainingHrefs.slice(0, params.limit);
+      remainingHrefs = remainingHrefs.slice(params.limit, remainingHrefs.length);
+      
+      for (let href in thisBatchHrefs) {
+        map[href] = null;
       }
+      query += thisBatchHrefs.join(',');
+      
       var part = {
           verb: "GET",
           href: query
