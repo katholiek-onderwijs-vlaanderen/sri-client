@@ -208,7 +208,7 @@ module.exports = class SriClient {
 
     while(total < hrefs.length) {
       var query = commonUtils.parametersToString(baseHref, params) + '&hrefs'+'=';
-      for(var i = 0; i <= 500 && total < hrefs.length; i++) {
+      for(var i = 0; i < params.limit && total < hrefs.length; i++) {
         map[hrefs[i]] = null;
         query += (i === 0 ? '' : ',')+hrefs[total];
         total++;
