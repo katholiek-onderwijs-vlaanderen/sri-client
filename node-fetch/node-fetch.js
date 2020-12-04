@@ -84,7 +84,7 @@ class NodeFetchClient extends SriClient {
           credentials: options.credentials || 'omit',
           redirect: options.redirect || 'follow',
           signal: options.cancel,
-          headers: Object.assign(this.defaultHeaders, {'Content-Type': 'application/json;charset=UTF-8'}, options.headers ? options.headers : {}),
+          headers: Object.assign({}, this.defaultHeaders, {'Content-Type': 'application/json;charset=UTF-8'}, options.headers ? options.headers : {}),
           body: options.raw ? payload : JSON.stringify(payload)
         });
 

@@ -1,6 +1,6 @@
 {
   "name": "@kathondvla/sri-client",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "Clien for consuming SRI interfaces from Node.js.",
   "scripts": {
     "lint": "eslint /sri-client"

@@ -40,7 +40,7 @@ class FetchClient extends SriClient {
         credentials: options.credentials || 'omit',
         redirect: options.redirect || "follow",
         signal: options.cancel,
-        headers: Object.assign(this.defaultHeaders, options.headers ? options.headers : {})
+        headers: Object.assign({}, this.defaultHeaders, options.headers ? options.headers : {})
       });
       if(response.ok) {
         const resp = await this.readResponse(response);
