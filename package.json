@@ -1,6 +1,6 @@
 {
   "name": "@kathondvla/sri-client",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "description": "Clien for consuming SRI interfaces from Node.js.",
   "scripts": {
     "lint": "eslint /sri-client"
@@ -19,11 +19,11 @@
   "dependencies": {
     "jsonschema": "1.2.2",
     "lodash": "4.17.15",
-    "node-fetch": "2.6.0",
+    "node-fetch": "2.6.1",
     "p-debounce": "1.0.0"
   },
   "devDependencies": {
-    "eslint": "^4.13.1"
+    "eslint": "^4.19.1"
   },
   "repository": {
     "type": "git",
