@@ -82,7 +82,12 @@ const addStreetHref = async function(address, api, dateUtils = require('../date-
     address.nisCode = words[words.length-1];
   }*/
   if(!address.cityHref && address.nisCode) {
-    address.cityHref = '/sam/commons/cities/'+address.niscode;
+    address.cityHref = '/sam/commons/cities/' + address.niscode;
+  } else if (address.city) {
+    const citiesByName =  await api.getAll('/sam/commons/cities', { name: address.city });
+    if (citiesByName.length === 1) {
+      address.cityHref = citiesByName[0].$$meta.permalink;
+    }
   }
   if(!address.cityHref) {
     console.warn('no street match could be found for ' + address.street + ' in ' + address.subCity + ' because there is no city in the address.');
