@@ -146,26 +146,33 @@ module.exports = class SriClient {
     if (hrefs.length === 0) {
       return [];
     }
-    const groupBy = options.groupBy || Math.floor((6900 - commonUtils.parametersToString(baseHref, params).length - parameterName.length - 1) / (encodeURIComponent(hrefs[0]).length + 3));
-    var total = 0;
     //const promises = []; TODO make use of pQueue to do this in concurrency
-    var allResults = [];
     const map = {};
-    while(total < hrefs.length) {
-      //var query = commonUtils.parametersToString(baseHref, params) + '&'+parameterName+'=';
-      let parameterValue = '';
-      for(var i = 0; i < groupBy && total < hrefs.length; i++) {
-        map[hrefs[i]] = null;
-        parameterValue += (i === 0 ? '' : ',')+hrefs[total];
-        total++;
-      }
+    let allResults = [];
+    if (options.inBatch) {
       const thisParams = Object.assign({}, params);
       const thisOptions = Object.assign({}, options);
-      thisParams[parameterName] = parameterValue;
-      const results = await this.getAll(baseHref, thisParams, thisOptions);
-      allResults = allResults.concat(results);
+      thisParams[parameterName] = hrefs.join(',');
+      allResults = await this.getAll(baseHref, thisParams, thisOptions);
+    } else {
+      const groupBy = options.groupBy || Math.floor((6900 - commonUtils.parametersToString(baseHref, params).length - parameterName.length - 1) / (encodeURIComponent(hrefs[0]).length + 3));
+      var total = 0;
+      while(total < hrefs.length) {
+        //var query = commonUtils.parametersToString(baseHref, params) + '&'+parameterName+'=';
+        let parameterValue = '';
+        for(var i = 0; i < groupBy && total < hrefs.length; i++) {
+          map[hrefs[i]] = null;
+          parameterValue += (i === 0 ? '' : ',')+hrefs[total];
+          total++;
+        }
+        const thisParams = Object.assign({}, params);
+        const thisOptions = Object.assign({}, options);
+        thisParams[parameterName] = parameterValue;
+        const results = await this.getAll(baseHref, thisParams, thisOptions);
+        allResults = allResults.concat(results);
+      }
     }
-
+    
     if(options.raw) {
       throw new Error('You can not get a raw result for getAllHrefs or getAllReferencesTo');
     } else if(options.asMap) {
