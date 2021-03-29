@@ -31,7 +31,7 @@ The resulting array will also have properties count and next from the original $
 * **post(href, payload, options):** http post to href with the given payload.
 * **delete(href, options):** http delete to href.
 * **getAllHrefs(hrefs, parameters, options):** returns an array of all objects for hrefs, a given array with permalinks.
-* **getAllHrefs(hrefs, batchHref, parameters, options):** returns an array of all objects for hrefs, a given array with permalinks.
+* ~**getAllHrefs(hrefs, batchHref, parameters, options):** returns an array of all objects for hrefs, a given array with permalinks. (deprecated: use inBatch option)~~
 All these parameters need to be of the same resource type! You can provide expansion (or other) parameters with parameters.
 It will get all these permalinks in the most efficient way if an href to the corresponding batch url is provided.
 If the batch url is null it will get them in individual request in groups of 100  (can be overwritten with options.groupBy) permalinks in order to not make the request url too long.
