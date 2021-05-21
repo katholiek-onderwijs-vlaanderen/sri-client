@@ -55,6 +55,10 @@ All methods have an **options** object that you can pass on as a parameter. You 
 * **common**
   * **baseUrl:** sends the http request to this baseUrl instead of the default baseUrl that is set in the initialisation of the configuration.
   * **headers:** An object with headers that are added on the http request. f.e.: {'foo': 'bar'} adds a header foo with value bar.
+  * **retry:** An object wih retry configuration with exponential backoff strategy
+    * retries: [required] number of retries you want to do. If retries === 1 => it will only try once again, so two times in total.
+    * initialWait: initial number of miliseconds to wait after the initial GET failed and before the first retry is done. The default is 500 miliseconds.
+    * factor: Strategy is exponential backoff so by default with 4 retries you will wait 0,5s, then 1s, then 2s and then 4s. If you set factor to 3 for instance the time to wait will be multiplied with 3 instead of two so you will wait 0,5s -> 1,5s -> 4,5s -> 13,5s. If you set factor to 1, you will actually disable exponential backoff.
   * **caching:** An object with properties timeout (in seconds) which overwrites the default timeout (you don't need to set up default caching, you can just start caching several requests). The resource will be get from the cache if it it is not older than the timeout in seconds.
   * **inBatch:** Specify the href where the batch needs to be send to. This is for GET methods (getAll, getList, etc.) and wraps the regular request into a batch request. This can be usefull when their is a potential of an request url that becomes too long.
   * **keepBatchAlive:** Only possible for requests to /batch. Handles the batch in a streaming way keeping the connection open so the server does not decide to break off the request (Heroku for example breaks off requests after 30s). This does not mean that you get your response in a streaming way. The response is the same for the client as a regular /batch.

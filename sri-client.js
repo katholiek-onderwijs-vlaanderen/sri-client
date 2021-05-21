@@ -86,7 +86,24 @@ module.exports = class SriClient {
       }
       return result;
     } catch(error) {
-      throw error;
+      if (error instanceof SriClientError && options && options.retry && options.retry.retries !== 0 && !(error.status && error.status < 500)) {
+        let wait = options.retry.wait;
+        if (!wait) {
+          wait = options.retry.initialWait ? options.retry.initialWait : 500;
+        } else {
+          wait = wait * (options.retry.factor ? options.retry.factor : 2);
+        }
+        console.log(`[sri-client->RETRY:${wait}] GET to ${commonUtils.parametersToString(href, params)} failed! We will try again in ${wait} miliseconds...`);
+        const newOptions = { ...options, retry: {
+          ...options.retry,
+          retries: options.retry.retries - 1,
+          wait
+        } };
+        await commonUtils.sleep(wait);
+        return this.wrapGet(href, params, newOptions, isSingleResource);
+      } else {
+        throw error;
+      }
     }
   }
 
@@ -265,36 +282,57 @@ module.exports = class SriClient {
   sendPayload() {}
 
   async wrapSendPayload(href, payload, options = {}, method) {
-    const originallyFullResponse = options.fullResponse;
-    if (options.keepBatchAlive) {
-      if (!href.match(/batch$/)) {
-        throw new Error({ message: 'You can only add the streaming option for batch requests' });
-      }
-      const batchResp = await this.sendPayload(href + '_streaming', payload, { ...options, fullResponse: true }, method);
-      if (batchResp.status) {
-        // in ng-client there is no fullResponse option, so no option to retrieve headers
-        if (batchResp.status >= 300) {
+    try {
+      const originallyFullResponse = options.fullResponse;
+      if (options.keepBatchAlive) {
+        if (!href.match(/batch$/)) {
+          throw new Error({ message: 'You can only add the streaming option for batch requests' });
+        }
+        const batchResp = await this.sendPayload(href + '_streaming', payload, { ...options, fullResponse: true }, method);
+        if (batchResp.status) {
+          // in ng-client there is no fullResponse option, so no option to retrieve headers
+          if (batchResp.status >= 300) {
+            throw new SriClientError({
+              status: batchResp.status,
+              body: batchResp.results
+            });
+          } else {
+            return batchResp.results;
+          }
+        }
+        if (batchResp.body.status >= 300) {
           throw new SriClientError({
-            status: batchResp.status,
-            body: batchResp.results
+            status: batchResp.body.status,
+            body: batchResp.body.results,
+            headers: batchResp.headers
           });
         } else {
-          return batchResp.results;
+          return originallyFullResponse ? batchResp.body : batchResp.body.results;
         }
       }
-      if (batchResp.body.status >= 300) {
-        throw new SriClientError({
-          status: batchResp.body.status,
-          body: batchResp.body.results,
-          headers: batchResp.headers
-        });
+      const resp = await this.sendPayload(href, payload, options, method);
+      this.cache.onDataAltered(href, payload, method);
+      return resp;
+    } catch(error) {
+      if (error instanceof SriClientError && options && options.retry && options.retry.retries !== 0 && !(error.status && error.status < 500)) {
+        let wait = options.retry.wait;
+        if (!wait) {
+          wait = options.retry.initialWait ? options.retry.initialWait : 500;
+        } else {
+          wait = wait * (options.retry.factor ? options.retry.factor : 2);
+        }
+        console.log(`[sri-client->RETRY:${wait}] ${method} to ${href} failed! We will try again in ${wait} miliseconds...`);
+        const newOptions = { ...options, retry: {
+          ...options.retry,
+          retries: options.retry.retries - 1,
+          wait
+        } };
+        await commonUtils.sleep(wait);
+        return this.wrapSendPayload(href, payload, newOptions, method);
       } else {
-        return originallyFullResponse ? batchResp.body : batchResp.body.results;
+        throw error;
       }
     }
-    const resp = await this.sendPayload(href, payload, options, method);
-    this.cache.onDataAltered(href, payload, method);
-    return resp;
   }
 
   put(href, payload, options) {

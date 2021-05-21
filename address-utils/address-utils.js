@@ -4,7 +4,7 @@ _.findIndex = require('lodash/findIndex');
 const util = require('util');
 
 const printAddress = function(address) {
-  return address.street + (address.houseNumber ? ' ' + address.houseNumber : '') + (address.mailboxNumber ? ' ' + address.mailboxNumber : '') +
+  return address.street + (address.houseNumber ? ' ' + address.houseNumber : '') + (address.mailboxNumber ? ' bus ' + address.mailboxNumber : '') +
     ', ' + address.zipCode + ' ' + address.subCity;
 };
 

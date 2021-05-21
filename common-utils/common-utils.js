@@ -104,6 +104,8 @@ const paramsToString = function (path, params) {
   return ret;
 };
 
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 module.exports = {
   generateUUID: generateUUID,
   isPermalink: isPermalink,
@@ -113,5 +115,6 @@ module.exports = {
   parametersToString: paramsToString,
   replaceSpecialCharacters: replaceSpecialCharacters,
   strip$$Properties: strip$$Properties,
-  strip$$PropertiesFromBatch: strip$$PropertiesFromBatch
+  strip$$PropertiesFromBatch: strip$$PropertiesFromBatch,
+  sleep,
 };
