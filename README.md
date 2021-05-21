@@ -55,7 +55,7 @@ All methods have an **options** object that you can pass on as a parameter. You 
 * **common**
   * **baseUrl:** sends the http request to this baseUrl instead of the default baseUrl that is set in the initialisation of the configuration.
   * **headers:** An object with headers that are added on the http request. f.e.: {'foo': 'bar'} adds a header foo with value bar.
-  * **retry:** An object wih retry configuration with exponential backoff strategy
+  * **retry:** An object wih retry configuration for doing retries with exponential backoff strategy. Retries will not be done for http status code 4xx.
     * retries: [required] number of retries you want to do. If retries === 1 => it will only try once again, so two times in total.
     * initialWait: initial number of miliseconds to wait after the initial GET failed and before the first retry is done. The default is 500 miliseconds.
     * factor: Strategy is exponential backoff so by default with 4 retries you will wait 0,5s, then 1s, then 2s and then 4s. If you set factor to 3 for instance the time to wait will be multiplied with 3 instead of two so you will wait 0,5s -> 1,5s -> 4,5s -> 13,5s. If you set factor to 1, you will actually disable exponential backoff.
