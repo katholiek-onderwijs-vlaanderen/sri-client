@@ -87,6 +87,7 @@ All methods have an **options** object that you can pass on as a parameter. You 
   * **asMap:** boolean that can be used for getAllHrefs. If set to true an object with be returned which contains all the hrefs as keys and the object to which it refers as value.
 * **fetch-sri-client**
   * **cancel**: A promise that will cancel the request when resolved
+  * **cache**: See [here][fetch-cache-options] for possible options. Default is 'default'
   * **credentials**: omit (default) || include (adds the cookies to the request)
   * **fullResponse**: the response will be an object with properties body and headers
 * **node-fetch / node-sri-client**
@@ -448,3 +449,4 @@ Mail to matthias.snellings@katholiekonderwijs.vlaanderen, gunther.claes@katholie
 [npm-requestretry-strategy]: https://www.npmjs.com/package/requestretry#how-to-define-your-own-retry-strategy
 [npm-requestretry-delaystrategey]: https://www.npmjs.com/package/requestretry#how-to-define-your-own-delay-strategy
 [npm-request]: https://www.npmjs.com/package/request
+[fetch-cache-options]: https://developer.mozilla.org/en-US/docs/Web/API/Request/cache

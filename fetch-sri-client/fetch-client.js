@@ -36,7 +36,7 @@ class FetchClient extends SriClient {
     try {
       const response = await fetch(baseUrl + commonUtils.parametersToString(href, params), {
         method: 'GET',
-        cache: 'no-cache',
+        cache: options.cache || 'default',
         credentials: options.credentials || 'omit',
         redirect: options.redirect || "follow",
         signal: options.cancel,
