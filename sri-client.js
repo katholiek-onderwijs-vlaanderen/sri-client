@@ -66,7 +66,8 @@ module.exports = class SriClient {
           href: commonUtils.parametersToString(href, params),
           verb: 'GET'
         }];
-        const batchResp = await this.put(options.inBatch, batch, options);
+        const batchResp = await this.wrapSendPayload(options.inBatch, batch, options, options.batchMethod && options.batchMethod === 'POST' ? 'POST' : 'PUT');
+        // const batchResp = await this.put(options.inBatch, batch, options);
         if(batchResp[0].status < 300) {
           result = batchResp[0].body;
         } else {
