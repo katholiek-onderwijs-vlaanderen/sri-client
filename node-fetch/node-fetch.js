@@ -34,6 +34,10 @@ class NodeFetchClient extends SriClient {
       console.log('[sri-client] GET ' + baseUrl + commonUtils.parametersToString(href, params));
     }
     const stack = new Error().stack;
+    let thisHeaders = { ...this.defaultHeaders };
+    if (optionsParam.headers) {
+      thisHeaders = { ...this.defaultHeaders, ...optionsParam.headers };
+    }
     try {
       const response = await nodeFetch(baseUrl + commonUtils.parametersToString(href, params), {
         method: 'GET',
@@ -42,7 +46,7 @@ class NodeFetchClient extends SriClient {
         redirect: options.redirect || "follow",
         // signal: options.cancel,
         timeout: options.timeout || 0,
-        headers: Object.assign(this.defaultHeaders, options.headers ? options.headers : {})
+        headers: thisHeaders
       });
       if(response.ok) {
         const resp = await this.readResponse(response);
@@ -79,6 +83,10 @@ class NodeFetchClient extends SriClient {
         payload = commonUtils.strip$$Properties(payload);
       }
     }
+    let thisHeaders = { 'Content-Type': 'application/json;charset=UTF-8' , ...this.defaultHeaders };
+    if (optionsParam.headers) {
+      thisHeaders = { ...thisHeaders, ...optionsParam.headers };
+    }
     try {
       const response = await nodeFetch(baseUrl + href, {
           method: method,
@@ -86,7 +94,7 @@ class NodeFetchClient extends SriClient {
           credentials: options.credentials || 'omit',
           redirect: options.redirect || 'follow',
           signal: options.cancel,
-          headers: Object.assign({}, this.defaultHeaders, {'Content-Type': 'application/json;charset=UTF-8'}, options.headers ? options.headers : {}),
+          headers: thisHeaders,
           body: options.raw ? payload : JSON.stringify(payload)
         });
 
@@ -114,13 +122,17 @@ class NodeFetchClient extends SriClient {
     const options = { ...this.configuration, ...optionsParam };
     const baseUrl = this.getBaseUrl(options);
     const stack = new Error().stack;
+    let thisHeaders = { ...this.defaultHeaders };
+    if (optionsParam.headers) {
+      thisHeaders = { ...this.defaultHeaders, ...optionsParam.headers };
+    }
     try {
       const response = await nodeFetch(baseUrl + href, {
         method: 'DELETE',
         cache: 'no-cache',
         credentials: 'omit',
         signal: options.cancel,
-        headers: Object.assign(this.defaultHeaders, options.headers ? options.headers : {})
+        headers: thisHeaders
       });
       if(response.ok) {
         const resp = await this.readResponse(response);
