@@ -26,9 +26,10 @@ class FetchClient extends SriClient {
     this.setDefaultHeaders(config);
   }
 
-  async getRaw(href, params, options = {}) {
+  async getRaw(href, params, optionsParam = {}) {
+    const options = { ...this.configuration, ...optionsParam };
     var baseUrl = this.getBaseUrl(options);
-    const logging = options.logging || this.configuration.logging;
+    const logging = options.logging;
     if(logging && typeof logging === 'string' && /get/.test(logging.toLowerCase())) {
       console.log('[sri-client] GET ' + baseUrl + commonUtils.parametersToString(href, params));
     }
@@ -62,7 +63,8 @@ class FetchClient extends SriClient {
     }
   }
 
-  async sendPayload(href, payload, options = {}, method) {
+  async sendPayload(href, payload, optionsParam = {}, method) {
+    const options = { ...this.configuration, ...optionsParam };
     const baseUrl = this.getBaseUrl(options);
     const logging = options.logging || this.configuration.logging;
     if(logging && typeof logging === 'string' && (new RegExp(method.toLowerCase)).test(logging.toLowerCase())) {
@@ -107,7 +109,8 @@ class FetchClient extends SriClient {
     }
   }
 
-  async delete(href, options = {}) {
+  async delete(href, optionsParam = {}) {
+    const options = { ...this.configuration, ...optionsParam };
     const baseUrl = this.getBaseUrl(options);
     const stack = new Error().stack;
     try {
