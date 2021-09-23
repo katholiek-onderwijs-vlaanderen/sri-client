@@ -535,6 +535,81 @@ module.exports = class SriClient {
   }
 
 
+  /**
+   * @typedef {object} PageFunctionInfo
+   *  @property {boolean} isLastPage
+   *  @property {integer} currentPage
+   *  @property {integer} nrOfRecordsHandledSoFar 
+   */
+
+  /**
+   * Gets a list from an sri api page-by-page (following the next links) and then
+   * applies an asynchronous function to each page received from the API.
+   * The function will not work in parallel, so it'll wait to call the
+   * next page until the current one has finished processing.
+   * The returned promise only resolves (with the total count) after the last page
+   * has finished processing.
+   *
+   * @param {function(Array<any>, PageFunctionInfo): void} ayncFunctionToApply
+   *  the function that will be applied to each 'page' we get from the API (following the next links).
+   *  Its parameters will be
+   *  - an array of api resource objects (or strings containing hrefs if expand=NONE, or just the elements of the array if the API response is an array)
+   *  - info object that helps to print debug or status information
+   *    - isLastPage boolean indicating no more pages will follow
+   *    - currentPage
+   *    - nrOfRecordsHandledSoFar: nr of resources handled so far
+   * @param {string} url: the list url to fetch for example / organisation?type=SCHOOL&limit=500
+   * @param {object} options sri-client options +
+   *  - [NOT IMPLEMENTED YET] wait: true (= default) means we won't fetch the next urls until ayncFunctionToApply has
+   *    resolved, meaning the asyncFunctionToApply never runs in parallel
+   *  - nextLinksBroken: true will auto-generate next page url with limit and offset instead of
+   *    simply reading the next url from the response (default: false)
+   */
+   async applyFunctionToList(asyncFunctionToApply, url, options = {}) {
+    const limitIfNextLinksBroken = 500; // TODO get from url or some other setting
+    let nextPath = url;
+    let nextOffset = 0;
+    let nextJsonDataPromise = api.wrapGet(url, {}, options);
+    let pageNum = 0;
+    let count = 0;
+    while (nextJsonDataPromise) {
+      console.log(`Trying to get ${nextPath}`);
+      // eslint-disable-next-line no-await-in-loop
+      const jsonData = await nextJsonDataPromise;
+      nextOffset += limitIfNextLinksBroken;
+      if (jsonData.$$meta && jsonData.$$meta.next) {
+        nextPath = options.nextLinksBroken
+          ? `${url}&offset=${nextOffset}`
+          : jsonData.$$meta.next;
+      } else {
+        nextPath = null;
+      }
+      // already start fetching the next url
+      nextJsonDataPromise = nextPath ? api.getRaw(`${nextPath}`, {}, { ...options, raw: true }) : null;
+
+      // apply async function to batch
+      try {
+        const jsonDataTranslated = commonUtils.translateApiResponseToArrayOfResources(jsonData);
+        // eslint-disable-next-line no-await-in-loop
+        await asyncFunctionToApply(
+          jsonDataTranslated,
+          {
+            isLastPage: nextJsonDataPromise === null,
+            currentPage: pageNum,
+            nrOfRecordsHandledSoFar: count,
+          },
+        );
+        count += jsonDataTranslated.length;
+      } catch (e) {
+        console.log(`Error while trying to apply the given function to the current page ${pageNum}`, e.stack);
+        throw e;
+      }
+
+      pageNum += 1;
+    }
+    return count;
+  }
+
 };
 
 const travelHrefsOfObject = function(object, propertyArray, options) {// required, handlerFunction, resource) {

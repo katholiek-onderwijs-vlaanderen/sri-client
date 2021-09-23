@@ -106,6 +106,38 @@ const paramsToString = function (path, params) {
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+
+/**
+ * Translates the API response to an array of either resources, or just hrefs
+ * (if no $$expanded available due to ?expand=NONE for example)
+ *
+ * We also try to make it smart enough to handle an array that returns a plain array
+ * (like security api query interface)
+ */
+ const translateApiResponseToArrayOfResources = (jsonData) => {
+  let results;
+  if (Array.isArray(jsonData)) {
+    results = jsonData;
+  } else if (jsonData && jsonData.results && Array.isArray(jsonData.results)) {
+    results = jsonData.results;
+  } else {
+    results = [ jsonData ];
+  }
+
+  if (results.length === 0) {
+    return [];
+  }
+  if (results[0].$$expanded) {
+    return results.map(r => r.$$expanded);
+  }
+  if (results[0].href) {
+    return results.map(r => r.href);
+  }
+  return results;
+};
+
+
+
 module.exports = {
   generateUUID: generateUUID,
   isPermalink: isPermalink,
@@ -117,4 +149,5 @@ module.exports = {
   strip$$Properties: strip$$Properties,
   strip$$PropertiesFromBatch: strip$$PropertiesFromBatch,
   sleep,
+  translateApiResponseToArrayOfResources,
 };
