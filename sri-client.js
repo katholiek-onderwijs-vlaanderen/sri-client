@@ -58,7 +58,8 @@ module.exports = class SriClient {
     return this.wrapGet(href, params, options, true);
   }
 
-  async wrapGet(href, params, options, isSingleResource) {
+  async wrapGet(href, params, optionsParam, isSingleResource) {
+    const options = { ...this.configuration, ...optionsParam };
     try {
       let result;
       if(options.inBatch && !this.cache.has(href, params, options.caching)) {
