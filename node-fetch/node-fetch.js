@@ -41,7 +41,7 @@ class NodeFetchClient extends SriClient {
     try {
       const response = await nodeFetch(baseUrl + commonUtils.parametersToString(href, params), {
         method: 'GET',
-        cache: 'no-cache',
+        cache: options.cache || 'default',
         // credentials: options.credentials || 'omit',
         redirect: options.redirect || "follow",
         // signal: options.cancel,
