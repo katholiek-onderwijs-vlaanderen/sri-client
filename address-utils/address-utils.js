@@ -1,6 +1,3 @@
-const _ = {};
-_.findIndex = require('lodash/findIndex');
-
 const util = require('util');
 
 const printAddress = function(address) {
@@ -41,10 +38,7 @@ const addSubCityHref = async function (address, api, dateUtils = require('../dat
     if(subCity.name.split('(')[0].trim().toLowerCase() === thisSubCityClean.toLowerCase()) {
       if(address.zipCode) {
         // check if the zipCode corresponds with one of the zipCodes of the subCity
-        let index = _.findIndex(subCity.zipCodes, function(zipCode) {
-          return zipCode.toString() === address.zipCode;
-        });
-        if(index > -1) {
+        if(subCity.zipCodes.some(zipCode => zipCode.toString() === address.zipCode)) {
           matches.push(subCity);
         }
       } else {

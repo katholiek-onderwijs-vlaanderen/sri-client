@@ -1,8 +1,3 @@
-const _ = {};
-_.remove = require('lodash/remove');
-_.findIndex = require('lodash/findIndex');
-_.filter = require('lodash/filter');
-
 let now = null;
 
 function appendZero(number) {
@@ -66,10 +61,8 @@ function isBefore(a, b) {
 
 function getFirst(array) {
   'use strict';
-  _.remove(array, function (x) {
-    return !x;
-  });
-  const sorted = array.sort(function (a, b) {
+  const nonInfinitDates = array.filter(date => date);
+  const sorted = nonInfinitDates.sort(function (a, b) {
     return a < b ? -1 : 1;
   });
   return sorted[0];
@@ -77,10 +70,7 @@ function getFirst(array) {
 
 function getLast(array) {
   'use strict';
-  const index = _.findIndex(array, function (x) {
-    return !x;
-  });
-  if (index > -1) {
+  if (array.some(date => !date)) {
     return null;
   }
   const sorted = array.sort(function (a, b) {
@@ -434,7 +424,7 @@ const manageDateChanges = async function(resource, options, api) {
       const dependencies = await getDependenciesForReference(resource, reference, api);
       const changes = [];
       dependencies.forEach( (dependency, $index) => {
-        const batchIndex = options.batch ? _.findIndex(options.batch, elem => elem.href === dependency.$$meta.permalink) : -1;
+        const batchIndex = options.batch ? options.batch.findIndex(elem => elem.href === dependency.$$meta.permalink) : -1;
         const body = batchIndex === -1 ? dependency : options.batch[batchIndex].body;
 
         try {
@@ -501,7 +491,7 @@ const manageDeletes = async function(resource, options, api) {
     for(let reference of options.references) {
       const dependencies = await getDependenciesForReference(resource, reference, api);
       dependencies.forEach( (dependency, $index) => {
-        const batchIndex = options.batch ? _.findIndex(options.batch, elem => elem.href === dependency.$$meta.permalink) : -1;
+        const batchIndex = options.batch ? options.batch.findIndex(elem => elem.href === dependency.$$meta.permalink) : -1;
         options.batch.push({
           href: dependency.$$meta.permalink,
           verb: 'DELETE'
