@@ -1,6 +1,6 @@
 {
   "name": "@kathondvla/sri-client",
-  "version": "3.0.14",
+  "version": "3.0.15",
   "description": "Clien for consuming SRI interfaces from Node.js.",
   "scripts": {
     "lint": "eslint /sri-client"
@@ -21,9 +21,7 @@
     "node-fetch": "2.6.1",
     "p-debounce": "1.0.0"
   },
-  "devDependencies": {
-    "eslint": "^4.19.1"
-  },
+  "devDependencies": {},
   "repository": {
     "type": "git",
     "url": "https://github.com/katholiek-onderwijs-vlaanderen/sri-client"

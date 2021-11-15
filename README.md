@@ -3,7 +3,7 @@
 # sri-client #
 
 * this is the project with all kind of utilities for clients which are using  A [sri4node][sri4node-project] API.
-* version 3.0.12
+* version 3.0.15
 
 ## sri-clients ##
 The project contains three client modules with all kind of functions to do API requests according to [SRI (Standard ROA Interface)][sri-documentation]:
