@@ -148,8 +148,9 @@ class FetchClient extends SriClient {
   }
 
   async readResponse(response) {
+    let headers = null;
     try {
-      const headers = [...response.headers].reduce( (acc, cur) => Object.assign({}, acc, {[cur[0]]: cur[1]}), {} );
+      headers = [...response.headers].reduce( (acc, cur) => Object.assign({}, acc, {[cur[0]]: cur[1]}), {} );
       const contentType = headers['content-type'];
 
       let body = null;
@@ -169,6 +170,13 @@ class FetchClient extends SriClient {
       };
     } catch(err) {
       console.warn('[sri-client] Het response kon niet worden uitgelezen.', response);
+      return new SriClientError({
+        status: response.status,
+        body: null,
+        headers: headers,
+        originalResponse: response,
+        error: err
+      });
     }
   }
 
