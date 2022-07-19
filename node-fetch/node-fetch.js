@@ -1,7 +1,7 @@
 const SriClient = require('../sri-client.js');
 const commonUtils = require('../common-utils');
 const SriClientError = require('../sri-client-error');
-const nodeFetch = require('node-fetch');
+const fetch = require('node-fetch');
 
 class NodeFetchClient extends SriClient {
 
@@ -39,7 +39,7 @@ class NodeFetchClient extends SriClient {
       thisHeaders = { ...this.defaultHeaders, ...optionsParam.headers };
     }
     try {
-      const response = await nodeFetch(baseUrl + commonUtils.parametersToString(href, params), {
+      const response = await fetch(baseUrl + commonUtils.parametersToString(href, params), {
         method: 'GET',
         cache: options.cache || 'default',
         // credentials: options.credentials || 'omit',
@@ -76,6 +76,10 @@ class NodeFetchClient extends SriClient {
       console.log('[sri-client] ' + method + ' ' + baseUrl + href + ':\n' + JSON.stringify(payload));
     }
     const stack = new Error().stack;
+    let thisHeaders = { 'Content-Type': 'application/json;charset=UTF-8' , ...this.defaultHeaders };
+    if (optionsParam.headers) {
+      thisHeaders = { ...thisHeaders, ...optionsParam.headers };
+    }
     if(!options.raw && options.strip$$Properties !== false) {
       if(payload instanceof Array) {
         payload = commonUtils.strip$$PropertiesFromBatch(payload);
@@ -83,12 +87,8 @@ class NodeFetchClient extends SriClient {
         payload = commonUtils.strip$$Properties(payload);
       }
     }
-    let thisHeaders = { 'Content-Type': 'application/json;charset=UTF-8' , ...this.defaultHeaders };
-    if (optionsParam.headers) {
-      thisHeaders = { ...thisHeaders, ...optionsParam.headers };
-    }
     try {
-      const response = await nodeFetch(baseUrl + href, {
+      const response = await fetch(baseUrl + href, {
           method: method,
           cache: 'no-cache',
           credentials: options.credentials || 'omit',
@@ -127,7 +127,7 @@ class NodeFetchClient extends SriClient {
       thisHeaders = { ...this.defaultHeaders, ...optionsParam.headers };
     }
     try {
-      const response = await nodeFetch(baseUrl + href, {
+      const response = await fetch(baseUrl + href, {
         method: 'DELETE',
         cache: 'no-cache',
         credentials: 'omit',
@@ -148,6 +148,14 @@ class NodeFetchClient extends SriClient {
     }
   }
 
+  /**
+   * @param {*} response the reponse to read
+   * @returns {{ headers: Array<Record<string, string>>,
+   *              body: any,
+   *              redirected: boolean
+   * }}
+   * @throws {SriClientError} when the response can not be read
+   */
   async readResponse(response) {
     let headers = null;
     try {
@@ -157,11 +165,11 @@ class NodeFetchClient extends SriClient {
       let body = null;
       body = await response.text();
       if(body && contentType.match(/application\/json/g)) {
-        try {
+        // try {
           body = JSON.parse(body);
-        } catch(err) {
-          console.error('[sri-client] Json parse is mislukt!', response);
-        }
+        // } catch(err) {
+        //   console.error('[sri-client] Json parse is mislukt!', response);
+        // }
       }
 
       return {
@@ -171,7 +179,7 @@ class NodeFetchClient extends SriClient {
       };
     } catch(err) {
       console.warn('[sri-client] Het response kon niet worden uitgelezen.', response);
-      return new SriClientError({
+      throw new SriClientError({
         status: response.status,
         body: null,
         headers: headers,
@@ -181,7 +189,21 @@ class NodeFetchClient extends SriClient {
     }
   }
 
-  async handleError(httpRequest, response, options, stack) {
+  /**
+   * handleError tries to read the body of an sri response
+   * in case the response code is not in the 200 range.
+   *
+   * In this case the json should contain certain fields providing
+   * extra information about the issue.
+   *
+   * @param {*} httpRequest 
+   * @param {*} response 
+   * @param {*} options 
+   * @param {*} stack 
+   * @returns {SriClientError}
+   * @throws {SriClientError} in the (unlikely) case that the response body cannot be read
+   */
+   async handleError(httpRequest, response, options, stack) {
     if (response.code === 'ENOTFOUND') {
       return new SriClientError({
         status: null,

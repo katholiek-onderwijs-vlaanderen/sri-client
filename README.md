@@ -3,7 +3,7 @@
 # sri-client #
 
 * this is the project with all kind of utilities for clients which are using  A [sri4node][sri4node-project] API.
-* version 3.0.15
+* version 3.0.17
 
 ## sri-clients ##
 The project contains three client modules with all kind of functions to do API requests according to [SRI (Standard ROA Interface)][sri-documentation]:
@@ -57,7 +57,7 @@ All methods have an **options** object that you can pass on as a parameter. You 
   * **headers:** An object with headers that are added on the http request. f.e.: {'foo': 'bar'} adds a header foo with value bar.
   * **retry:** An object wih retry configuration for doing retries with exponential backoff strategy. Retries will not be done for http status code 4xx.
     * retries: [required] number of retries you want to do. If retries === 1 => it will only try once again, so two times in total.
-    * initialWait: initial number of miliseconds to wait after the initial GET failed and before the first retry is done. The default is 500 miliseconds.
+    * initialWait: initial number of milliseconds to wait after the initial GET failed and before the first retry is done. The default is 500 milliseconds.
     * factor: Strategy is exponential backoff so by default with 4 retries you will wait 0,5s, then 1s, then 2s and then 4s. If you set factor to 3 for instance the time to wait will be multiplied with 3 instead of two so you will wait 0,5s -> 1,5s -> 4,5s -> 13,5s. If you set factor to 1, you will actually disable exponential backoff.
   * **caching:** An object with properties timeout (in seconds) which overwrites the default timeout (you don't need to set up default caching, you can just start caching several requests). The resource will be get from the cache if it it is not older than the timeout in seconds.
   * **inBatch:** Specify the href where the batch needs to be send to. This is for GET methods (getAll, getList, etc.) and wraps the regular request into a batch request. This can be usefull when their is a potential of an request url that becomes too long.

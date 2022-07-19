@@ -147,6 +147,14 @@ class FetchClient extends SriClient {
     }
   }
 
+  /**
+   * @param {*} response the reponse to read
+   * @returns {{ headers: Array<Record<string, string>>,
+   *              body: any,
+   *              redirected: boolean
+   * }}
+   * @throws {SriClientError} when the response can not be read
+   */
   async readResponse(response) {
     let headers = null;
     try {
@@ -156,11 +164,11 @@ class FetchClient extends SriClient {
       let body = null;
       body = await response.text();
       if(body && contentType.match(/application\/json/g)) {
-        try {
+        // try {
           body = JSON.parse(body);
-        } catch(err) {
-          console.error('[sri-client] Json parse is mislukt!', response);
-        }
+        // } catch(err) {
+        //   console.error('[sri-client] Json parse is mislukt!', response);
+        // }
       }
 
       return {
@@ -170,7 +178,7 @@ class FetchClient extends SriClient {
       };
     } catch(err) {
       console.warn('[sri-client] Het response kon niet worden uitgelezen.', response);
-      return new SriClientError({
+      throw new SriClientError({
         status: response.status,
         body: null,
         headers: headers,
@@ -180,6 +188,20 @@ class FetchClient extends SriClient {
     }
   }
 
+  /**
+   * handleError tries to read the body of an sri response
+   * in case the response code is not in the 200 range.
+   *
+   * In this case the json should contain certain fields providing
+   * extra information about the issue.
+   *
+   * @param {*} httpRequest 
+   * @param {*} response 
+   * @param {*} options 
+   * @param {*} stack 
+   * @returns {SriClientError}
+   * @throws {SriClientError} in the (unlikely) case that the response body cannot be read
+   */
   async handleError(httpRequest, response, options, stack) {
     if(!response || !(response instanceof Response)) {
       return response;
@@ -191,7 +213,7 @@ class FetchClient extends SriClient {
       status: response.status || null,
       body: resp.body,
       originalResponse: response,
-      headers: resp.headers//,
+      headers: resp.headers,
       //stack: stack
     });
   };

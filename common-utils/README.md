@@ -18,4 +18,4 @@ const commonUtils = require('@kathondvla/sri-client/common-utils');
 * **parametersToString(href, parameters):** returns the full path for the combination of the base href and the object of parameters. The parameter names and values are URL encoded.
 * **strip$$Properties(object):** returns a copy of the object with all the properties that start with '$$' removed
 * **strip$$PropertiesFromBatch(batchArray):** returns a copy of the batchArray with all the properties of the body in the batch objects that start with '$$' removed
-* **sleep(miliseconds):**: returns a resolved promise after X miliseconds
+* **sleep(milliseconds):**: returns a resolved promise after X milliseconds

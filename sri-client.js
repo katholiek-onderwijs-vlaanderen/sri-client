@@ -20,6 +20,38 @@ const mergeObjRecursive = (obj, patch) => {
   return ret;
 };
 
+/**
+ * This util function serves 2 purposes:
+ * * if it returns an empty string, we must retry the failed request
+ * * if the returned string is non-empty it can be used for logging WHY we did not retry the request
+ *
+ * @param {Error} exception
+ * @param {any} options SriClient options object
+ * @returns a string that will be empty if we should retry, and not empty containing the reason to NOT retry
+ */
+function generateReasonToNotRetry(exception, options) {
+  if (! (exception instanceof SriClientError)) {
+    return 'The error is no instace of an SriClientError';
+  }
+  if (!options) {
+    return `options object is not defined (${options})`;
+  }
+  if (!options.retry) {
+    return `options.retry is not defined (${options})`;
+  }
+  if (options.retry.retries === 0) {
+    return `options.retry.retries is set to 0`;
+  }
+  if (exception.status && exception.status < 500 && !exception.error) {
+    return `status code of the response seemed ok (< 500) and the exception didn't contain an error property indicating an error at a later stage`;
+  }
+
+  // there is no reason to NOT retry, so return the empty string
+  return '';
+}
+
+
+
 module.exports = class SriClient {
   constructor(config = {}) {
     this.configuration = config;
@@ -87,14 +119,15 @@ module.exports = class SriClient {
       }
       return result;
     } catch(error) {
-      if (error instanceof SriClientError && options && options.retry && options.retry.retries !== 0 && !(error.status && error.status < 500)) {
+      const reasonToNotRetry = generateReasonToNotRetry(error, options);
+      if (reasonToNotRetry.length === 0) {
         let wait = options.retry.wait;
         if (!wait) {
           wait = options.retry.initialWait ? options.retry.initialWait : 500;
         } else {
           wait = wait * (options.retry.factor ? options.retry.factor : 2);
         }
-        console.log(`[sri-client->RETRY:${wait}] GET to ${commonUtils.parametersToString(href, params)} failed! We will try again in ${wait} miliseconds...`);
+        console.log(`[sri-client->RETRY:${wait}] GET to ${commonUtils.parametersToString(href, params)} failed! We will try again in ${wait} milliseconds...`);
         const newOptions = { ...options, retry: {
           ...options.retry,
           retries: options.retry.retries - 1,
@@ -103,6 +136,7 @@ module.exports = class SriClient {
         await commonUtils.sleep(wait);
         return this.wrapGet(href, params, newOptions, isSingleResource);
       } else {
+        console.debug('[sri-client] Not retrying the request because', reasonToNotRetry);
         throw error;
       }
     }
@@ -315,14 +349,15 @@ module.exports = class SriClient {
       this.cache.onDataAltered(href, payload, method);
       return resp;
     } catch(error) {
-      if (error instanceof SriClientError && options && options.retry && options.retry.retries !== 0 && !(error.status && error.status < 500)) {
+      const reasonToNotRetry = generateReasonToNotRetry(error, options);
+      if (reasonToNotRetry.length === 0) {
         let wait = options.retry.wait;
         if (!wait) {
           wait = options.retry.initialWait ? options.retry.initialWait : 500;
         } else {
           wait = wait * (options.retry.factor ? options.retry.factor : 2);
         }
-        console.log(`[sri-client->RETRY:${wait}] ${method} to ${href} failed! We will try again in ${wait} miliseconds...`);
+        console.log(`[sri-client->RETRY:${wait}] ${method} to ${href} failed! We will try again in ${wait} milliseconds...`);
         const newOptions = { ...options, retry: {
           ...options.retry,
           retries: options.retry.retries - 1,
@@ -331,6 +366,7 @@ module.exports = class SriClient {
         await commonUtils.sleep(wait);
         return this.wrapSendPayload(href, payload, newOptions, method);
       } else {
+        console.debug('[sri-client] Not retrying the request because', reasonToNotRetry);
         throw error;
       }
     }
