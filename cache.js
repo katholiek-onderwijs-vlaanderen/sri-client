@@ -122,9 +122,10 @@ module.exports = class Cache {
       }
       const body = this.api.getRaw(href, params, options);
       this.updateCacheRecord(fullHref, isList, body);
-      body.then(result => {
+      const resolvedBody = await body;
+      (async () => {
         if(isList && (!href.toLowerCase().match(/^.+[\?\&]expand\=.+$/) || href.toLowerCase().match(/^.+[\?\&]expand\=full.*$/))) {
-          result.results.forEach(obj => {
+          resolvedBody.results.forEach(obj => {
             this.updateCacheRecord(obj.href, false, Promise.resolve(obj.$$expanded));
           });
         }
@@ -132,7 +133,6 @@ module.exports = class Cache {
         // do not do cache size checking yet. Gunther experience problems when loading 6000 resources of ZILL curriculum which made the app stall for 6 seconds
         //debouncedCheckCacheSize(this.cache, this.maxSize);
       });
-      const resolvedBody = await body;
       return deepcopy(resolvedBody);
     } else {
       if(options.logging === 'cacheInfo' || options.logging === 'debug') {
