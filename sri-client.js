@@ -83,8 +83,16 @@ module.exports = class SriClient {
     return baseUrl;
   }
 
-  //should be defined by sub classes.
-  getRaw() {}
+  /**
+   * This method should be defined by sub classes.
+   * This way we can reuse the same code regardless whether the http library is
+   * fetch, request, needel or whatever.
+   *
+   * @param {*} href 
+   * @param {*} params 
+   * @param {*} options 
+   */
+  getRaw(href, params, options) {}
 
   get(href, params, options = {}) {
     return this.wrapGet(href, params, options, true);
@@ -138,6 +146,49 @@ module.exports = class SriClient {
       } else {
         console.debug('[sri-client] Not retrying the request because', reasonToNotRetry);
         throw error;
+      }
+    }
+  }
+
+  /**
+   * This method is useful to go through a list resource with an iterator.
+   *
+   * That means that the next page will only be requested when it is actually needed.
+   * It also means that we'll only have a limited number of results in memory,
+   * as opposed to getAll which will try to load everything in memory first.
+   * It also means that you can start processing a lot sooner for large result sets, as the
+   * processing can start as soon as the first page has arrived.
+   *
+   * If the results contain $$expanded objects, these wil be return, otherwise the href will
+   * be returned. If the result is an array, then the elements of the array will be returned.
+   *
+   * @param {*} href 
+   * @param {*} params 
+   * @param {*} optionsParam 
+   */
+  async* getListAsIterableIterator(href, params = {}, options = {}) {
+    let promise = this.wrapGet(href, params, options);
+    while (promise !== null) {
+      const response = await promise;
+      // for performance reasons, already start the request for the next page now,
+      // before actually starting to process the results
+      if (response.$$meta && response.$$meta.next) {
+        promise = this.wrapGet(response.$$meta.next, {}, options);
+      } else {
+        promise = null;
+      };
+
+      // now return the results of the current page one by one
+      if (response.results) {
+        for (const r of response.results) {
+          yield r.$$expanded || r.href;
+        }
+      } else if (Array.isArray(response)) {
+        for (const r of response) {
+          yield r;
+        }
+      } else {
+        throw new SriClientError(`[getListAsIterableIterator] unexpected response, I do not know how to iterate it. The raw response was: ${JSON.stringify(response)}`);
       }
     }
   }
@@ -313,8 +364,17 @@ module.exports = class SriClient {
     });
   }
 
-  //should be defined by subClasses
-  sendPayload() {}
+  /**
+   * This method should be defined by sub classes.
+   * This way we can reuse the same code regardless whether the http library is
+   * fetch, request, needel or whatever.
+   *
+   * @param {*} href 
+   * @param {*} payload 
+   * @param {*} optionsParam 
+   * @param {*} method 
+   */
+  sendPayload(href, payload, optionsParam = {}, method) {}
 
   async wrapSendPayload(href, payload, options = {}, method) {
     try {
@@ -385,8 +445,15 @@ module.exports = class SriClient {
     return this.wrapSendPayload(href, payload, options, 'POST');
   }
 
-  //should be defined by subClasses
-  delete() {}
+  /**
+   * This method should be defined by sub classes.
+   * This way we can reuse the same code regardless whether the http library is
+   * fetch, request, needel or whatever.
+   *
+   * @param {*} href 
+   * @param {*} optionsParam 
+   */
+  delete(href, optionsParam = {}) {}
 
   async wrapDelete(href, options) {
     const resp = await this.delete(href, options);

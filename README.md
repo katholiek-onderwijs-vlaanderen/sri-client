@@ -25,6 +25,16 @@ The list of results is limited to only one API call so the lenght will be maximu
 Returns a promise with the array of the expanded results that match the query (so not an object with an href and $$expanded, but the object that is $$expanded.
 The list of results is all the results that match the query, because the next links are requested as well and concatenated to the result.
 The resulting array will also have properties count and next from the original $$meta section.
+* **getListAsIterableIterator(href, parameters, options):** http get of the href with the given parameters where href is suposed to be a list resource.
+Returns an AsyncIterableIterator that produces the expanded results that match the query, unless expand=NONE in which case the hrefs will be returned. If the api endpoint returns a simple array (no 'sri' response), the elements of that array wil be returned.
+The iterator will return ALL the results that match the query, because the next links are requested as well and concatenated to the result.
+Example:
+  ```javascript
+    const it = getListAsIterableIterator('/organisations');
+    for await (const org of it) {
+      console.log('Organisation is called', org.name);
+    }
+  ```
 * **put(href, payload, options):** http put to href with the given payload.
 * **patch(href, payload, options):** http patch to href with the given payload.
 * **updateResource(resource, options):** http put to resource.$$meta.permalink with resource as payload. Compact function to do an update of an existing resource.

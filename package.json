@@ -3,6 +3,7 @@
   "version": "3.0.17",
   "description": "Clien for consuming SRI interfaces from Node.js.",
   "scripts": {
+    "test": "./node_modules/mocha/bin/mocha",
     "lint": "eslint /sri-client"
   },
   "keywords": [
@@ -21,7 +22,9 @@
     "node-fetch": "2.6.1",
     "p-debounce": "1.0.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "mocha": "^9.2.2"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/katholiek-onderwijs-vlaanderen/sri-client"
