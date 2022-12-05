@@ -144,7 +144,7 @@ module.exports = class SriClient {
         await commonUtils.sleep(wait);
         return this.wrapGet(href, params, newOptions, isSingleResource);
       } else {
-        console.debug('[sri-client] Not retrying the request because', reasonToNotRetry);
+        // console.debug('[sri-client] Not retrying the request because', reasonToNotRetry);
         throw error;
       }
     }
