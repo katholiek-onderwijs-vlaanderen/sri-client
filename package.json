@@ -19,7 +19,7 @@
   "license": "private",
   "dependencies": {
     "jsonschema": "1.2.2",
-    "node-fetch": "2.6.1",
+    "node-fetch": "^2.6.7",
     "p-debounce": "1.0.0"
   },
   "devDependencies": {
