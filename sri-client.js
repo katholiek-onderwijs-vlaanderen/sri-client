@@ -366,7 +366,7 @@ module.exports = class SriClient {
         await commonUtils.sleep(wait);
         return this.wrapSendPayload(href, payload, newOptions, method);
       } else {
-        console.debug('[sri-client] Not retrying the request because', reasonToNotRetry);
+        // console.debug('[sri-client] Not retrying the request because', reasonToNotRetry);
         throw error;
       }
     }
