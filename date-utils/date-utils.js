@@ -6,7 +6,7 @@ function appendZero(number) {
 }
 function toString(date) {
   'use strict';
-  if(!date) {
+  if (!date) {
     return date;
   }
   return date.getFullYear() + '-' + appendZero(date.getMonth() + 1) + '-' + appendZero(date.getDate());
@@ -14,16 +14,16 @@ function toString(date) {
 
 function parse(stringDate) {
   'use strict';
-  if(!stringDate) {
+  if (!stringDate) {
     return undefined;
   }
-  var parts = stringDate.split('-');
+  let parts = stringDate.split('-');
   return new Date(parseInt(parts[0], 10), appendZero(parseInt(parts[1], 10) - 1), appendZero(parseInt(parts[2], 10)));
 }
 
 function getNow() {
   'use strict';
-  if(now) {
+  if (now) {
     return toString(now);
   }
   return toString(new Date());
@@ -116,7 +116,7 @@ const printFutureForPeriodic = (periodic) => {
 function getEndofSchoolYear(stringDate) {
   'use strict';
   const date = parse(stringDate) || now || parse(getNow());
-  var ret = null;
+  let ret = null;
   if (date.getMonth() < 8) {
     ret = toString(new Date(date.getFullYear(), 8, 1));
   } else {
@@ -128,7 +128,7 @@ function getEndofSchoolYear(stringDate) {
 function getStartofSchoolYear(stringDate) {
   'use strict';
   const date = parse(stringDate) || now || parse(getNow());
-  var ret = null;
+  let ret = null;
   if (date.getMonth() < 8) {
     ret = toString(new Date(date.getFullYear() - 1, 8, 1));
   } else {
@@ -140,7 +140,7 @@ function getStartofSchoolYear(stringDate) {
 function getStartOfSchoolYearIncludingSummerGap(stringDate) {
   'use strict';
   const date = parse(stringDate) || now || parse(getNow());
-  var ret = null;
+  let ret = null;
   if (date.getMonth() < 6) {
     ret = toString(new Date(date.getFullYear() - 1, 8, 1));
   } else {
@@ -151,7 +151,7 @@ function getStartOfSchoolYearIncludingSummerGap(stringDate) {
 
 function getClosestSchoolYearSwitch (stringDate) {
   const date = parse(stringDate) || now || parse(getNow());
-  if(date.getMonth() < 2) {
+  if (date.getMonth() < 2) {
     return toString(new Date(date.getFullYear() - 1, 8, 1));
   } else {
     return toString(new Date(date.getFullYear(), 8, 1));
@@ -177,7 +177,7 @@ function getPreviousDay(date, nbOfDays = 1) {
 }
 
 function getPreviousMonth(date, nbOfMonths = 1) {
-  if(!date) {
+  if (!date) {
     return date;
   }
   let previousMonth = parse(date);
@@ -186,7 +186,7 @@ function getPreviousMonth(date, nbOfMonths = 1) {
 }
 
 function getNextMonth(date, nbOfMonths = 1) {
-  if(!date) {
+  if (!date) {
     return date;
   }
   let nextYear = parse(date);
@@ -195,7 +195,7 @@ function getNextMonth(date, nbOfMonths = 1) {
 }
 
 function getPreviousYear(date, nbOfYears = 1) {
-  if(!date) {
+  if (!date) {
     return date;
   }
   let previousYear = parse(date);
@@ -204,7 +204,7 @@ function getPreviousYear(date, nbOfYears = 1) {
 }
 
 function getNextYear(date, nbOfYears = 1) {
-  if(!date) {
+  if (!date) {
     return date;
   }
   let nextYear = parse(date);
@@ -214,7 +214,7 @@ function getNextYear(date, nbOfYears = 1) {
 
 function getActiveResources(array, referenceDate = getNow()) {
   return array.filter(resource => {
-    if(resource.$$expanded) {
+    if (resource.$$expanded) {
       resource = resource.$$expanded;
     }
     return resource.startDate <= referenceDate && isAfter(resource.endDate, referenceDate);
@@ -223,7 +223,7 @@ function getActiveResources(array, referenceDate = getNow()) {
 
 function getNonAbolishedResources(array, referenceDate = getNow()) {
   return array.filter(resource => {
-    if(resource.$$expanded) {
+    if (resource.$$expanded) {
       resource = resource.$$expanded;
     }
     return isAfter(resource.endDate, referenceDate);
@@ -232,7 +232,7 @@ function getNonAbolishedResources(array, referenceDate = getNow()) {
 
 function getAbolishedResources(array, referenceDate = getNow()) {
   return array.filter(resource => {
-    if(resource.$$expanded) {
+    if (resource.$$expanded) {
       resource = resource.$$expanded;
     }
     return isBeforeOrEqual(resource.endDate, referenceDate);
@@ -240,13 +240,13 @@ function getAbolishedResources(array, referenceDate = getNow()) {
 };
 
 /*function onEndDateSet(newEndDate, oldEndDate, dependencies, batch) {
-  if(newEndDate === oldEndDate) {
+  if (newEndDate === oldEndDate) {
     return;
   }
-  for(let dependency of dependencies) {
-    if(dependency.endDate === oldEndDate) {
+  for (let dependency of dependencies) {
+    if (dependency.endDate === oldEndDate) {
       const index = _.findIndex(batch, elem => elem.href === dependency.$$meta.permalink);
-      if(index > -1) {
+      if (index > -1) {
         batch[index].body.endDate = newEndDate;
       } else {
         dependency.endDate = newEndDate;
@@ -261,13 +261,13 @@ function getAbolishedResources(array, referenceDate = getNow()) {
 }
 
 function onStartDateSet(newStartDate, oldStartDate, dependencies, batch) {
-  if(newStartDate === oldStartDate) {
+  if (newStartDate === oldStartDate) {
     return;
   }
-  for(let dependency of dependencies) {
-    if(dependency.startDate === oldStartDate) {
+  for (let dependency of dependencies) {
+    if (dependency.startDate === oldStartDate) {
       const index = _.findIndex(batch, elem => elem.href === dependency.$$meta.permalink);
-      if(index > -1) {
+      if (index > -1) {
         batch[index].body.startDate = newStartDate;
       } else {
         dependency.startDate = newStartDate;
@@ -304,8 +304,8 @@ const adaptPeriod = function(resource, options, periodic, referenceOptions) {
 
   let ret = false;
 
-  if(endDateChanged) {
-    if(intermediateStrategy !== 'NONE' && isAfterOrEqual(periodic.startDate, resource.endDate)) {
+  if (endDateChanged) {
+    if (intermediateStrategy !== 'NONE' && isAfterOrEqual(periodic.startDate, resource.endDate)) {
       throw new DateError((periodic.$$meta ? periodic.$$meta.permalink : JSON.stringify(periodic)) + ' starts after the new endDate, ' + resource.endDate, {
           resource: resource,
           periodic: periodic,
@@ -313,11 +313,11 @@ const adaptPeriod = function(resource, options, periodic, referenceOptions) {
           code: 'starts.after.new.end'
         });
     }
-    if(intermediateStrategy !== 'NONE' && isAfter(periodic.endDate, resource.endDate) && isBefore(periodic.endDate, options.oldEndDate)) {
-      if(intermediateStrategy === 'FORCE') {
+    if (intermediateStrategy !== 'NONE' && isAfter(periodic.endDate, resource.endDate) && isBefore(periodic.endDate, options.oldEndDate)) {
+      if (intermediateStrategy === 'FORCE') {
         periodic.endDate = resource.endDate;
         ret = true;
-      } else if(intermediateStrategy === 'ERROR') {
+      } else if (intermediateStrategy === 'ERROR') {
         throw new DateError(periodic.$$meta ? periodic.$$meta.permalink : JSON.stringify(periodic) + ' has an endDate ('+periodic.endDate+') in between the new endDate and the old endDate.', {
           resource: resource,
           periodic: periodic,
@@ -325,13 +325,13 @@ const adaptPeriod = function(resource, options, periodic, referenceOptions) {
           code: 'ends.inbetween'
         });
       }
-    } else if(periodic.endDate === options.oldEndDate) {
+    } else if (periodic.endDate === options.oldEndDate) {
       periodic.endDate = resource.endDate;
       ret = true;
     }
   }
-  if(startDateChanged) {
-    if(intermediateStrategy !== 'NONE' && isBeforeOrEqual(periodic.endDate, resource.startDate)) {
+  if (startDateChanged) {
+    if (intermediateStrategy !== 'NONE' && isBeforeOrEqual(periodic.endDate, resource.startDate)) {
       throw new DateError(periodic.$$meta ? periodic.$$meta.permalink : JSON.stringify(periodic) + ' ends before the new startDate, ' + resource.startDate, {
           resource: resource,
           periodic: periodic,
@@ -339,11 +339,11 @@ const adaptPeriod = function(resource, options, periodic, referenceOptions) {
           code: 'ends.before.new.start'
         });
     }
-    if(intermediateStrategy !== 'NONE' && periodic.startDate !== options.startDate && isAfter(periodic.startDate, options.oldStartDate) && isBefore(periodic.startDate, resource.startDate)) {
-      if(intermediateStrategy === 'FORCE') {
+    if (intermediateStrategy !== 'NONE' && periodic.startDate !== options.startDate && isAfter(periodic.startDate, options.oldStartDate) && isBefore(periodic.startDate, resource.startDate)) {
+      if (intermediateStrategy === 'FORCE') {
         periodic.startDate = resource.startDate;
         ret = true;
-      } else if(intermediateStrategy === 'ERROR') {
+      } else if (intermediateStrategy === 'ERROR') {
         throw new DateError(periodic.$$meta ? periodic.$$meta.permalink : JSON.stringify(periodic) + ' has a startDate ('+periodic.startDate+') in between the old startDate and the new startDate.', {
           resource: resource,
           periodic: periodic,
@@ -351,7 +351,7 @@ const adaptPeriod = function(resource, options, periodic, referenceOptions) {
           code: 'starts.inbetween'
         });
       }
-    } else if(periodic.startDate === options.oldStartDate) {
+    } else if (periodic.startDate === options.oldStartDate) {
       periodic.startDate = resource.startDate;
       ret = true;
     }
@@ -361,27 +361,27 @@ const adaptPeriod = function(resource, options, periodic, referenceOptions) {
 
 const getDependenciesForReference = async function(resource, reference, api) {
   reference.parameters = reference.parameters || {};
-  if(reference.subResources) {
+  if (reference.subResources) {
     reference.parameters.expand = reference.parameters.expand || '';
     reference.subResources.forEach(subResource => {
-      if(reference.parameters.expand !== '') {
+      if (reference.parameters.expand !== '') {
         reference.parameters.expand += ',';
       }
       reference.parameters.expand += 'results.'+subResource;
     });
   }
-  if(reference.property) {
+  if (reference.property) {
     reference.parameters[reference.property] = resource.$$meta.permalink;
-  } else if(reference.commonReference) {
+  } else if (reference.commonReference) {
     reference.parameters[reference.commonReference] = resource[reference.commonReference].href;
-  // } else if(reference.listOfHrefs) {
+  // } else if (reference.listOfHrefs) {
   //   reference.parameters[reference.listOfHrefs.parameterName] = reference.listOfHrefs.hrefs.join(',');
   } else {
     throw new Error('You either have to add a reference, a commonProperty or a listOfHrefs to the configuration for references.');
   }
   //reference.options = {logging: 'debug'}
   let dependencies = await api.getAll(reference.href, reference.parameters, reference.options);
-  if(reference.filter) {
+  if (reference.filter) {
     dependencies = dependencies.filter(reference.filter);
   }
   return dependencies;
@@ -392,14 +392,14 @@ const manageDateChanges = async function(resource, options, api) {
   const startDateChanged = options.oldStartDate && options.oldStartDate !== resource.startDate;
   const endDateChanged = options.oldEndDate !== resource.endDate;
 
-  if(!startDateChanged && !endDateChanged) {
+  if (!startDateChanged && !endDateChanged) {
     return null;
   }
 
-  if(options.properties) {
-    for(let property of options.properties) {
-      if(Array.isArray(resource[property])) {
-        for(let elem of resource[property]) {
+  if (options.properties) {
+    for (let property of options.properties) {
+      if (Array.isArray(resource[property])) {
+        for (let elem of resource[property]) {
           adaptPeriod(resource, options, elem);
         }
       } else {
@@ -410,15 +410,15 @@ const manageDateChanges = async function(resource, options, api) {
 
   const ret = {};
 
-  if(options.references) {
-    if(!Array.isArray(options.references)) {
+  if (options.references) {
+    if (!Array.isArray(options.references)) {
       options.references = [options.references];
     }
 
     const errors = [];
-    for(let reference of options.references) {
+    for (let reference of options.references) {
       reference.parameters = reference.parameters || {};
-      if(startDateChanged && !endDateChanged && !options.intermediateStrategy) {
+      if (startDateChanged && !endDateChanged && !options.intermediateStrategy) {
         reference.parameters.startDate = options.oldStartDate;
       }
       const dependencies = await getDependenciesForReference(resource, reference, api);
@@ -429,19 +429,19 @@ const manageDateChanges = async function(resource, options, api) {
 
         try {
           const changed = adaptPeriod(resource, options, body, reference);
-          if(changed) {
+          if (changed) {
             changes.push(body);
-            if(options.batch && batchIndex === -1) {
+            if (options.batch && batchIndex === -1) {
               options.batch.push({
                 href: body.$$meta.permalink,
                 verb: 'PUT',
                 body: body
               });
             }
-            if(reference.subResources) {
+            if (reference.subResources) {
               reference.subResources.forEach(subResource => {
                 const subResourceChanged = adaptPeriod(resource, options, body[subResource].$$expanded, reference);
-                if(subResourceChanged && options.batch && batchIndex === -1) {
+                if (subResourceChanged && options.batch && batchIndex === -1) {
                   options.batch.push({
                     href: body[subResource].href,
                     verb: 'PUT',
@@ -452,10 +452,10 @@ const manageDateChanges = async function(resource, options, api) {
             }
           }
         } catch (error) {
-          if(error instanceof DateError) {
+          if (error instanceof DateError) {
             // If strategy is FORCE and there is a dependency that starts after the new endDate than it has to be deleted.
             const intermediateStrategy = reference.intermediateStrategy ? reference.intermediateStrategy : options.intermediateStrategy;
-            if(intermediateStrategy === 'FORCE' && error.body.code === 'starts.after.new.end' && options.batch) {
+            if (intermediateStrategy === 'FORCE' && error.body.code === 'starts.after.new.end' && options.batch) {
               options.batch.push({
                 href: body.$$meta.permalink,
                 verb: 'DELETE'
@@ -468,11 +468,11 @@ const manageDateChanges = async function(resource, options, api) {
           }
         }
       });
-      if(reference.alias) {
+      if (reference.alias) {
         ret[reference.alias] = changes;
       }
     }
-    if(errors.length > 0) {
+    if (errors.length > 0) {
       throw new DateError('There are references with conflicting periods that can not be adapted.', errors);
     }
   }
@@ -483,12 +483,12 @@ const manageDateChanges = async function(resource, options, api) {
 const manageDeletes = async function(resource, options, api) {
   const ret = {};
 
-  if(options.references) {
-    if(!Array.isArray(options.references)) {
+  if (options.references) {
+    if (!Array.isArray(options.references)) {
       options.references = [options.references];
     }
 
-    for(let reference of options.references) {
+    for (let reference of options.references) {
       const dependencies = await getDependenciesForReference(resource, reference, api);
       dependencies.forEach( (dependency, $index) => {
         const batchIndex = options.batch ? options.batch.findIndex(elem => elem.href === dependency.$$meta.permalink) : -1;
@@ -496,10 +496,10 @@ const manageDeletes = async function(resource, options, api) {
           href: dependency.$$meta.permalink,
           verb: 'DELETE'
         });
-        if(batchIndex > -1) {
+        if (batchIndex > -1) {
           options.batch.splice(batchIndex, 1);
         }
-        if(reference.subResources) {
+        if (reference.subResources) {
           reference.subResources.forEach(subResource => {
             options.batch.push({
               href: dependency[subResource].href,
@@ -508,7 +508,7 @@ const manageDeletes = async function(resource, options, api) {
           });
         }
       });
-      if(reference.alias) {
+      if (reference.alias) {
         ret[reference.alias] = dependencies;
       }
     }

@@ -14,7 +14,7 @@ module.exports = function(configuration) {
       }
 
       /*getBaseUrl(options) {
-        var baseUrl = options.baseUrl || configuration.config.baseUrl;
+        let baseUrl = options.baseUrl || configuration.config.baseUrl;
         if (!baseUrl) {
           console.error('There is no baseUrl configured. Do sriClientConfiguration.set(parameters) to configure the vsko-sri-client module.');
           return null;
@@ -23,8 +23,8 @@ module.exports = function(configuration) {
       };*/
 
       getRaw(href, params, options = {}) {
-        var defer = $q.defer();
-        var baseUrl = this.getBaseUrl(options);
+        let defer = $q.defer();
+        let baseUrl = this.getBaseUrl(options);
         $http({
           method: 'GET',
           url: baseUrl + commonUtils.parametersToString(href, params),
@@ -36,14 +36,14 @@ module.exports = function(configuration) {
         }).then(function (response) {
           defer.resolve(response.data);
         }, function (response) {
-          var error = handleError(response.data, response.status, response.headers, href);
+          let error = handleError(response.data, response.status, response.headers, href);
           defer.reject(new SriClientError(error));
         });
         return defer.promise;
       }
 
       sendPayload(href, payload, options = {}, method) {
-        var defer = $q.defer();
+        let defer = $q.defer();
         const baseUrl = this.getBaseUrl(options);
         $http({
           method: method,
@@ -54,21 +54,21 @@ module.exports = function(configuration) {
           headers: options.headers,
           timeout: options.cancelPromise
         }).then(function(response) {
-          var body = response.data || {};
-          if(typeof body === 'object') {
+          let body = response.data || {};
+          if (typeof body === 'object') {
             body.getResponseHeader = response.headers;
           }
           defer.resolve(body);
         }, function (response) {
-          var error = handleError(response.data, response.status, response.headers, href);
+          let error = handleError(response.data, response.status, response.headers, href);
           defer.reject(new SriClientError(error));
         });
         return defer.promise;
       }
 
       delete(href, options = {}) {
-        var defer = $q.defer();
-        var baseUrl = this.getBaseUrl(options);
+        let defer = $q.defer();
+        let baseUrl = this.getBaseUrl(options);
         $http({
           method: 'DELETE',
           url: baseUrl + href,
@@ -78,7 +78,7 @@ module.exports = function(configuration) {
         }).then(function (response) {
           defer.resolve(response.data);
         }, function (response) {
-          var error = handleError(response.data, response.status, response.headers, href);
+          let error = handleError(response.data, response.status, response.headers, href);
           defer.reject(new SriClientError(error));
         });
         return defer.promise;

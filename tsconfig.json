@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "ES6",
+      "DOM"
+    ],
+    "target": "ES6",
+    "noImplicitAny": false,
+    "outDir": "./dist",
+    //"rootDir": "./src",
+    "module": "commonjs",
+    "sourceMap": true,
+    // "isolatedModules": true,
+    "allowJs": true,
+    "checkJs": true,
+    "declaration": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}

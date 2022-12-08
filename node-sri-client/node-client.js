@@ -11,16 +11,16 @@ class NodeClient extends SriClient {
     const defaultOptions = {
       headers: config.headers || {}
     };
-    if(config.username && config.password) {
+    if (config.username && config.password) {
       defaultOptions.auth = {
         user: config.username,
         pass: config.password
       };
     }
-    if(config.accessToken) {
+    if (config.accessToken) {
       defaultOptions.headers[config.accessToken.name] = config.accessToken.value;
     }
-    if(config.timeout) {
+    if (config.timeout) {
       defaultOptions.timeout = config.timeout;
     } else  {
       defaultOptions.timeout = 30000;
@@ -30,12 +30,12 @@ class NodeClient extends SriClient {
   }
 
   getRaw(href, params, options = {}) {
-    var baseUrl = this.getBaseUrl(options);
+    let baseUrl = this.getBaseUrl(options);
     const logging = options.logging || this.configuration.logging;
-    if(/get/.test(logging)) {
+    if (/get/.test(logging)) {
       console.log('GET ' + baseUrl + commonUtils.parametersToString(href, params));
     }
-    var stack = new Error().stack;
+    let stack = new Error().stack;
     return new Promise((resolve, reject) => {
       this.baseRequest({
         method: 'GET',
@@ -49,7 +49,7 @@ class NodeClient extends SriClient {
         headers: options.headers,
         timeout: options.timeout || 10000
       }, (error, response, body) => {
-        if(!error && response.statusCode >= 200 && response.statusCode < 400) {
+        if (!error && response.statusCode >= 200 && response.statusCode < 400) {
           resolve(response.body);
         } else {
           reject(new SriClientError(this.handleError('GET ' + baseUrl + commonUtils.parametersToString(href, params), error, response, options, stack)));
@@ -61,12 +61,12 @@ class NodeClient extends SriClient {
   sendPayload(href, payload, options = {}, method) {
     const baseUrl = this.getBaseUrl(options);
     const logging = options.logging || this.configuration.logging;
-    if((new RegExp(method.toLowerCase)).test(logging)) {
+    if ((new RegExp(method.toLowerCase)).test(logging)) {
       console.log(method + ' ' + baseUrl + href + ':\n' + JSON.stringify(payload));
     }
-    if(options.strip$$Properties !== false) {
+    if (options.strip$$Properties !== false) {
       payload = commonUtils.strip$$Properties(payload);
-      /*if(payload instanceof Array) {
+      /*if (payload instanceof Array) {
         payload = commonUtils.strip$$PropertiesFromBatch(payload);
       } else {
         payload = commonUtils.strip$$Properties(payload);
@@ -85,7 +85,7 @@ class NodeClient extends SriClient {
         headers: options.headers,
         timeout: options.timeout || (payload instanceof Array ? 120000 : 30000)
       }, (error, response) => {
-        if(!error && response.statusCode >= 200 && response.statusCode < 400) {
+        if (!error && response.statusCode >= 200 && response.statusCode < 400) {
           const body = (response && response.body && typeof response.body === 'object') ? response.body : {};
 
           body.getResponseHeader = function(header) {
@@ -115,7 +115,7 @@ class NodeClient extends SriClient {
         headers: options.headers,
         timeout: options.timeout || 30000
       }, (error, response) => {
-        if(!error && response.statusCode >= 200 && response.statusCode < 400) {
+        if (!error && response.statusCode >= 200 && response.statusCode < 400) {
           resolve(response.body);
         } else {
           reject(new SriClientError(this.handleError('DELETE ' + baseUrl + href, error, response, options)));
@@ -126,9 +126,9 @@ class NodeClient extends SriClient {
 
   handleError(httpRequest, error, response = {}, options, stack) {
     const logging = options.logging || options.logging === false ? options.logging : this.configuration.logging;
-    if(logging) {
+    if (logging) {
       console.error(response.statusCode + ': An error occured for ' + httpRequest);
-      if(response.body) {
+      if (response.body) {
         console.error(util.inspect(response.body, {depth: 7}));
       } else {
         console.error(error);

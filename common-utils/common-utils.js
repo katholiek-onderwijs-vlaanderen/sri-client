@@ -1,6 +1,6 @@
 const generateUUID = function() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      var r = Math.random()*16|0, v = c === 'x' ? r : (r&0x3|0x8);
+      let r = Math.random()*16|0, v = c === 'x' ? r : (r&0x3|0x8);
       return v.toString(16);
   });
 };
@@ -42,10 +42,10 @@ const replaceSpecialCharacters = function (string) {
 	};
 
 const strip$$Properties = function (obj) {
-  if(!obj || typeof obj !== 'object') {
+  if (!obj || typeof obj !== 'object') {
     return obj;
   }
-  if(Array.isArray(obj)) {
+  if (Array.isArray(obj)) {
     const newArray = [];
     obj.forEach(elem => {
       newArray.push(strip$$Properties(elem));
@@ -54,7 +54,7 @@ const strip$$Properties = function (obj) {
   } else {
     const newObj = {};
     Object.keys(obj).forEach(function(key) {
-      if(!key.match(/^\$\$/)) {
+      if (!key.match(/^\$\$/)) {
         newObj[key] = strip$$Properties(obj[key]);
       }
     });
@@ -71,14 +71,14 @@ const strip$$PropertiesFromObject = function(obj, newBatch) {
 };
 
 const strip$$PropertiesFromBatch = function (batch) {
-  if(!batch) {
+  if (!batch) {
     return batch;
   }
   const newBatch = [];
-  for(let obj of batch) {
-    if(Array.isArray(obj)) {
+  for (let obj of batch) {
+    if (Array.isArray(obj)) {
       const newSubBatch = [];
-      for(let subObj of obj) {
+      for (let subObj of obj) {
         strip$$PropertiesFromObject(subObj, newSubBatch);
       }
       newBatch.push(newSubBatch);
@@ -90,10 +90,10 @@ const strip$$PropertiesFromBatch = function (batch) {
 };
 
 const paramsToString = function (path, params) {
-  var ret = path;
-  for (var key in params) {
+  let ret = path;
+  for (let key in params) {
     if (params.hasOwnProperty(key) && params[key]) {
-      if(!ret.match(/\?/g)) {
+      if (!ret.match(/\?/g)) {
         ret += '?';
       } else {
         ret += '&';

@@ -20,14 +20,14 @@ They both have the same generic interface
 * **wrapGet(href, parameters, options):** wraps getRaw and adds retry, caching, expansion and inclusion support. Returns a promise with the exact result from the api.
 * **get(href, parameters, options):** http get a single resource with the given href and the parameters. Returns a promise with the resource.
 * **getList(href, parameters, options):** http get of the href with the given parameters where href is suposed to be a list resource.
-Returns a promise with the array of the expanded results that match the query (so not an object with an href and $$expanded, but the object that is $$expanded.
+Returns a promise with the array of the expanded results that match the query (so not an object with an href and \$$expanded, but the object that is \$$expanded.
 The list of results is limited to only one API call so the lenght will be maximum the limit. The resulting array will also have properties count and next from the original $$meta section.
 * **getAll(href, parameters, options):** http get of the href with the given parameters where href is suposed to be a list resource.
-Returns a promise with the array of the expanded results that match the query (so not an object with an href and $$expanded, but the object that is $$expanded.
+Returns a promise with the array of the expanded results that match the query (so not an object with an href and \$$expanded, but the object that is \$$expanded.
 The list of results is all the results that match the query, because the next links are requested as well and concatenated to the result.
 The resulting array will also have properties count and next from the original $$meta section.
 * **getListAsIterableIterator(href, parameters, options):** http get of the href with the given parameters where href is suposed to be a list resource.
-Returns an AsyncIterableIterator that produces the expanded results that match the query, unless expand=NONE in which case the hrefs will be returned. If the api endpoint returns a simple array (no 'sri' response), the elements of that array wil be returned.
+Returns an AsyncIterableIterator that produces the expanded results that match the query, unless expand=NONE in which case the hrefs will be returned. If the api endpoint returns a simple array (no 'sri' response), the elements of that array will be returned.
 The iterator will return ALL the results that match the query, because the next links are requested as well and concatenated to the result.
 Example:
   ```javascript
@@ -115,68 +115,68 @@ All methods have an **options** object that you can pass on as a parameter. You 
 #### examples ####
 
 ```javascript
-  const respsOfTeam = await sriClient.getAll('/responsibilities', {organisationalUnit: '/organisationalunits/eb745d58-b818-4569-a06e-68733fe2e5b3'}, {logging: 'debug'});
-  const personHrefs = respsOfTeam.map(resp => resp.person.href);
-  const persons = await vskoApi.getAllHrefs(personHrefs, '/persons/batch', undefined, {asMap: true});
-  // persons is a map with as key the href of a person and as value the resource of that person.
+const respsOfTeam = await sriClient.getAll('/responsibilities', {organisationalUnit: '/organisationalunits/eb745d58-b818-4569-a06e-68733fe2e5b3'}, {logging: 'debug'});
+const personHrefs = respsOfTeam.map(resp => resp.person.href);
+const persons = await vskoApi.getAllHrefs(personHrefs, '/persons/batch', undefined, {asMap: true});
+// persons is a map with as key the href of a person and as value the resource of that person.
 
-  const externalIdentifierWithOrganisationalUnitExpanded = await sriClient.get(
-    '/organisationalunits/externalidentifiers',
-    {value: '032557'},
-    {
-      expand: [
-        'organisationalUnit.$$contactDetails.phone.organisationalUnit', // this is circular so not very usefull, but this shows you can expand as deep as you want to
-        'organisationalUnit.$$contactDetails.email'
-      ]
-    });
+const externalIdentifierWithOrganisationalUnitExpanded = await sriClient.get(
+  '/organisationalunits/externalidentifiers',
+  {value: '032557'},
+  {
+    expand: [
+      'organisationalUnit.$$contactDetails.phone.organisationalUnit', // this is circular so not very usefull, but this shows you can expand as deep as you want to
+      'organisationalUnit.$$contactDetails.email'
+    ]
+  });
 
-  const organisationalUnitWithInstitutionNumberIncluded = await sriClient.get('/organisationalunits/a2c36c96-a3a4-11e3-ace8-005056872b95', undefined, {include: {
-    alias: '$$institutionNumber',
-    href: '/organisationalunits/externalidentifiers',
-    filters: {type: 'INSTITUTION_NUMBER'},
-    reference: 'organisationalUnit',
-    singleton: true
-  }});
+const organisationalUnitWithInstitutionNumberIncluded = await sriClient.get('/organisationalunits/a2c36c96-a3a4-11e3-ace8-005056872b95', undefined, {include: {
+  alias: '$$institutionNumber',
+  href: '/organisationalunits/externalidentifiers',
+  filters: {type: 'INSTITUTION_NUMBER'},
+  reference: 'organisationalUnit',
+  singleton: true
+}});
 
-  const personWithResponsibilitiesIncluded = await sriClient.get('/persons/94417de5-840c-4df4-a10d-fe30683d99e1', undefined, {include: {
-    alias: '$$responsibilities',
-    href: '/responsibilities',
-    reference: {
-      property: 'person',
-      parameterName: 'personIn'
-    },
-    expand: ['organisationalUnit']
-  }});
+const personWithResponsibilitiesIncluded = await sriClient.get('/persons/94417de5-840c-4df4-a10d-fe30683d99e1', undefined, {include: {
+  alias: '$$responsibilities',
+  href: '/responsibilities',
+  reference: {
+    property: 'person',
+    parameterName: 'personIn'
+  },
+  expand: ['organisationalUnit']
+}});
 
-  // give all the responsibilies of an organisationalunit (this is the team)
-  // and expand the person (client side).
-  // Include for this person all his responsibilities
-  // and expand the organisationalunits of these responsibilities
-  sriClient.getAll('/responsibilies',
-    {
-      organisationalunit: '/organisationalunits/eb745d58-b818-4569-a06e-68733fe2e5b3',
-      expand: 'position' // expand position server side
-    },
-    {
-      expand: [{
-        property: 'person', // expand all person properties client side,
-        required: false,
-        include: [{
-          alias: '$$responsibilities', // A $$responsibilities property will be added to every resource in the resultset
-          href: '/responsibilities',
-          reference: {
-            property: 'person',
-            parameterName: 'personIn',
-          }
-          expand: ['organisationalUnit'], // client side expansion of properties within the included resources
-        }]
+// give all the responsibilies of an organisationalunit (this is the team)
+// and expand the person (client side).
+// Include for this person all his responsibilities
+// and expand the organisationalunits of these responsibilities
+sriClient.getAll('/responsibilies',
+  {
+    organisationalunit: '/organisationalunits/eb745d58-b818-4569-a06e-68733fe2e5b3',
+    expand: 'position' // expand position server side
+  },
+  {
+    expand: [{
+      property: 'person', // expand all person properties client side,
+      required: false,
+      include: [{
+        alias: '$$responsibilities', // A $$responsibilities property will be added to every resource in the resultset
+        href: '/responsibilities',
+        reference: {
+          property: 'person',
+          parameterName: 'personIn',
+        }
+        expand: ['organisationalUnit'], // client side expansion of properties within the included resources
       }]
-    }
-  );
-  // for each responsibility in the resultset, the expanded person will have an added property $$responsibilities,
-  // which is an array of all the responsibilities that reference this person.
-  // Within these last responsibilities the organisationalUnit will be expanded
-  ```
+    }]
+  }
+);
+// for each responsibility in the resultset, the expanded person will have an added property $$responsibilities,
+// which is an array of all the responsibilities that reference this person.
+// Within these last responsibilities the organisationalUnit will be expanded
+```
 
 
 ### initialisation ###
@@ -218,7 +218,7 @@ const configuration = {
 
 const api = require('@kathondvla/sri-client/fetch-sri-client')(configuration)
 
-let secondarySchools = await api.get('/schools', {educationLevels: 'SECUNDAIR'});
+const secondarySchools = await api.get('/schools', {educationLevels: 'SECUNDAIR'});
 ```
 
 #### ng-sri-client ####
@@ -307,7 +307,7 @@ try {
   batch.post('/persons/changepassword', passwordPayload);
   await batch.send('/persons/batch'); // OR await api.put('/persons/batch', batch.array)
 } catch (error) {
-  if(error instanceof SriClientError) {
+  if (error instanceof SriClientError) {
     console.error(util.inspect(error.body, {depth:7}));
     console.error(error.stack);
   } else {
@@ -327,7 +327,7 @@ const SriClientError = require('@kathondvla/sri-client/sri-client-error');
 try {
   await api.put('/batch', batch);
 } catch (error) {
-  if(error instanceof SriClientError) {
+  if (error instanceof SriClientError) {
     console.error(util.inspect(error.body, {depth:7}));
     console.error(error.stack);
   } else {

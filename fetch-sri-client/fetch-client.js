@@ -13,10 +13,10 @@ class FetchClient extends SriClient {
 
   setDefaultHeaders(config) {
     this.defaultHeaders = config.headers || {};
-    /*if(config.username && config.password) {
+    /*if (config.username && config.password) {
       this.defaultOptions.hearders['Authorization'] = //base64encode config.username+':'+config.password
     }*/
-    if(config.accessToken) {
+    if (config.accessToken) {
       this.defaultHeaders[config.accessToken.name] = config.accessToken.value;
     }
   }
@@ -28,9 +28,9 @@ class FetchClient extends SriClient {
 
   async getRaw(href, params, optionsParam = {}) {
     const options = { ...this.configuration, ...optionsParam };
-    var baseUrl = this.getBaseUrl(options);
+    let baseUrl = this.getBaseUrl(options);
     const logging = options.logging;
-    if(logging && typeof logging === 'string' && /get/.test(logging.toLowerCase())) {
+    if (logging && typeof logging === 'string' && /get/.test(logging.toLowerCase())) {
       console.log('[sri-client] GET ' + baseUrl + commonUtils.parametersToString(href, params));
     }
     const stack = new Error().stack;
@@ -47,20 +47,20 @@ class FetchClient extends SriClient {
         signal: options.cancel,
         headers: thisHeaders
       });
-      if(response.ok) {
+      if (response.ok) {
         const resp = await this.readResponse(response);
         return options.fullResponse ? resp : resp.body;
       } else {
-        if(logging && typeof logging === 'string' && /get/.test(logging.toLowerCase())) {
+        if (logging && typeof logging === 'string' && /get/.test(logging.toLowerCase())) {
           console.log('[sri-client] response is not ok!', response);
         }
         throw await this.handleError('GET ' + baseUrl + commonUtils.parametersToString(href, params), response, options, stack);
       }
     } catch(error) {
-      if(error instanceof SriClientError) {
+      if (error instanceof SriClientError) {
         throw error;
       }
-      if(logging && typeof logging === 'string' && /get/.test(logging.toLowerCase())) {
+      if (logging && typeof logging === 'string' && /get/.test(logging.toLowerCase())) {
         console.log('[sri-client] an error occured when doing fetch', error);
       }
       throw await this.handleError('GET ' + baseUrl + commonUtils.parametersToString(href, params), error, options, stack);
@@ -71,7 +71,7 @@ class FetchClient extends SriClient {
     const options = { ...this.configuration, ...optionsParam };
     const baseUrl = this.getBaseUrl(options);
     const logging = options.logging || this.configuration.logging;
-    if(logging && typeof logging === 'string' && (new RegExp(method.toLowerCase)).test(logging.toLowerCase())) {
+    if (logging && typeof logging === 'string' && (new RegExp(method.toLowerCase)).test(logging.toLowerCase())) {
       console.log('[sri-client] ' + method + ' ' + baseUrl + href + ':\n' + JSON.stringify(payload));
     }
     const stack = new Error().stack;
@@ -79,8 +79,8 @@ class FetchClient extends SriClient {
     if (optionsParam.headers) {
       thisHeaders = { ...thisHeaders, ...optionsParam.headers };
     }
-    if(!options.raw && options.strip$$Properties !== false) {
-      if(payload instanceof Array) {
+    if (!options.raw && options.strip$$Properties !== false) {
+      if (payload instanceof Array) {
         payload = commonUtils.strip$$PropertiesFromBatch(payload);
       } else {
         payload = commonUtils.strip$$Properties(payload);
@@ -97,20 +97,20 @@ class FetchClient extends SriClient {
           body: options.raw ? payload : JSON.stringify(payload)
         });
 
-      if(response.ok) {
+      if (response.ok) {
         const resp = await this.readResponse(response);
         return options.fullResponse ? resp : resp.body;
       } else {
-        if(logging && typeof logging === 'string' && (new RegExp(method.toLowerCase)).test(logging.toLowerCase())) {
+        if (logging && typeof logging === 'string' && (new RegExp(method.toLowerCase)).test(logging.toLowerCase())) {
           console.log('[sri-client] response is not ok!', response);
         }
         throw await this.handleError(method + baseUrl + href, response, options, stack);
       }
     } catch (error) {
-      if(error instanceof SriClientError) {
+      if (error instanceof SriClientError) {
         throw error;
       }
-      if(logging && typeof logging === 'string' && (new RegExp(method.toLowerCase)).test(logging.toLowerCase())) {
+      if (logging && typeof logging === 'string' && (new RegExp(method.toLowerCase)).test(logging.toLowerCase())) {
         console.log('[sri-client] an error occured when doing fetch', error);
       }
       throw await this.handleError(method + baseUrl + href, error, options, stack);
@@ -133,14 +133,14 @@ class FetchClient extends SriClient {
         signal: options.cancel,
         headers: thisHeaders
       });
-      if(response.ok) {
+      if (response.ok) {
         const resp = await this.readResponse(response);
         return options.fullResponse ? resp : resp.body;
       } else {
         throw await this.handleError('DELETE' + baseUrl + href, response, options, stack);
       }
     } catch (error) {
-      if(error instanceof SriClientError) {
+      if (error instanceof SriClientError) {
         throw error;
       }
       throw await this.handleError('DELETE' + baseUrl + href, error, options, stack);
@@ -163,7 +163,7 @@ class FetchClient extends SriClient {
 
       let body = null;
       body = await response.text();
-      if(body && contentType.match(/application\/json/g)) {
+      if (body && contentType.match(/application\/json/g)) {
         // try {
           body = JSON.parse(body);
         // } catch(err) {
@@ -195,15 +195,15 @@ class FetchClient extends SriClient {
    * In this case the json should contain certain fields providing
    * extra information about the issue.
    *
-   * @param {*} httpRequest 
-   * @param {*} response 
-   * @param {*} options 
-   * @param {*} stack 
+   * @param {*} httpRequest
+   * @param {*} response
+   * @param {*} options
+   * @param {*} stack
    * @returns {SriClientError}
    * @throws {SriClientError} in the (unlikely) case that the response body cannot be read
    */
   async handleError(httpRequest, response, options, stack) {
-    if(!response || !(response instanceof Response)) {
+    if (!response || !(response instanceof Response)) {
       return response;
     }
 

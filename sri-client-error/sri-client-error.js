@@ -1,6 +1,6 @@
 module.exports = class SriClientError {
   constructor(obj) {
-    if(obj.originalResponse) {
+    if (obj.originalResponse) {
       this.response = obj.originalResponse;
     } else {
       this.object = obj;

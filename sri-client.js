@@ -7,7 +7,7 @@ const SriClientError = require('./sri-client-error');
 
 const mergeObjRecursive = (obj, patch) => {
   const ret = obj ?{...obj} : {};
-  if(patch) {
+  if (patch) {
     Object.keys(patch).forEach(key => {
       if (typeof patch[key] === 'object') {
         Object.assign(ret, {[key]: mergeObjRecursive(obj[key], patch[key])});
@@ -51,6 +51,10 @@ function generateReasonToNotRetry(exception, options) {
 }
 
 
+/**
+ * @typedef { 'GET' | 'PUT' | 'PATCH' | 'DELETE' | 'POST' } THttpMethod
+ */
+
 
 module.exports = class SriClient {
   constructor(config = {}) {
@@ -86,11 +90,11 @@ module.exports = class SriClient {
   /**
    * This method should be defined by sub classes.
    * This way we can reuse the same code regardless whether the http library is
-   * fetch, request, needel or whatever.
+   * fetch, request, needle or whatever.
    *
-   * @param {*} href 
-   * @param {*} params 
-   * @param {*} options 
+   * @param {string} href
+   * @param {*} params
+   * @param {*} options
    */
   getRaw(href, params, options) {}
 
@@ -102,27 +106,27 @@ module.exports = class SriClient {
     const options = { ...this.configuration, ...optionsParam };
     try {
       let result;
-      if(options.inBatch && !this.cache.has(href, params, options.caching)) {
+      if (options.inBatch && !this.cache.has(href, params, options.caching)) {
         const batch = [{
           href: commonUtils.parametersToString(href, params),
           verb: 'GET'
         }];
         const batchResp = await this.wrapSendPayload(options.inBatch, batch, options, options.batchMethod && options.batchMethod === 'POST' ? 'POST' : 'PUT');
-        if(batchResp[0].status < 300) {
+        if (batchResp[0].status < 300) {
           result = batchResp[0].body;
         } else {
           throw batchResp[0].body;
         }
       } else {
         result = await this.cache.get(href, params, options, !isSingleResource);
-        if(isSingleResource && result.results) {
+        if (isSingleResource && result.results) {
           throw Error('Do not use the get method to ask for lists. Use getList or getAll instead. You can also use getRaw but this method does not use caching, client side expansion and inclusion.');
         }
       }
-      if(options.expand) {
+      if (options.expand) {
         await this.expandJson(result, options.expand, options.caching, options.logging ? options.logging.replace('get', '').replace('expand', 'expand,get') : undefined);
       }
-      if(options.include) {
+      if (options.include) {
         await this.includeJson(result, options.include, options.caching, options.logging ? options.logging.replace('get', '').replace('expand', 'expand,get') : undefined);
       }
       return result;
@@ -162,9 +166,9 @@ module.exports = class SriClient {
    * If the results contain $$expanded objects, these wil be return, otherwise the href will
    * be returned. If the result is an array, then the elements of the array will be returned.
    *
-   * @param {*} href 
-   * @param {*} params 
-   * @param {*} optionsParam 
+   * @param {string} href
+   * @param {*} params
+   * @param {*} options
    */
   async* getListAsIterableIterator(href, params = {}, options = {}) {
     let promise = this.wrapGet(href, params, options);
@@ -194,7 +198,7 @@ module.exports = class SriClient {
   }
 
   async getAllFromResult(data, options) {
-    var results = data.results;
+    let results = data.results;
     if (data.$$meta.next) {
       const nextResult = await this.wrapGet(data.$$meta.next, undefined, options);
       const nextResults = await this.getAllFromResult(nextResult, options);
@@ -208,23 +212,23 @@ module.exports = class SriClient {
     // We set it to undifined that the underlying get method does not take care of this.
     const expand = options.expand;
     options.expand = undefined;
-    if(!params.limit && params.limit !== null) {
+    if (!params.limit && params.limit !== null) {
       params.limit = 500;
     }
     const result = await this.wrapGet(href, params, options);
-    if(!result || !result.$$meta) {
+    if (!result || !result.$$meta) {
       console.log('no results for ' + href);
     }
-    var allResults = await this.getAllFromResult(result, options);
+    let allResults = await this.getAllFromResult(result, options);
     if (!options.raw && !(params && params.expand && params.expand === 'NONE')) {
       allResults = allResults.map(function (item) {
         return item.$$expanded;
       });
     }
-    if(result.$$meta) {
+    if (result.$$meta) {
       allResults.count = result.$$meta.count;
     }
-    if(expand) {
+    if (expand) {
       await this.expandJson(allResults, expand, options.caching, options.logging ? options.logging.replace('get', '').replace('expand', 'expand,get') : undefined);
     }
     return allResults;
@@ -238,7 +242,7 @@ module.exports = class SriClient {
         return item.$$expanded;
       });
     }
-    if(result.$$meta) {
+    if (result.$$meta) {
       results.count = result.$$meta.count;
       results.next = result.$$meta.next;
     }
@@ -259,11 +263,11 @@ module.exports = class SriClient {
       allResults = await this.getAll(baseHref, thisParams, thisOptions);
     } else {
       const groupBy = options.groupBy || Math.floor((6800 - commonUtils.parametersToString(baseHref, params).length - parameterName.length - 1) / (encodeURIComponent(hrefs[0]).length + 3));
-      var total = 0;
+      let total = 0;
       while(total < hrefs.length) {
-        //var query = commonUtils.parametersToString(baseHref, params) + '&'+parameterName+'=';
+        //let query = commonUtils.parametersToString(baseHref, params) + '&'+parameterName+'=';
         let parameterValue = '';
-        for(var i = 0; i < groupBy && total < hrefs.length; i++) {
+        for (let i = 0; i < groupBy && total < hrefs.length; i++) {
           map[hrefs[i]] = null;
           parameterValue += (i === 0 ? '' : ',')+hrefs[total];
           total++;
@@ -275,10 +279,10 @@ module.exports = class SriClient {
         allResults = allResults.concat(results);
       }
     }
-    
-    if(options.raw) {
+
+    if (options.raw) {
       throw new Error('You can not get a raw result for getAllHrefs or getAllReferencesTo');
-    } else if(options.asMap) {
+    } else if (options.asMap) {
       allResults.forEach(function (item) {
         map[item.$$meta.permalink] = item;
       });
@@ -289,7 +293,7 @@ module.exports = class SriClient {
   }
 
   getAllReferencesTo(baseHref, params = {}, parameterName, values, options = {}) {
-    if(!params.limit && params.limit !== null) {
+    if (!params.limit && params.limit !== null) {
       params.limit = 500;
     }
     if (options.inBatch) {
@@ -299,53 +303,53 @@ module.exports = class SriClient {
   }
 
   async getAllHrefs(hrefs, batchHref, params = {}, options = {}) {
-    if(hrefs.length === 0) {
+    if (hrefs.length === 0) {
       return [];
     }
-    if(batchHref && typeof batchHref !== 'string' && !(batchHref instanceof String)) {
+    if (batchHref && typeof batchHref !== 'string' && !(batchHref instanceof String)) {
       options = params;
       params = batchHref;
       batchHref = null;
     }
     params.limit = 500;
     const baseHref = commonUtils.getPathFromPermalink(hrefs[0]);
-    if(!batchHref) {
+    if (!batchHref) {
       return this.getAllHrefsWithoutBatch(baseHref, 'hrefs', hrefs, params, options);
     }
     const batch = [];
     const map = {};
     let remainingHrefs = [].concat(hrefs);
-    
+
     while(remainingHrefs.length) {
-      var query = commonUtils.parametersToString(baseHref, params) + '&hrefs=';
-      
+      let query = commonUtils.parametersToString(baseHref, params) + '&hrefs=';
+
       const thisBatchHrefs = remainingHrefs.slice(0, params.limit);
       remainingHrefs = remainingHrefs.slice(params.limit, remainingHrefs.length);
-      
+
       for (let href in thisBatchHrefs) {
         map[href] = null;
       }
       query += thisBatchHrefs.join(',');
-      
-      var part = {
+
+      let part = {
           verb: "GET",
           href: query
       };
       batch.push(part);
     }
     const batchResp = await this.sendPayload(batchHref, batch, options, batchHref === '/persons/batch' ? 'PUT' : 'POST');
-    if(options.expand) {
+    if (options.expand) {
       await this.expandJson(batchResp, options.expand, options.caching, options.logging ? options.logging.replace('get', '').replace('expand', 'expand,get') : undefined);
     }
-    if(options.include) {
+    if (options.include) {
       await this.includeJson(batchResp, options.include, options.logging ? options.logging.replace('get', '').replace('expand', 'expand,get') : undefined);
     }
     return new Promise(function(resolve, reject) {
-      var ret = [];
-      for(var i = 0; i < batchResp.length; i++) {
-        if(batchResp[i].status === 200) {
-          var results = batchResp[i].body.results;
-          if(options.asMap) {
+      let ret = [];
+      for (let i = 0; i < batchResp.length; i++) {
+        if (batchResp[i].status === 200) {
+          let results = batchResp[i].body.results;
+          if (options.asMap) {
             results.forEach(function (item) {
               map[item.href] = item.$$expanded;
             });
@@ -356,7 +360,7 @@ module.exports = class SriClient {
           reject(batchResp);
         }
       }
-      if(options.asMap) {
+      if (options.asMap) {
         resolve(map);
       } else {
         resolve(ret);
@@ -367,15 +371,24 @@ module.exports = class SriClient {
   /**
    * This method should be defined by sub classes.
    * This way we can reuse the same code regardless whether the http library is
-   * fetch, request, needel or whatever.
+   * fetch, request, needle or whatever.
    *
-   * @param {*} href 
-   * @param {*} payload 
-   * @param {*} optionsParam 
-   * @param {*} method 
+   * @param {string} href
+   * @param {*} payload
+   * @param {*} optionsParam
+   * @param {THttpMethod} method
+   * @returns {any}
    */
   sendPayload(href, payload, optionsParam = {}, method) {}
 
+  /**
+   *
+   * @param {string} href
+   * @param {*} payload
+   * @param {*} options
+   * @param {THttpMethod} method
+   * @returns {Promise<any>}
+   */
   async wrapSendPayload(href, payload, options = {}, method) {
     try {
       const originallyFullResponse = options.fullResponse;
@@ -448,10 +461,10 @@ module.exports = class SriClient {
   /**
    * This method should be defined by sub classes.
    * This way we can reuse the same code regardless whether the http library is
-   * fetch, request, needel or whatever.
+   * fetch, request, needle or whatever.
    *
-   * @param {*} href 
-   * @param {*} optionsParam 
+   * @param {string} href
+   * @param {*} optionsParam
    */
   delete(href, optionsParam = {}) {}
 
@@ -471,23 +484,23 @@ module.exports = class SriClient {
     const cachedResources = [];
     const uncachedHrefs = {};
     const hrefsMap = {};
-    for(let href of hrefs) {
-      if(this.cache.has(href, undefined, cachingOptions)) {
+    for (const href of hrefs) {
+      if (this.cache.has(href, undefined, cachingOptions)) {
         hrefsMap[href] = await this.cache.get(href, undefined, {caching: cachingOptions, logging: loggingOptions}, false);
         cachedResources.push(hrefsMap[href]);
       } else {
         const path = commonUtils.getPathFromPermalink(href);
-        if(!uncachedHrefs[path]) {
+        if (!uncachedHrefs[path]) {
           uncachedHrefs[path] = [];
         }
         uncachedHrefs[path].push(href);
       }
     }
-    if(expandOptions && cachedResources.length > 0) {
+    if (expandOptions && cachedResources.length > 0) {
       await this.expandJson(cachedResources, expandOptions, cachingOptions, loggingOptions);
     }
     const promises = [];
-    for(let path of Object.keys(uncachedHrefs)) {
+    for (let path of Object.keys(uncachedHrefs)) {
       // TODO: make configurable to know on which batch the hrefs can be retrieved
       // TODO: use p-fun here because this could be a problem if there are too many hrefs
       promises.push(this.getAllHrefs(uncachedHrefs[path], null, {}, {asMap: true, include: includeOptions, expand: expandOptions, caching: cachingOptions, logging: loggingOptions}).then(function(newMap) {
@@ -496,7 +509,7 @@ module.exports = class SriClient {
     }
     await Promise.all(promises);
     let newHrefs = new Set();
-    for(let property of properties) {
+    for (let property of properties) {
       let propertyName = property;
       let required = true;
       if (!(typeof property === 'string' || property instanceof String)) {
@@ -507,10 +520,10 @@ module.exports = class SriClient {
         required: required,
         handlerFunction: function(object, propertyArray, resource, isDirectReference) {
           let expandedObject = hrefsMap[object.href];
-          if(!expandedObject) {
+          if (!expandedObject) {
             return [object.href];
           }
-          if(isDirectReference) {
+          if (isDirectReference) {
             object['$$'+propertyArray[0]] = hrefsMap[object[propertyArray[0]]];
             return travelHrefsOfJson(object['$$'+propertyArray[0]], propertyArray);
           }
@@ -520,31 +533,31 @@ module.exports = class SriClient {
       });
       newHrefs = new Set([...newHrefs, ...localHrefs]);
     };
-    newHrefs = [...newHrefs];
-    hrefs = [...hrefs];
-    let converged = hrefs.size === newHrefs.size;
-    if(converged) {
-      for(let i = 0; i < hrefs.length; i++) {
-        if(hrefs[i] !== newHrefs[i]) {
+    const newHrefs2 = [...newHrefs];
+    const hrefs2 = [...hrefs];
+    let converged = hrefs2.length === newHrefs2.length;
+    if (converged) {
+      for (let i = 0; i < hrefs2.length; i++) {
+        if (hrefs2[i] !== newHrefs2[i]) {
           converged = false;
           break;
         }
       }
     }
-    if(converged) {
-      console.warn('[WARNING] The data is inconsistent. There are hrefs that can not be retrieved because they do not exist or because they are deleted. hrefs: ' + JSON.stringify([...newHrefs]));
+    if (converged) {
+      console.warn('[WARNING] The data is inconsistent. There are hrefs that can not be retrieved because they do not exist or because they are deleted. hrefs: ' + JSON.stringify([...newHrefs2]));
     }
-    if(newHrefs.length > 0 && !converged) {
-      await this.add$$expanded(newHrefs, json, properties, null, null, cachingOptions, loggingOptions);
+    if (newHrefs2.length > 0 && !converged) {
+      await this.add$$expanded(newHrefs2, json, properties, null, null, cachingOptions, loggingOptions);
     }
   }
 
   async expandJson(json, properties, cachingOptions, loggingOptions) {
-    if(!Array.isArray(properties)) {
+    if (!Array.isArray(properties)) {
       properties = [properties];
     }
     let allHrefs = new Set();
-    for(let property of properties) {
+    for (let property of properties) {
       let propertyName = property;
       let includeOptions = null;
       let expandOptions = [];
@@ -557,25 +570,25 @@ module.exports = class SriClient {
         localCachingOptions = property.caching;
         expandOptions = property.expand;
       }
-      if(includeOptions || localCachingOptions || expandOptions) {
+      if (includeOptions || localCachingOptions || expandOptions) {
         let localHrefs = travelHrefsOfJson(json, propertyName.split('.'), {required: required});
-        if(localHrefs.length > 0) {
+        if (localHrefs.length > 0) {
           await this.add$$expanded(localHrefs, json, [property], includeOptions, expandOptions, localCachingOptions || cachingOptions, loggingOptions);
         }
       } else {
         allHrefs = new Set([...allHrefs, ...travelHrefsOfJson(json, propertyName.split('.'), {required: required})]);
       }
     };
-    if(allHrefs.size > 0) {
+    if (allHrefs.size > 0) {
       await this.add$$expanded(allHrefs, json, properties, undefined, undefined, cachingOptions, loggingOptions);
     }
   }
 
   async includeJson(json, inclusions, cachingOptions = {}, loggingOptions) {
-    if(!Array.isArray(inclusions)) {
+    if (!Array.isArray(inclusions)) {
       inclusions = [inclusions];
     }
-    for(let options of inclusions) {
+    for (let options of inclusions) {
       validate(options, includeOptionsSchema);
       options.expanded = options.expanded ? options.expanded : true; // default is true
       //options.required = options.required ? options.required : true; // default is true
@@ -587,14 +600,14 @@ module.exports = class SriClient {
         referenceProperty = options.reference.property;
         referenceParameterName = options.reference.parameterName ? options.reference.parameterName : referenceProperty;
       }
-      if(!options.expanded) {
+      if (!options.expanded) {
         // with collapsed you can not get all references and map them again because the resource information will not be there
         const promises = [];
         travelHrefsOfJson(json, ('$$meta.permalink').split('.'), {
           required: true,
           handlerFunction: function(object, propertyArray, resource) {
             options.filters = options.filters || {};
-            if(options.collapsed) {
+            if (options.collapsed) {
               options.filters.expand = 'NONE';
             }
             options.filters[referenceParameterName] = object[propertyArray[0]];
@@ -609,26 +622,26 @@ module.exports = class SriClient {
         const hrefs = travelHrefsOfJson(json, ('$$meta.permalink').split('.'));
         const results = await this.getAllReferencesTo(options.href, options.filters, referenceParameterName, hrefs, {expand: options.expand, include: options.include, caching: localCachingOptions || cachingOptions, logging: loggingOptions});
         // this is not super optimal. Everything splits out in groups of 100. Expansion and inclusion is done for each batch of 100 urls. But the bit bellow is not working.
-        /*if(options.expand) {
+        /*if (options.expand) {
           expandJson(results, options.expand, core);
         }*/
         const map = {};
-        for(let result of results) {
+        for (let result of results) {
           const permalinks = travelHrefsOfJson(result, referenceProperty.split('.'), {required: true});
-          if(permalinks.length > 1) {
+          if (permalinks.length > 1) {
             console.warn('SRI_CLIENT_INCLUDE: we do not support yet the possibility that options.reference references an array property. Contact us to request that we add this feature.');
           }
           const permalink = permalinks[0];
-          if(!map[permalink]) {
+          if (!map[permalink]) {
             map[permalink] = [];
           }
           map[permalink].push(result);
         }
         // travel resources and add $$ included property
         const resources = travelResourcesOfJson(json);
-        for(let resource of resources) {
+        for (let resource of resources) {
           let inclusions = map[resource.$$meta.permalink];
-          if(!inclusions) {
+          if (!inclusions) {
             inclusions = [];
           }
           resource[options.alias] = options.singleton ? (inclusions.length === 0 ? null : inclusions[0]) : inclusions;
@@ -641,24 +654,24 @@ module.exports = class SriClient {
 };
 
 const travelHrefsOfObject = function(object, propertyArray, options) {// required, handlerFunction, resource) {
-  if(propertyArray.length === 1 && typeof object[propertyArray[0]] === 'string' && object[propertyArray[0]].match(/^(\/[-a-zA-Z0-9@:%_\+.~#?&=]+)+$/g)) {
-    if(options.handlerFunction) {
+  if (propertyArray.length === 1 && typeof object[propertyArray[0]] === 'string' && object[propertyArray[0]].match(/^(\/[-a-zA-Z0-9@:%_\+.~#?&=]+)+$/g)) {
+    if (options.handlerFunction) {
       return options.handlerFunction(object, propertyArray, options.resource, true);
     } else {
       return [object[propertyArray[0]]];
     }
   }
-  if(object.href) {
-    if(object.$$expanded) {
+  if (object.href) {
+    if (object.$$expanded) {
       options.resource = options.resource ? options.resource : object.$$expanded;
       /*console.log(propertyArray)
-      if(propertyArray[0] === '$$contactDetails')
+      if (propertyArray[0] === '$$contactDetails')
       console.log(object)*/
       return travelHrefsOfJson(object.$$expanded, propertyArray, options);
     } else if (!options.resource && object.body) {
       return travelHrefsOfJson(object.body, propertyArray, options);
     }
-    if(options.handlerFunction) {
+    if (options.handlerFunction) {
       return options.handlerFunction(object, propertyArray, options.resource);
     } else {
       return [object.href];
@@ -670,32 +683,32 @@ const travelHrefsOfObject = function(object, propertyArray, options) {// require
 
 const travelHrefsOfJson = function(json, propertyArray, options = {}) {//, required = true, handlerFunction, resource) {
   options.required = options.required === false ? options.required : true;
-  if(propertyArray.length === 0) {
+  if (propertyArray.length === 0) {
     return [];
   }
   let hrefs = [];
-  if(json.$$meta && json.results) {
+  if (json.$$meta && json.results) {
     json = json.results;
   }
-  if(!options.resource && Array.isArray(json)) {
-    for(let item of json) {
+  if (!options.resource && Array.isArray(json)) {
+    for (let item of json) {
       hrefs = [...hrefs, ...travelHrefsOfObject(item, [...propertyArray], Object.assign({}, options))];
     }
   } else {
-    if(!options.resource) {
+    if (!options.resource) {
       options.resource = json;
     }
     const nextPropertyName = propertyArray.shift();
     const subResource = json[nextPropertyName];
-    if(!subResource) {
+    if (!subResource) {
       // When the config says the property is not required
-      if(!options.required) {
+      if (!options.required) {
         return [];
       }
       throw new Error('There is no property ' + nextPropertyName + ' in the object: \n' + util.inspect(json, {depth: 5}) + '\n Set required = false if the property path contains non required resources.');
     }
-    if(Array.isArray(subResource)) {
-      for(let item of subResource) {
+    if (Array.isArray(subResource)) {
+      for (let item of subResource) {
         hrefs = [...hrefs, ...travelHrefsOfObject(item, [...propertyArray], Object.assign({}, options))];
       }
     } else {
@@ -706,7 +719,7 @@ const travelHrefsOfJson = function(json, propertyArray, options = {}) {//, requi
 };
 
 const travelResoure = function(resource, handlerFunction) {
-  if(handlerFunction) {
+  if (handlerFunction) {
     return handlerFunction(resource);
   } else {
     return resource;
@@ -715,13 +728,13 @@ const travelResoure = function(resource, handlerFunction) {
 
 const travelResourcesOfJson = function(json, handlerFunction) {
   let resources = [];
-  if(json.$$meta && json.results) {
+  if (json.$$meta && json.results) {
     json = json.results;
   }
-  if(Array.isArray(json)) {
-    for(let item of json) {
-      if(item.href) {
-        if(item.$$expanded) {
+  if (Array.isArray(json)) {
+    for (let item of json) {
+      if (item.href) {
+        if (item.$$expanded) {
            resources = [...resources, travelResoure(item.$$expanded, handlerFunction)];
         } else if (item.body) {
           resources = [...resources, ...travelResourcesOfJson(item.body, handlerFunction)];

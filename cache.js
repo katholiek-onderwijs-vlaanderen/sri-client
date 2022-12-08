@@ -9,7 +9,7 @@ const pDebounce = require('p-debounce');
 const checkCacheSize = (cache, maxSize) => {
   return new Promise(resolve => {
     //console.log('we gaan eens kijken of de cache niet te groot is');
-    if(memorySizeOf(cache) > maxSize) {
+    if (memorySizeOf(cache) > maxSize) {
       console.warn('The cache is too big! Help!');
       // Do clean up!
     } else {
@@ -35,14 +35,14 @@ const createCacheRecord = function (body) {
 
 const getHrefType = (fullHref, isList) => {
   const containsQuestionMark = fullHref.match(/^.*\?.*$/g);
-  if(containsQuestionMark) {
-    if(fullHref.toLowerCase().match(/\?(limit\=[^&]+|offset\=[^&]+|keyoffset\=[^&]+|hrefs\=[^&]+|expand\=(full|summary|none))(&(limit\=[^&]+|offset\=[^&]+|keyoffset\=[^&]+|hrefs\=[^&]+|expand\=(full|summary|none)))*$/g)) {
+  if (containsQuestionMark) {
+    if (fullHref.toLowerCase().match(/\?(limit\=[^&]+|offset\=[^&]+|keyoffset\=[^&]+|hrefs\=[^&]+|expand\=(full|summary|none))(&(limit\=[^&]+|offset\=[^&]+|keyoffset\=[^&]+|hrefs\=[^&]+|expand\=(full|summary|none)))*$/g)) {
       return 'BASIC_LIST';
     } else {
       return 'COMPLEX';
     }
   } else {
-    if(isList) {
+    if (isList) {
       return 'BASIC_LIST';
     } else {
       return 'PERMALINK';
@@ -51,12 +51,12 @@ const getHrefType = (fullHref, isList) => {
 };
 
 function memorySizeOf(object) {
-  var objectList = [];
-  var stack = [ object ];
-  var bytes = 0;
+  let objectList = [];
+  let stack = [ object ];
+  let bytes = 0;
 
   while ( stack.length ) {
-    var value = stack.pop();
+    let value = stack.pop();
 
     if ( typeof value === 'boolean' ) {
       bytes += 4;
@@ -70,7 +70,7 @@ function memorySizeOf(object) {
     else if (typeof value === 'object' && objectList.indexOf( value ) === -1) {
       objectList.push( value );
 
-      for( var i in value ) {
+      for ( let i in value ) {
         stack.push( value[ i ] );
       }
     }
@@ -83,7 +83,7 @@ module.exports = class Cache {
     this.timeout = config.timeout || 0;
     this.maxSize = config.maxSize || 10;
     this.api = api;
-    if(config.initialise && !Array.isArray(config.initialise)) {
+    if (config.initialise && !Array.isArray(config.initialise)) {
       this.initialConfig = [config.initialise];
     } else {
       this.initialConfig = config.initialise;
@@ -97,7 +97,7 @@ module.exports = class Cache {
 
 
   initialise() {
-    if(this.initialConfig) {
+    if (this.initialConfig) {
       this.initialConfig.forEach(init => {
         init.hrefs.forEach(href => {
           const cacheConfig = {timeout: init.timeout ? init.timeout : this.timeout};
@@ -110,21 +110,21 @@ module.exports = class Cache {
   async get(href, params, options = {}, isList) {
     const cacheOptions = options.caching || {};
     const timeout = cacheOptions.timeout || this.timeout;
-    if(timeout === 0) {
+    if (timeout === 0) {
       return this.api.getRaw(href, params, options);
     }
     const fullHref = commonUtils.parametersToString(href, params);
     const cacheRecord = this.getCacheRecord(fullHref, isList);
-    if(!cacheRecord || (new Date().getTime() - cacheRecord.timestamp.getTime() > timeout * 1000)) {
+    if (!cacheRecord || (new Date().getTime() - cacheRecord.timestamp.getTime() > timeout * 1000)) {
       const logging = options.logging || this.api.configuration.logging;
-      if(/caching/.test(logging)) {
+      if (/caching/.test(logging)) {
         console.log('cache MISS for ' + fullHref);
       }
       const body = this.api.getRaw(href, params, options);
       this.updateCacheRecord(fullHref, isList, body);
       const resolvedBody = await body;
       (async () => {
-        if(isList && (!href.toLowerCase().match(/^.+[\?\&]expand\=.+$/) || href.toLowerCase().match(/^.+[\?\&]expand\=full.*$/))) {
+        if (isList && (!href.toLowerCase().match(/^.+[\?\&]expand\=.+$/) || href.toLowerCase().match(/^.+[\?\&]expand\=full.*$/))) {
           resolvedBody.results.forEach(obj => {
             this.updateCacheRecord(obj.href, false, Promise.resolve(obj.$$expanded));
           });
@@ -135,7 +135,7 @@ module.exports = class Cache {
       });
       return deepcopy(resolvedBody);
     } else {
-      if(options.logging === 'cacheInfo' || options.logging === 'debug') {
+      if (options.logging === 'cacheInfo' || options.logging === 'debug') {
         console.log('cache HIT for ' + fullHref);
       }
       //console.log(util.inspect(cacheRecord, {depth: 10}))
@@ -147,7 +147,7 @@ module.exports = class Cache {
 
   has(href, params, cacheOptions = {}, isList) {
     const timeout = cacheOptions.timeout || this.timeout;
-    if(timeout === 0) {
+    if (timeout === 0) {
       return false;
     }
     const fullHref = commonUtils.parametersToString(href, params);
@@ -176,7 +176,7 @@ module.exports = class Cache {
     switch(getHrefType(fullHref, isList)) {
       case 'PERMALINK':
         const parts = commonUtils.splitPermalink(fullHref);
-        if(!this.cache[parts.path]) {
+        if (!this.cache[parts.path]) {
           this.cache[parts.path] = {};
         }
         this.cache[parts.path][parts.key] = cacheRecord;
@@ -195,23 +195,23 @@ module.exports = class Cache {
     this.cache.complex = {};
     const parts = commonUtils.splitPermalink(permalink);
     Object.keys(this.cache.basicLists).forEach(entry => {
-      if(entry.startsWith(parts.path)) {
+      if (entry.startsWith(parts.path)) {
         delete this.cache.basicLists[entry];
       }
     });
     const group = this.cache[parts.path];
-    if(group) {
+    if (group) {
       delete group[parts.key];
     }
   }
 
   onBatchPerformed(batch) {
     batch.forEach(outerBatchElem => {
-      if(!Array.isArray(outerBatchElem)) {
+      if (!Array.isArray(outerBatchElem)) {
         outerBatchElem = [outerBatchElem];
       }
       outerBatchElem.forEach(batchElem => {
-        if(batchElem.verb === 'PUT' || batchElem.verb === 'DELETE') {
+        if (batchElem.verb === 'PUT' || batchElem.verb === 'DELETE') {
           this.onResourceUpdated(batchElem.href);
         }
       });
@@ -219,9 +219,9 @@ module.exports = class Cache {
   }
 
   onDataAltered(href, payload, method) {
-    if((method === 'PUT' || method === 'POST') && href.match(/\/batch$/)) {
+    if ((method === 'PUT' || method === 'POST') && href.match(/\/batch$/)) {
       this.onBatchPerformed(payload);
-    } else if(method === 'PUT' || method === 'DELETE') {
+    } else if (method === 'PUT' || method === 'DELETE') {
       this.onResourceUpdated(href);
     }
   }
