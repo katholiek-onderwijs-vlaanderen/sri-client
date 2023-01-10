@@ -163,9 +163,14 @@ module.exports = class SriClient {
    * It also means that you can start processing a lot sooner for large result sets, as the
    * processing can start as soon as the first page has arrived.
    *
-   * If the results contain $$expanded objects, these wil be return, otherwise the href will
+   * If the result contains $$expanded objects, these will be returned, otherwise the href will
    * be returned. If the result is an array, then the elements of the array will be returned.
-   *
+   * @example
+   * ```
+   *  for await (const r of sriClient.getListAsIterableIterator('/resources')) {
+   *    console.log(r.key, r.name);
+   *  }
+   * ```
    * @param {string} href
    * @param {*} params
    * @param {*} options
