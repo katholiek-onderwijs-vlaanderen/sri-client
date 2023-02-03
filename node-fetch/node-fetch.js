@@ -150,10 +150,12 @@ class NodeFetchClient extends SriClient {
 
   /**
    * @param {*} response the reponse to read
-   * @returns {{ headers: Array<Record<string, string>>,
-   *              body: any,
-   *              redirected: boolean
-   * }}
+   * @returns {Promise<{
+   *  status: number,
+   *  headers: Array<Record<string, string>>,
+   *  body: any,
+   *  redirected: boolean
+   * }>}
    * @throws {SriClientError} when the response can not be read
    */
   async readResponse(response) {
@@ -173,6 +175,7 @@ class NodeFetchClient extends SriClient {
       }
 
       return {
+        status: response.status,
         headers: headers,
         body: body,
         redirected: response.redirected
