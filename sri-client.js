@@ -390,11 +390,13 @@ module.exports = class SriClient {
    *
    * @param {string} href
    * @param {*} payload
-   * @param {*} options
+   * @param {*} optionsParam
    * @param {THttpMethod} method
    * @returns {Promise<any>}
    */
-  async wrapSendPayload(href, payload, options = {}, method) {
+  async wrapSendPayload(href, payload, optionsParam = {}, method) {
+    const options = { ...this.configuration, ...optionsParam };
+
     try {
       const originallyFullResponse = options.fullResponse;
       if (options.keepBatchAlive) {
