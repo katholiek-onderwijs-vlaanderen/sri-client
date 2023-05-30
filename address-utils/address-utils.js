@@ -214,7 +214,7 @@ const isSameStreet = function (a, b) {
           //a.street.toLowerCase() === b.street.toLowerCase() &&
           isStreetNameMatch(a.street, b.street) &&
           (
-            (a.city && b.city && a.city.toLowerCase() === b.city.toLowerCase())|
+            (a.city && b.city && a.city.toLowerCase() === b.city.toLowerCase()) ||
             (a.zipCode === b.zipCode && isSameSubcity(a, b))
           )
         );
