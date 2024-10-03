@@ -166,7 +166,7 @@ class NodeFetchClient extends SriClient {
 
       let body = null;
       body = await response.text();
-      if (body && contentType.match(/application\/json/g)) {
+      if (body && contentType.match(/application\/(?:ld\+)?json/g)) {
         // try {
           body = JSON.parse(body);
         // } catch(err) {
