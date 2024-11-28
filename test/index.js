@@ -1,6 +1,7 @@
 /* global fetch, Response */
 const SriClient = require('../sri-client.js');
 const commonUtils = require('../common-utils');
+const addressUtils = require('../address-utils');
 const SriClientError = require('../sri-client-error');
 const assert = require('assert');
 
@@ -91,8 +92,6 @@ class TestClient extends SriClient {
   }
 };
 
-
-
 module.exports = describe('sri-client test suite', () => {
   it('getListAsIterableIterator works as expected', async () => {
     api = new TestClient();
@@ -138,5 +137,12 @@ module.exports = describe('sri-client test suite', () => {
       generateTestExpandedResource(2).href,
       generateTestExpandedResource(3).href,
     ]);
+  })
+  it('test isStreetNameMatch', () => {
+    assert.strictEqual(addressUtils.isStreetNameMatch('Frederik Lintsstraat ', 'Frederik Lintsstraat'), true);
+    assert.strictEqual(addressUtils.isStreetNameMatch('Hoplastraat', 'Main Street'), false);
+    assert.strictEqual(addressUtils.isStreetNameMatch('St-Niklaasstraat', 'Sintniklaasstraat'), true);
+    assert.strictEqual(addressUtils.isStreetNameMatch('Dr Charles leemansstraat', 'Dokter Charles Leemansstraat'), true, 'Dr is not matching on dokter');
+    assert.strictEqual(addressUtils.isStreetNameMatch('Dr. Charles leemansstraat', 'Dokter Charles Leemansstraat'), true, 'Dr. is not matching on dokter');
   })
 });
