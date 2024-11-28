@@ -169,8 +169,8 @@ const isStreetNameMatch = function (a, b) {
   if (b.match(bracesPattern)) {
     return isStreetNameMatch(a, b.replace(bracesPattern, '$1')) || isStreetNameMatch(a , b.replace(bracesPattern, '$2 $1'));
   }
-  const aWords = a.replace(/\.([A-Z])/g, '. $1').toLowerCase().replace(/st\-/g, 'sint-').replace(/st\.\s/g, 'sint ').replace(/st\./g, 'sint ').replace(/[\-]/g, ' ').split(' ');
-  const bWords = b.replace(/\.([A-Z])/g, '. $1').toLowerCase().replace(/st\-/g, 'sint-').replace(/st\.\s/g, 'sint ').replace(/st\./g, 'sint ').replace(/[\-]/g, ' ').split(' ');
+  const aWords = a.replace(/\.([A-Z])/g, '. $1').toLowerCase().replace(/st\-/g, 'sint-').replace(/st\.\s/g, 'sint ').replace(/st\./g, 'sint ').replace(/dr\.?\s/g, 'dokter ').replace(/[\-]/g, ' ').split(' ');
+  const bWords = b.replace(/\.([A-Z])/g, '. $1').toLowerCase().replace(/st\-/g, 'sint-').replace(/st\.\s/g, 'sint ').replace(/st\./g, 'sint ').replace(/dr\.?\s/g, 'dokter ').replace(/[\-]/g, ' ').split(' ');
   if (aWords.join('') === bWords.join('')) {
     return true;
   } else if (aWords.length === bWords.length) {
