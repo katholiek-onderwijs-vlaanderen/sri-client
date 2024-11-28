@@ -140,6 +140,7 @@ module.exports = describe('sri-client test suite', () => {
   })
   it('test isStreetNameMatch', () => {
     assert.strictEqual(addressUtils.isStreetNameMatch('Frederik Lintsstraat ', 'Frederik Lintsstraat'), true);
+    assert.strictEqual(addressUtils.isStreetNameMatch('Fr. Lintsstraat', 'Frederik Lintsstraat'), true);
     assert.strictEqual(addressUtils.isStreetNameMatch('Hoplastraat', 'Main Street'), false);
     assert.strictEqual(addressUtils.isStreetNameMatch('St-Niklaasstraat', 'Sintniklaasstraat'), true);
     assert.strictEqual(addressUtils.isStreetNameMatch('Dr Charles leemansstraat', 'Dokter Charles Leemansstraat'), true, 'Dr is not matching on dokter');
