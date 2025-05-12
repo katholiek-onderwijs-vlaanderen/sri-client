@@ -1,4 +1,3 @@
-const util = require('util');
 const validate = require('jsonschema').validate;
 const commonUtils = require('./common-utils');
 const Cache = require('./cache.js');

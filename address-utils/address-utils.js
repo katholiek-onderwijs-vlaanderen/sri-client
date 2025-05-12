@@ -1,5 +1,3 @@
-const util = require('util');
-
 const printAddress = function(address) {
   return address.street + (address.houseNumber ? ' ' + address.houseNumber : '') + (address.mailboxNumber ? ' bus ' + address.mailboxNumber : '') +
     ', ' + address.zipCode + ' ' + address.subCity;
