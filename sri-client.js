@@ -712,7 +712,7 @@ const travelHrefsOfJson = function(json, propertyArray, options = {}) {//, requi
       if (!options.required) {
         return [];
       }
-      throw new Error('There is no property ' + nextPropertyName + ' in the object: \n' + util.inspect(json, {depth: 5}) + '\n Set required = false if the property path contains non required resources.');
+      throw new Error('There is no property ' + nextPropertyName + ' in the object: \n' + JSON.stringify(json, null, 2) + '\n Set required = false if the property path contains non required resources.');
     }
     if (Array.isArray(subResource)) {
       for (let item of subResource) {

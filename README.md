@@ -308,7 +308,7 @@ try {
   await batch.send('/persons/batch'); // OR await api.put('/persons/batch', batch.array)
 } catch (error) {
   if (error instanceof SriClientError) {
-    console.error(util.inspect(error.body, {depth:7}));
+    console.error(JSON.stringify(error.body, null, 2));
     console.error(error.stack);
   } else {
     console.error(error);
@@ -328,7 +328,7 @@ try {
   await api.put('/batch', batch);
 } catch (error) {
   if (error instanceof SriClientError) {
-    console.error(util.inspect(error.body, {depth:7}));
+    console.error(JSON.stringify(error.body, null, 2));
     console.error(error.stack);
   } else {
     console.error(error);
