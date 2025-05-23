@@ -173,7 +173,7 @@ module.exports = class SriClient {
       thisParams[parameterName] = hrefs.join(',');
       allResults = await this.getAll(baseHref, thisParams, thisOptions);
     } else {
-      const groupBy = options.groupBy || Math.floor((6750 - commonUtils.parametersToString(baseHref, params).length - parameterName.length - 1) / (encodeURIComponent(hrefs[0]).length + 3));
+      const groupBy = options.groupBy || Math.floor((6700 - commonUtils.parametersToString(baseHref, params).length - parameterName.length - 1) / (encodeURIComponent(hrefs[0]).length + 3));
       var total = 0;
       while(total < hrefs.length) {
         //var query = commonUtils.parametersToString(baseHref, params) + '&'+parameterName+'=';
