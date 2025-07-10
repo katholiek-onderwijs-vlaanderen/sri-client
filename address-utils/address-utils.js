@@ -1,6 +1,11 @@
 const printAddress = function(address) {
-  return address.street + (address.houseNumber ? ' ' + address.houseNumber : '') + (address.mailboxNumber ? ' bus ' + address.mailboxNumber : '') +
-    ', ' + address.zipCode + ' ' + address.subCity;
+  if (!address.country || address.country === 'be') {
+    return address.street + (address.houseNumber ? ' ' + address.houseNumber : '') + (address.mailboxNumber ? ' bus ' + address.mailboxNumber : '') +
+      ', ' + address.zipCode + ' ' + address.subCity;
+  } else {
+    return address.street + (address.houseNumber ? ' ' + address.houseNumber : '') + (address.mailboxNumber ? ' bus ' + address.mailboxNumber : '') +
+      ', ' + address.zipCode + ' ' + address.city + ', ' + address.country;
+  }
 };
 
 const addSubCityHref = async function (address, api, dateUtils = require('../date-utils')) {
