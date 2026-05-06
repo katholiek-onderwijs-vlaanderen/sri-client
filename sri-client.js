@@ -306,20 +306,16 @@ module.exports = class SriClient {
     return this.getAllHrefsWithoutBatch(baseHref, parameterName, values, params, options);
   }
 
-  async getAllHrefs(hrefs, batchHref, params = {}, options = {}) {
+  async getAllHrefs(hrefs, params = {}, options = {}) {
     if (hrefs.length === 0) {
       return [];
     }
-    if (batchHref && typeof batchHref !== 'string' && !(batchHref instanceof String)) {
-      options = params;
-      params = batchHref;
-      batchHref = null;
-    }
     params.limit = 500;
     const baseHref = commonUtils.getPathFromPermalink(hrefs[0]);
-    if (!batchHref) {
+    if (!options.inBatch) {
       return this.getAllHrefsWithoutBatch(baseHref, 'hrefs', hrefs, params, options);
     }
+    const batchHref = options.inBatch;
     const batch = [];
     const map = {};
     let remainingHrefs = [].concat(hrefs);
@@ -358,7 +354,7 @@ module.exports = class SriClient {
               map[item.href] = item.$$expanded;
             });
           } else {
-            ret = ret.concat(results);
+            ret = ret.concat(results.map((r) => r.$$expanded));
           }
         } else {
           reject(batchResp);
