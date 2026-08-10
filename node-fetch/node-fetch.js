@@ -1,7 +1,6 @@
 const SriClient = require('../sri-client.js');
 const commonUtils = require('../common-utils');
 const SriClientError = require('../sri-client-error');
-const fetch = require('node-fetch');
 
 class NodeFetchClient extends SriClient {
 
