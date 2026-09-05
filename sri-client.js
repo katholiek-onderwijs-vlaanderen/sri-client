@@ -110,7 +110,7 @@ module.exports = class SriClient {
           href: commonUtils.parametersToString(href, params),
           verb: 'GET'
         }];
-        const batchResp = await this.wrapSendPayload(options.inBatch, batch, options, options.batchMethod && options.batchMethod === 'POST' ? 'POST' : 'PUT');
+        const batchResp = await this.wrapSendPayload(options.inBatch, batch, options, options.batchMethod || 'PUT');
         if (batchResp[0].status < 300) {
           result = batchResp[0].body;
         } else {
@@ -260,28 +260,21 @@ module.exports = class SriClient {
     //const promises = []; TODO make use of pQueue to do this in concurrency
     const map = {};
     let allResults = [];
-    if (options.inBatch) {
+    const groupBy = options.groupBy || Math.floor((6700 - commonUtils.parametersToString(baseHref, params).length - parameterName.length - 1) / (encodeURIComponent(hrefs[0]).length + 3));
+    let total = 0;
+    while(total < hrefs.length) {
+      //let query = commonUtils.parametersToString(baseHref, params) + '&'+parameterName+'=';
+      let parameterValue = '';
+      for (let i = 0; i < groupBy && total < hrefs.length; i++) {
+        map[hrefs[i]] = null;
+        parameterValue += (i === 0 ? '' : ',')+hrefs[total];
+        total++;
+      }
       const thisParams = Object.assign({}, params);
       const thisOptions = Object.assign({}, options);
-      thisParams[parameterName] = hrefs.join(',');
-      allResults = await this.getAll(baseHref, thisParams, thisOptions);
-    } else {
-      const groupBy = options.groupBy || Math.floor((6700 - commonUtils.parametersToString(baseHref, params).length - parameterName.length - 1) / (encodeURIComponent(hrefs[0]).length + 3));
-      let total = 0;
-      while(total < hrefs.length) {
-        //let query = commonUtils.parametersToString(baseHref, params) + '&'+parameterName+'=';
-        let parameterValue = '';
-        for (let i = 0; i < groupBy && total < hrefs.length; i++) {
-          map[hrefs[i]] = null;
-          parameterValue += (i === 0 ? '' : ',')+hrefs[total];
-          total++;
-        }
-        const thisParams = Object.assign({}, params);
-        const thisOptions = Object.assign({}, options);
-        thisParams[parameterName] = parameterValue;
-        const results = await this.getAll(baseHref, thisParams, thisOptions);
-        allResults = allResults.concat(results);
-      }
+      thisParams[parameterName] = parameterValue;
+      const results = await this.getAll(baseHref, thisParams, thisOptions);
+      allResults = allResults.concat(results);
     }
 
     if (options.raw) {
@@ -296,12 +289,65 @@ module.exports = class SriClient {
     }
   }
 
+  async getAllHrefsInBatch(baseHref, parameterName, hrefs, params = {}, options = {}) {
+    if (options.raw) {
+      throw new Error('You can not get a raw result for getAllHrefs or getAllReferencesTo');
+    }
+    const chunkSize = options.groupBy || params.limit || 500;
+    const batchHref = options.inBatch;
+    const map = {};
+    let queries = [];
+    let remainingHrefs = [...hrefs];
+
+    while(remainingHrefs.length) {
+      const thisBatchHrefs = remainingHrefs.slice(0, chunkSize);
+      remainingHrefs = remainingHrefs.slice(chunkSize, remainingHrefs.length);
+
+      for (const href of thisBatchHrefs) {
+        map[href] = null;
+      }
+      const thisParams = Object.assign({}, params, {[parameterName]: thisBatchHrefs.join(',')});
+      queries.push(commonUtils.parametersToString(baseHref, thisParams));
+    }
+
+    let allResults = [];
+    // a chunk of hrefs can reference more resources than fit on one page, so keep sending the next pages as new batches
+    while (queries.length) {
+      const batch = queries.map(href => ({verb: 'GET', href: href}));
+      const batchResp = await this.wrapSendPayload(batchHref, batch, options, options.batchMethod || 'PUT');
+      queries = [];
+      for (const resp of batchResp) {
+        if (resp.status !== 200) {
+          throw batchResp;
+        }
+        allResults = allResults.concat(resp.body.results);
+        if (resp.body.$$meta && resp.body.$$meta.next) {
+          queries.push(resp.body.$$meta.next);
+        }
+      }
+    }
+
+    if (options.expand) {
+      await this.expandJson(allResults, options.expand, options.caching, options.logging ? options.logging.replace('get', '').replace('expand', 'expand,get') : undefined);
+    }
+    if (options.include) {
+      await this.includeJson(allResults, options.include, options.caching, options.logging ? options.logging.replace('get', '').replace('expand', 'expand,get') : undefined);
+    }
+    if (options.asMap) {
+      allResults.forEach(function (item) {
+        map[item.href] = item.$$expanded;
+      });
+      return map;
+    }
+    return allResults.map((r) => r.$$expanded);
+  }
+
   getAllReferencesTo(baseHref, params = {}, parameterName, values, options = {}) {
     if (!params.limit && params.limit !== null) {
       params.limit = 500;
     }
     if (options.inBatch) {
-      // TODO
+      return this.getAllHrefsInBatch(baseHref, parameterName, values, params, options);
     }
     return this.getAllHrefsWithoutBatch(baseHref, parameterName, values, params, options);
   }
@@ -310,62 +356,14 @@ module.exports = class SriClient {
     if (hrefs.length === 0) {
       return [];
     }
-    params.limit = 500;
+    if (!params.limit) {
+      params.limit = 500;
+    }
     const baseHref = commonUtils.getPathFromPermalink(hrefs[0]);
     if (!options.inBatch) {
       return this.getAllHrefsWithoutBatch(baseHref, 'hrefs', hrefs, params, options);
     }
-    const batchHref = options.inBatch;
-    const batch = [];
-    const map = {};
-    let remainingHrefs = [].concat(hrefs);
-
-    while(remainingHrefs.length) {
-      let query = commonUtils.parametersToString(baseHref, params) + '&hrefs=';
-
-      const thisBatchHrefs = remainingHrefs.slice(0, params.limit);
-      remainingHrefs = remainingHrefs.slice(params.limit, remainingHrefs.length);
-
-      for (let href in thisBatchHrefs) {
-        map[href] = null;
-      }
-      query += thisBatchHrefs.join(',');
-
-      let part = {
-          verb: "GET",
-          href: query
-      };
-      batch.push(part);
-    }
-    const batchResp = await this.sendPayload(batchHref, batch, options, batchHref === '/persons/batch' ? 'PUT' : 'POST');
-    if (options.expand) {
-      await this.expandJson(batchResp, options.expand, options.caching, options.logging ? options.logging.replace('get', '').replace('expand', 'expand,get') : undefined);
-    }
-    if (options.include) {
-      await this.includeJson(batchResp, options.include, options.logging ? options.logging.replace('get', '').replace('expand', 'expand,get') : undefined);
-    }
-    return new Promise(function(resolve, reject) {
-      let ret = [];
-      for (let i = 0; i < batchResp.length; i++) {
-        if (batchResp[i].status === 200) {
-          let results = batchResp[i].body.results;
-          if (options.asMap) {
-            results.forEach(function (item) {
-              map[item.href] = item.$$expanded;
-            });
-          } else {
-            ret = ret.concat(results.map((r) => r.$$expanded));
-          }
-        } else {
-          reject(batchResp);
-        }
-      }
-      if (options.asMap) {
-        resolve(map);
-      } else {
-        resolve(ret);
-      }
-    });
+    return this.getAllHrefsInBatch(baseHref, 'hrefs', hrefs, params, options);
   }
 
   /**

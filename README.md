@@ -42,10 +42,6 @@ Example:
 * **post(href, payload, options):** http post to href with the given payload.
 * **delete(href, options):** http delete to href.
 * **getAllHrefs(hrefs, parameters, options):** returns an array of all objects for hrefs, a given array with permalinks.
-* ~~**getAllHrefs(hrefs, batchHref, parameters, options):** returns an array of all objects for hrefs, a given array with permalinks.
-All these parameters need to be of the same resource type! You can provide expansion (or other) parameters with parameters.
-It will get all these permalinks in the most efficient way if an href to the corresponding batch url is provided.
-If the batch url is null it will get them in individual request in groups of 100  (can be overwritten with options.groupBy) permalinks in order to not make the request url too long.~~ (deprecated: use inBatch option)
 * **getAllReferencesTo(baseHref, params, referencingParameterName, hrefsArray, options):** Same as getAll but you can add a referencingParameterName and an array of hrefs.
 It will add referencingParameterName as a parameter and add the hrefsArray as a comma separated string,
 but it will only request them in groups of 100 (can be overwritten with options.groupBy) to make sure the request url does not get too long.
@@ -72,7 +68,7 @@ All methods have an **options** object that you can pass on as a parameter. You 
     * factor: Strategy is exponential backoff so by default with 4 retries you will wait 0,5s, then 1s, then 2s and then 4s. If you set factor to 3 for instance the time to wait will be multiplied with 3 instead of two so you will wait 0,5s -> 1,5s -> 4,5s -> 13,5s. If you set factor to 1, you will actually disable exponential backoff.
   * **caching:** An object with properties timeout (in seconds) which overwrites the default timeout (you don't need to set up default caching, you can just start caching several requests). The resource will be get from the cache if it it is not older than the timeout in seconds.
   * **inBatch:** Specify the href where the batch needs to be send to. This is for GET methods (getAll, getList, etc.) and wraps the regular request into a batch request. This can be usefull when their is a potential of an request url that becomes too long.
-  * **batchMethod:** if batchMethod is 'POST' the inBatch request will be done with A POST instead of A PUT.
+  * **batchMethod:** the http method used to send the inBatch request. Defaults to 'PUT'.
   * **keepBatchAlive:** Only possible for requests to /batch. Handles the batch in a streaming way keeping the connection open so the server does not decide to break off the request (Heroku for example breaks off requests after 30s). This does not mean that you get your response in a streaming way. The response is the same for the client as a regular /batch.
   * **expand:** array with property paths that you want to expand client side. You can expand as deep as you want and don't need to add $$expanded to the path. See the examples.
   You can also replace a property path string with an object to pass on more advanced options. The object contains the following proerties:
