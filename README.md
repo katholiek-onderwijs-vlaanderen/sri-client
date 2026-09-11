@@ -113,7 +113,7 @@ All methods have an **options** object that you can pass on as a parameter. You 
 ```javascript
 const respsOfTeam = await sriClient.getAll('/responsibilities', {organisationalUnit: '/organisationalunits/eb745d58-b818-4569-a06e-68733fe2e5b3'}, {logging: 'debug'});
 const personHrefs = respsOfTeam.map(resp => resp.person.href);
-const persons = await vskoApi.getAllHrefs(personHrefs, undefined, {asMap: true, inBatch: '/persons/batch '});
+const persons = await vskoApi.getAllHrefs(personHrefs, undefined, { inBatch: '/persons/batch '});
 // persons is a map with as key the href of a person and as value the resource of that person.
 
 const externalIdentifierWithOrganisationalUnitExpanded = await sriClient.get(
