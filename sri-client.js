@@ -503,7 +503,7 @@ module.exports = class SriClient {
     for (let path of Object.keys(uncachedHrefs)) {
       // TODO: make configurable to know on which batch the hrefs can be retrieved
       // TODO: use p-fun here because this could be a problem if there are too many hrefs
-      promises.push(this.getAllHrefs(uncachedHrefs[path], null, {}, {asMap: true, include: includeOptions, expand: expandOptions, caching: cachingOptions, logging: loggingOptions}).then(function(newMap) {
+      promises.push(this.getAllHrefs(uncachedHrefs[path], {}, {asMap: true, include: includeOptions, expand: expandOptions, caching: cachingOptions, logging: loggingOptions}).then(function(newMap) {
         Object.assign(hrefsMap, newMap);
       }));
     }
