@@ -76,8 +76,11 @@ class NodeFetchClient extends SriClient {
       // do not send credentials to another origin
       if (nextUrl.origin !== new URL(currentUrl).origin) {
         currentInit.headers = { ...currentInit.headers };
-        delete currentInit.headers['Authorization'];
-        delete currentInit.headers['authorization'];
+        for (const name of Object.keys(currentInit.headers)) {
+          if (['authorization', 'proxy-authorization', 'cookie', 'cookie2'].includes(name.toLowerCase())) {
+            delete currentInit.headers[name];
+          }
+        }
       }
       currentUrl = nextUrl.href;
     }
