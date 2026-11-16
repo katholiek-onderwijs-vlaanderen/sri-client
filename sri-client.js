@@ -20,6 +20,32 @@ const mergeObjRecursive = (obj, patch) => {
 };
 
 /**
+ * Waits `ms` milliseconds, but rejects immediately when `signal` is aborted.
+ * @param {number} ms
+ * @param {AbortSignal} [signal]
+ */
+function abortableSleep(ms, signal) {
+  return new Promise((resolve, reject) => {
+    if (signal && signal.aborted) {
+      return reject(signal.reason);
+    }
+    const onAbort = () => {
+      clearTimeout(timer);
+      reject(signal.reason);
+    };
+    const timer = setTimeout(() => {
+      if (signal) {
+        signal.removeEventListener('abort', onAbort);
+      }
+      resolve();
+    }, ms);
+    if (signal) {
+      signal.addEventListener('abort', onAbort, { once: true });
+    }
+  });
+}
+
+/**
  * This util function serves 2 purposes:
  * * if it returns an empty string, we must retry the failed request
  * * if the returned string is non-empty it can be used for logging WHY we did not retry the request
@@ -34,6 +60,9 @@ function generateReasonToNotRetry(exception, options) {
   }
   if (!options) {
     return `options object is not defined (${options})`;
+  }
+  if (options.cancel && options.cancel.aborted) {
+    return 'the request was cancelled (options.cancel is aborted)';
   }
   if (!options.retry) {
     return `options.retry is not defined (${options})`;
@@ -144,7 +173,12 @@ module.exports = class SriClient {
           retries: options.retry.retries - 1,
           wait
         } };
-        await commonUtils.sleep(wait);
+        try {
+          await abortableSleep(wait, options.cancel);
+        } catch (abortReason) {
+          // cancelled during backoff: do not retry, throw the last error
+          throw error;
+        }
         return this.wrapGet(href, params, newOptions, isSingleResource);
       } else {
         // console.debug('[sri-client] Not retrying the request because', reasonToNotRetry);
@@ -436,7 +470,11 @@ module.exports = class SriClient {
           retries: options.retry.retries - 1,
           wait
         } };
-        await commonUtils.sleep(wait);
+        try {
+          await abortableSleep(wait, options.cancel);
+        } catch (abortReason) {
+          throw error;
+        }
         return this.wrapSendPayload(href, payload, newOptions, method);
       } else {
         // console.debug('[sri-client] Not retrying the request because', reasonToNotRetry);

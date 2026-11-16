@@ -13,6 +13,7 @@ function createClient(config) {
 }
 
 const SLOW_DELAY_MS = 2000;
+let slowHits = 0;
 
 function startServer() {
   const server = http.createServer((req, res) => {
@@ -37,6 +38,7 @@ function startServer() {
         return json(404, { errors: [{ code: 'not.found' }] });
       }
       if (req.url === '/slow') {
+        slowHits++;
         const timer = setTimeout(() => json(200, { slow: true, method: req.method }), SLOW_DELAY_MS);
         res.on('close', () => clearTimeout(timer));
         return;
@@ -410,6 +412,71 @@ describe('node-fetch client', () => {
       const api = createClient({ baseUrl, logging: 'get' });
       await api.sendPayload('/tests/1', { key: 1 }, {}, 'PUT');
       assert.deepStrictEqual(logs, []);
+    });
+  });
+
+  describe('cancel with retries enabled (api.get)', function () {
+    this.timeout(SLOW_DELAY_MS + 3000);
+
+    // pas aan naar de bestaande retry-config van sri-client
+    const retry = { retries: 5, initialWait: 500, factor: 2 };
+
+    beforeEach(() => { slowHits = 0; });
+
+    it('an already-aborted signal does not trigger retries', async () => {
+      const api = createClient({ baseUrl });
+      const controller = new AbortController();
+      controller.abort();
+      const start = Date.now();
+      await assert.rejects(api.get('/slow', undefined, { retry, cancel: controller.signal }));
+      const elapsed = Date.now() - start;
+      assert.ok(elapsed < 300, `expected immediate rejection, took ${elapsed}ms`);
+      assert.ok(slowHits <= 1, `expected at most 1 request, got ${slowHits}`);
+    });
+
+    it('aborting during a request stops retrying', async () => {
+      const api = createClient({ baseUrl });
+      const controller = new AbortController();
+      setTimeout(() => controller.abort(), 200);
+      const start = Date.now();
+      await assert.rejects(api.get('/slow', undefined, { retry, cancel: controller.signal }));
+      const elapsed = Date.now() - start;
+      assert.ok(elapsed < 500, `expected prompt rejection, took ${elapsed}ms`);
+      assert.strictEqual(slowHits, 1);
+    });
+    it('aborting during the backoff delay rejects promptly', async () => {
+      const api = createClient({ baseUrl });
+      const controller = new AbortController();
+      // eerste poging faalt na 100ms (timeout), daarna begint een backoff van 500ms
+      setTimeout(() => controller.abort(), 250);
+      const start = Date.now();
+      await assert.rejects(api.get('/slow', undefined, {
+        retry, timeout: 100, cancel: controller.signal,
+      }));
+      const elapsed = Date.now() - start;
+      assert.ok(elapsed < 450, `backoff was not interrupted (took ${elapsed}ms)`);
+      assert.strictEqual(slowHits, 1);
+    });
+
+    it('PUT with retries: aborting during backoff rejects promptly', async () => {
+      const api = createClient({ baseUrl });
+      const controller = new AbortController();
+      setTimeout(() => controller.abort(), 250);
+      const start = Date.now();
+      await assert.rejects(api.put('/slow', { key: 1 }, {
+        retry, timeout: 100, cancel: controller.signal,
+      }));
+      const elapsed = Date.now() - start;
+      assert.ok(elapsed < 450, `backoff was not interrupted (took ${elapsed}ms)`);
+      assert.strictEqual(slowHits, 1);
+    });
+
+    it('a timeout without cancel is still retried', async () => {
+      const api = createClient({ baseUrl });
+      await assert.rejects(api.get('/slow', undefined, {
+        retry: { retries: 2, initialWait: 50, factor: 1 }, timeout: 100,
+      }));
+      assert.strictEqual(slowHits, 3);
     });
   });
 
