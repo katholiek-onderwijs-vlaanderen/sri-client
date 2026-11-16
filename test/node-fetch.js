@@ -15,6 +15,31 @@ function createClient(config) {
 const SLOW_DELAY_MS = 2000;
 let slowHits = 0;
 
+/**
+ * Builds the error that native fetch (undici) throws on a network failure.
+ */
+function fetchFailedError(code, message = `getaddrinfo ${code} does-not-exist.invalid`) {
+  return new TypeError('fetch failed', {
+    cause: Object.assign(new Error(message), { code, syscall: 'getaddrinfo', hostname: 'does-not-exist.invalid' }),
+  });
+}
+
+/**
+ * Replaces globalThis.fetch with a stub that rejects with `error`
+ * while `fn` runs, and restores the original afterwards.
+ */
+async function withFailingFetch(error, fn) {
+  const originalFetch = globalThis.fetch;
+  let calls = 0;
+  globalThis.fetch = async () => { calls++; throw error; };
+  try {
+    await fn();
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+  return calls;
+}
+
 function startServer() {
   const server = http.createServer((req, res) => {
     let body = '';
@@ -57,6 +82,19 @@ function startServer() {
       }
       if (req.method === 'DELETE' && req.url === '/notfound') {
         return json(404, { errors: [{ code: 'not.found' }] });
+      }
+      if (req.url === '/redirect-hop1') {
+        const timer = setTimeout(() => {
+          res.writeHead(302, { Location: '/redirect-hop2' });
+          res.end();
+        }, 300);
+        res.on('close', () => clearTimeout(timer));
+        return;
+      }
+      if (req.url === '/redirect-hop2') {
+        const timer = setTimeout(() => json(200, { hop: 2 }), 300);
+        res.on('close', () => clearTimeout(timer));
+        return;
       }
       return json(500, { error: 'unexpected route ' + req.method + ' ' + req.url });
     });
@@ -290,15 +328,37 @@ describe('node-fetch client', () => {
   describe('network errors', function () {
     this.timeout(10000);
 
-    it('ENOTFOUND: unknown host gives an SriClientError with cause.code', async () => {
-      // .invalid is a reserved TLD (RFC 2606) and never resolves
+    it('ENOTFOUND: fetch failure is wrapped in an SriClientError with cause.code', async () => {
+      const fetchError = fetchFailedError('ENOTFOUND');
       const api = createClient({ baseUrl: 'http://does-not-exist.invalid' });
-      await assert.rejects(api.getRaw('/tests/1'), (err) => {
-        assert.ok(err instanceof SriClientError, 'expected SriClientError, got ' + err);
-        const cause = underlyingError(err);
-        assert.ok(cause instanceof TypeError, 'native fetch wraps network errors in a TypeError');
-        assert.strictEqual(cause.cause?.code, 'ENOTFOUND');
-        return true;
+      const calls = await withFailingFetch(fetchError, async () => {
+        await assert.rejects(api.getRaw('/tests/1'), (err) => {
+          assert.ok(err instanceof SriClientError, 'expected SriClientError, got ' + err);
+          const cause = underlyingError(err);
+          assert.strictEqual(cause, fetchError);
+          assert.ok(cause instanceof TypeError, 'native fetch wraps network errors in a TypeError');
+          assert.strictEqual(cause.cause?.code, 'ENOTFOUND');
+          assert.ok(!err.status, 'a network error should not have an HTTP status');
+          return true;
+        });
+      });
+      assert.strictEqual(calls, 1);
+    });
+
+    it('ENOTFOUND on PUT and DELETE is wrapped as well', async () => {
+      const fetchError = fetchFailedError('ENOTFOUND');
+      const api = createClient({ baseUrl: 'http://does-not-exist.invalid' });
+      await withFailingFetch(fetchError, async () => {
+        for (const promiseFn of [
+          () => api.sendPayload('/tests/1', { key: 1 }, {}, 'PUT'),
+          () => api.delete('/tests/1'),
+        ]) {
+          await assert.rejects(promiseFn(), (err) => {
+            assert.ok(err instanceof SriClientError, 'expected SriClientError, got ' + err);
+            assert.strictEqual(underlyingError(err)?.cause?.code, 'ENOTFOUND');
+            return true;
+          });
+        }
       });
     });
 
@@ -477,6 +537,35 @@ describe('node-fetch client', () => {
         retry: { retries: 2, initialWait: 50, factor: 1 }, timeout: 100,
       }));
       assert.strictEqual(slowHits, 3);
+    });
+  });
+
+  describe('timeout with redirects (resets per redirect, see README)', function () {
+    this.timeout(5000);
+
+    it('does not time out when every hop is faster than the timeout', async () => {
+      const api = createClient({ baseUrl });
+      const resp = await api.getRaw('/redirect-hop1', undefined, { timeout: 450, fullResponse: true });
+      assert.deepStrictEqual(resp.body, { hop: 2 });
+      assert.strictEqual(resp.redirected, true);
+    });
+
+    it('times out when a single hop is slower than the timeout', async () => {
+      const api = createClient({ baseUrl });
+      await expectFastRejection(
+        api.getRaw('/redirect-hop1', undefined, { timeout: 200 }),
+        (err) => assert.strictEqual(underlyingError(err)?.name, 'TimeoutError'),
+      );
+    });
+
+    it('cancel still aborts the whole redirect chain', async () => {
+      const api = createClient({ baseUrl });
+      const controller = new AbortController();
+      setTimeout(() => controller.abort(), 400); // during hop 2
+      await expectFastRejection(
+        api.getRaw('/redirect-hop1', undefined, { timeout: 450, cancel: controller.signal }),
+        (err) => assert.strictEqual(underlyingError(err)?.name, 'AbortError'),
+      );
     });
   });
 
