@@ -548,11 +548,23 @@ describe('node-fetch client', () => {
   describe('timeout with redirects (resets per redirect, see README)', function () {
     this.timeout(5000);
 
-    it('does not time out when every hop is faster than the timeout', async () => {
+    it('follows redirects when the whole chain is faster than the timeout', async () => {
       const api = createClient({ baseUrl });
-      const resp = await api.getRaw('/redirect-hop1', undefined, { timeout: 450, fullResponse: true });
+      const resp = await api.getRaw('/redirect-hop1', undefined, { timeout: 1000, fullResponse: true });
       assert.deepStrictEqual(resp.body, { hop: 2 });
       assert.strictEqual(resp.redirected, true);
+    });
+
+    it('times out when the whole chain exceeds the timeout, even if every hop is faster', async () => {
+      const api = createClient({ baseUrl });
+      const start = Date.now();
+      await assert.rejects(api.getRaw('/redirect-hop1', undefined, { timeout: 450 }), (err) => {
+        assert.ok(err instanceof SriClientError, 'expected SriClientError, got ' + err);
+        assert.strictEqual(underlyingError(err)?.name, 'TimeoutError');
+        return true;
+      });
+      const elapsed = Date.now() - start;
+      assert.ok(elapsed < 600, `expected the deadline to apply to the whole chain (took ${elapsed}ms)`);
     });
 
     it('times out when a single hop is slower than the timeout', async () => {
