@@ -62,7 +62,7 @@ class NodeFetchClient extends SriClient {
       const nextUrl = new URL(location, currentUrl);
 
       // 303 (and 301/302 on POST) => GET without body, same as the fetch spec
-      if (response.status === 303
+      if ((response.status === 303 && !['GET', 'HEAD'].includes(currentInit.method))
         || ((response.status === 301 || response.status === 302) && currentInit.method === 'POST')) {
         const { body, ...rest } = currentInit;
         currentInit = { ...rest, method: 'GET' };
