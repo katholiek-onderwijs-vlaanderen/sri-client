@@ -3,7 +3,7 @@
   "version": "3.1.1",
   "description": "Client for consuming SRI interfaces from Node.js.",
   "scripts": {
-    "test": "./node_modules/mocha/bin/mocha",
+    "test": "mocha",
     "lint": "eslint /sri-client"
   },
   "keywords": [
@@ -23,7 +23,11 @@
     "p-debounce": "1.0.0"
   },
   "devDependencies": {
-    "mocha": "^9.2.2"
+    "mocha": "^12.0.3"
+  },
+  "overrides": {
+    "glob": "^14.0.2",
+    "minimatch": "^11.0.1"
   },
   "repository": {
     "type": "git",
