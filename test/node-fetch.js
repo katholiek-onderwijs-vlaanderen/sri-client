@@ -96,6 +96,11 @@ function startServer() {
         res.on('close', () => clearTimeout(timer));
         return;
       }
+      if (req.url === '/redirect-to-data') {
+        res.writeHead(302, { Location: 'data:application/json,{"fake":true}' });
+        res.end();
+        return;
+      }
       return json(500, { error: 'unexpected route ' + req.method + ' ' + req.url });
     });
   });
@@ -565,6 +570,26 @@ describe('node-fetch client', () => {
       await expectFastRejection(
         api.getRaw('/redirect-hop1', undefined, { timeout: 450, cancel: controller.signal }),
         (err) => assert.strictEqual(underlyingError(err)?.name, 'AbortError'),
+      );
+    });
+
+    for (const timeout of [undefined, 1000]) {
+      it(`rejects a redirect to a data: URL (timeout: ${timeout})`, async () => {
+        const api = createClient({ baseUrl });
+        await assert.rejects(api.getRaw('/redirect-to-data', undefined, { timeout }), (err) => {
+          assert.ok(err instanceof SriClientError, 'expected SriClientError, got ' + err);
+          assert.ok(!err.status);
+          assert.ok(underlyingError(err) instanceof TypeError);
+          return true;
+        });
+      });
+    }
+
+    it('rejects a redirect to a data: URL on PUT with timeout', async () => {
+      const api = createClient({ baseUrl });
+      await assert.rejects(
+        api.sendPayload('/redirect-to-data', { key: 1 }, { timeout: 1000 }, 'PUT'),
+        (err) => err instanceof SriClientError && !err.status,
       );
     });
   });

@@ -61,6 +61,13 @@ class NodeFetchClient extends SriClient {
       await response.body?.cancel(); // release the connection
       const nextUrl = new URL(location, currentUrl);
 
+      // same as native fetch: only follow redirects to http(s)
+      if (nextUrl.protocol !== 'http:' && nextUrl.protocol !== 'https:') {
+        throw new TypeError('fetch failed', {
+          cause: new Error(`URL scheme must be a HTTP(S) scheme (redirect to ${nextUrl.protocol})`),
+        });
+      }
+
       // 303 (and 301/302 on POST) => GET without body, same as the fetch spec
       if ((response.status === 303 && !['GET', 'HEAD'].includes(currentInit.method))
         || ((response.status === 301 || response.status === 302) && currentInit.method === 'POST')) {
