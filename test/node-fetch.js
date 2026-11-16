@@ -545,7 +545,7 @@ describe('node-fetch client', () => {
     });
   });
 
-  describe('timeout with redirects (resets per redirect, see README)', function () {
+  describe('timeout with redirects (deadline for the whole chain)', function () {
     this.timeout(5000);
 
     it('follows redirects when the whole chain is faster than the timeout', async () => {
