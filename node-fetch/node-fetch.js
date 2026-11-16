@@ -2,9 +2,6 @@ const SriClient = require('../sri-client.js');
 const commonUtils = require('../common-utils');
 const SriClientError = require('../sri-client-error');
 
-const MAX_REDIRECTS = 20;
-const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
-
 class NodeFetchClient extends SriClient {
 
   constructor(config = {}) {
@@ -29,69 +26,15 @@ class NodeFetchClient extends SriClient {
   }
 
   /**
-   * fetch with a timeout that resets on every redirect (same as node-fetch v2,
-   * see README). Without a timeout, or with redirect !== 'follow', the native
-   * redirect handling is used.
+   * fetch with an optional timeout (deadline for the whole request, including redirects)
+   * and an optional cancel signal.
    */
-  async fetchWithTimeout(url, init, options) {
-    const redirectMode = options.redirect || 'follow';
-    const hasTimeout = options.timeout && options.timeout > 0;
-    if (!hasTimeout || redirectMode !== 'follow') {
-      return fetch(url, { ...init, redirect: redirectMode, signal: this.buildSignal(options) });
-    }
-
-    let currentUrl = url;
-    let currentInit = { ...init };
-    for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
-      // new signal per hop => timeout resets on every redirect
-      const response = await fetch(currentUrl, {
-        ...currentInit,
-        redirect: 'manual',
-        signal: this.buildSignal(options),
-      });
-
-      const location = response.headers.get('location');
-      if (!REDIRECT_STATUSES.has(response.status) || !location) {
-        if (hop > 0) {
-          Object.defineProperty(response, 'redirected', { value: true });
-        }
-        return response;
-      }
-
-      await response.body?.cancel(); // release the connection
-      const nextUrl = new URL(location, currentUrl);
-
-      // same as native fetch: only follow redirects to http(s)
-      if (nextUrl.protocol !== 'http:' && nextUrl.protocol !== 'https:') {
-        throw new TypeError('fetch failed', {
-          cause: new Error(`URL scheme must be a HTTP(S) scheme (redirect to ${nextUrl.protocol})`),
-        });
-      }
-
-      // 303 (and 301/302 on POST) => GET without body, same as the fetch spec
-      if ((response.status === 303 && !['GET', 'HEAD'].includes(currentInit.method))
-        || ((response.status === 301 || response.status === 302) && currentInit.method === 'POST')) {
-        const { body, ...rest } = currentInit;
-        currentInit = { ...rest, method: 'GET' };
-        currentInit.headers = { ...currentInit.headers };
-        for (const name of Object.keys(currentInit.headers)) {
-          if (['content-length', 'content-type', 'content-encoding', 'content-language', 'content-location'].includes(name.toLowerCase())) {
-            delete currentInit.headers[name];
-          }
-        }
-      }
-      // do not send credentials to another origin
-      if (nextUrl.origin !== new URL(currentUrl).origin) {
-        currentInit.headers = { ...currentInit.headers };
-        for (const name of Object.keys(currentInit.headers)) {
-          if (['authorization', 'proxy-authorization', 'cookie', 'cookie2'].includes(name.toLowerCase())) {
-            delete currentInit.headers[name];
-          }
-        }
-      }
-      currentUrl = nextUrl.href;
-    }
-    throw new TypeError('fetch failed', { cause: new Error(`maximum redirect reached at: ${currentUrl}`) });
+  async fetchWithTimeout(url, init, options = {}) {
+    return fetch(url, {
+      ...init,
+      redirect: options.redirect || 'follow',
+      signal: this.buildSignal(options),
+    });
   }
 
   /**
@@ -129,9 +72,7 @@ class NodeFetchClient extends SriClient {
         method: 'GET',
         cache: options.cache || 'default',
         // credentials: options.credentials || 'omit',
-        redirect: options.redirect || "follow",
         // signal: options.cancel,
-        signal: this.buildSignal(options),
         headers: thisHeaders
       }, options);
       if (response.ok) {
@@ -178,8 +119,6 @@ class NodeFetchClient extends SriClient {
           method: method,
           cache: 'no-cache',
           credentials: options.credentials || 'omit',
-          redirect: options.redirect || 'follow',
-          signal: this.buildSignal(options),
           headers: thisHeaders,
           body: options.raw ? payload : JSON.stringify(payload)
         }, options);
@@ -217,7 +156,6 @@ class NodeFetchClient extends SriClient {
         method: 'DELETE',
         cache: 'no-cache',
         credentials: 'omit',
-        signal: this.buildSignal(options),
         headers: thisHeaders
       }, options);
       if (response.ok) {
