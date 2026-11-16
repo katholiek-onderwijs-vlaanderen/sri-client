@@ -102,7 +102,7 @@ All methods have an **options** object that you can pass on as a parameter. You 
   * **fullResponse**: the response will be an object with properties body and headers
   * **username**: username for basic authentication
   * **password**: password for basic authentication
-  * **timeout**: req/res timeout in ms, it resets on redirect. 0 to disable (OS limit applies).
+  * **timeout**: max duration in ms for the complete request, including redirects. When exceeded, the request fails with an SriClientError whose `error.name` is `'TimeoutError'`.
 * **ng-sri-client specific**
   * **raw** default is false. The response will be parsed. If raw is true the response will not be parsed.
   * **cancelPromise:** A promise that will cancel the request, if it gets resolved.

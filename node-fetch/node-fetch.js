@@ -25,6 +25,36 @@ class NodeFetchClient extends SriClient {
     this.setDefaultHeaders(config);
   }
 
+  /**
+   * fetch with an optional timeout (deadline for the whole request, including redirects)
+   * and an optional cancel signal.
+   */
+  async fetchWithTimeout(url, init, options = {}) {
+    return fetch(url, {
+      ...init,
+      redirect: options.redirect || 'follow',
+      signal: this.buildSignal(options),
+    });
+  }
+
+  /**
+   * Combines an optional timeout and an optional cancel signal into a single AbortSignal.
+   * @returns {AbortSignal|undefined}
+   */
+  buildSignal(options) {
+    const signals = [];
+    if (options.timeout && options.timeout > 0) {
+      signals.push(AbortSignal.timeout(options.timeout));
+    }
+    if (options.cancel) {
+      signals.push(options.cancel);
+    }
+    if (signals.length === 0) {
+      return undefined;
+    }
+    return signals.length === 1 ? signals[0] : AbortSignal.any(signals);
+  }
+
   async getRaw(href, params, optionsParam = {}) {
     const options = { ...this.configuration, ...optionsParam };
     let baseUrl = this.getBaseUrl(options);
@@ -38,15 +68,13 @@ class NodeFetchClient extends SriClient {
       thisHeaders = { ...this.defaultHeaders, ...optionsParam.headers };
     }
     try {
-      const response = await fetch(baseUrl + commonUtils.parametersToString(href, params), {
+      const response = await this.fetchWithTimeout(baseUrl + commonUtils.parametersToString(href, params), {
         method: 'GET',
         cache: options.cache || 'default',
         // credentials: options.credentials || 'omit',
-        redirect: options.redirect || "follow",
         // signal: options.cancel,
-        timeout: options.timeout || 0,
         headers: thisHeaders
-      });
+      }, options);
       if (response.ok) {
         const resp = await this.readResponse(response);
         return options.fullResponse ? resp : resp.body;
@@ -71,7 +99,7 @@ class NodeFetchClient extends SriClient {
     const options = { ...this.configuration, ...optionsParam };
     const baseUrl = this.getBaseUrl(options);
     const logging = options.logging || this.configuration.logging;
-    if (logging && typeof logging === 'string' && (new RegExp(method.toLowerCase)).test(logging.toLowerCase())) {
+    if (logging && typeof logging === 'string' && (new RegExp(method.toLowerCase())).test(logging.toLowerCase())) {
       console.log('[sri-client] ' + method + ' ' + baseUrl + href + ':\n' + JSON.stringify(payload));
     }
     const stack = new Error().stack;
@@ -87,21 +115,19 @@ class NodeFetchClient extends SriClient {
       }
     }
     try {
-      const response = await fetch(baseUrl + href, {
+      const response = await this.fetchWithTimeout(baseUrl + href, {
           method: method,
           cache: 'no-cache',
           credentials: options.credentials || 'omit',
-          redirect: options.redirect || 'follow',
-          signal: options.cancel,
           headers: thisHeaders,
           body: options.raw ? payload : JSON.stringify(payload)
-        });
+        }, options);
 
       if (response.ok) {
         const resp = await this.readResponse(response);
         return options.fullResponse ? resp : resp.body;
       } else {
-        if (logging && typeof logging === 'string' && (new RegExp(method.toLowerCase)).test(logging.toLowerCase())) {
+        if (logging && typeof logging === 'string' && (new RegExp(method.toLowerCase())).test(logging.toLowerCase())) {
           console.log('[sri-client] response is not ok!', response);
         }
         throw await this.handleError(method + baseUrl + href, response, options, stack);
@@ -110,7 +136,7 @@ class NodeFetchClient extends SriClient {
       if (error instanceof SriClientError) {
         throw error;
       }
-      if (logging && typeof logging === 'string' && (new RegExp(method.toLowerCase)).test(logging.toLowerCase())) {
+      if (logging && typeof logging === 'string' && (new RegExp(method.toLowerCase())).test(logging.toLowerCase())) {
         console.log('[sri-client] an error occured when doing fetch', error);
       }
       throw await this.handleError(method + baseUrl + href, error, options, stack);
@@ -126,13 +152,12 @@ class NodeFetchClient extends SriClient {
       thisHeaders = { ...this.defaultHeaders, ...optionsParam.headers };
     }
     try {
-      const response = await fetch(baseUrl + href, {
+      const response = await this.fetchWithTimeout(baseUrl + href, {
         method: 'DELETE',
         cache: 'no-cache',
         credentials: 'omit',
-        signal: options.cancel,
         headers: thisHeaders
-      });
+      }, options);
       if (response.ok) {
         const resp = await this.readResponse(response);
         return options.fullResponse ? resp : resp.body;
@@ -206,7 +231,8 @@ class NodeFetchClient extends SriClient {
    * @throws {SriClientError} in the (unlikely) case that the response body cannot be read
    */
    async handleError(httpRequest, response, options, stack) {
-    if (response.code === 'ENOTFOUND') {
+    // No real Response (timeout, abort, network error like ENOTFOUND)
+    if (!(response instanceof Response)) {
       return new SriClientError({
         status: null,
         body: null,
