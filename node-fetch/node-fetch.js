@@ -67,7 +67,11 @@ class NodeFetchClient extends SriClient {
         const { body, ...rest } = currentInit;
         currentInit = { ...rest, method: 'GET' };
         currentInit.headers = { ...currentInit.headers };
-        delete currentInit.headers['Content-Type'];
+        for (const name of Object.keys(currentInit.headers)) {
+          if (['content-length', 'content-type', 'content-encoding', 'content-language', 'content-location'].includes(name.toLowerCase())) {
+            delete currentInit.headers[name];
+          }
+        }
       }
       // do not send credentials to another origin
       if (nextUrl.origin !== new URL(currentUrl).origin) {
